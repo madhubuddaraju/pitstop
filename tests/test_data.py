@@ -31,7 +31,7 @@ def test_eia_regular_sheet_is_parsed_by_area():
     raw = eia_sheet(
         ["EMM_EPMR_PTE_NUS_DPG", "EMM_EPMR_PTE_Y35NY_DPG", "EMM_EPMRU_PTE_NUS_DPG"],
         ["U.S. Regular All Formulations Retail Gasoline Prices (Dollars per Gallon)",
-         "New York City Regular All Formulations Retail Gasoline Prices (Dollars per Gallon)",
+         "Weekly New York City Regular All Formulations Retail Gasoline Prices  (Dollars per Gallon)",
          "U.S. Regular Conventional Retail Gasoline Prices (Dollars per Gallon)"],
         [[pd.Timestamp("2026-09-28"), 3.101, 3.402, 3.0],
          [pd.Timestamp("2026-10-05"), 3.085, None, 3.0],
@@ -56,3 +56,9 @@ def test_eia_diesel_and_merge():
     assert data["updated"] == "2026-10-12"
     assert data["areas"]["NUS"]["diesel"] == [["2026-10-12", 3.7]]
     assert data["areas"]["R1Y"]["name"] == "Central Atlantic"
+
+
+def test_area_names():
+    assert fetch_gas.area_name("Weekly U.S. Regular All Formulations Retail Gasoline Prices  (Dollars per Gallon)") == "United States"
+    assert fetch_gas.area_name("Weekly Boston, MA Regular All Formulations Retail Gasoline Prices  (Dollars per Gallon)") == "Boston, MA"
+    assert fetch_gas.area_name("Weekly West Coast (PADD 5) Except California No 2 Diesel Retail Prices  (Dollars per Gallon)") == "West Coast except California"

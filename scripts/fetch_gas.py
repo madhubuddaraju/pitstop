@@ -31,7 +31,10 @@ NAME_CUT = re.compile(r"\s+(\(PADD|Regular|No 2|Ultra Low|Diesel|Retail|All Grad
 
 def area_name(description: str) -> str:
     """'New York City Regular All Formulations Retail Gasoline Prices (Dollars per Gallon)' -> 'New York City'."""
-    name = NAME_CUT.sub("", description.strip()).strip(" ,")
+    text = re.sub(r"^Weekly\s+", "", description.strip())
+    if re.search(r"except California", text, re.I):
+        return "West Coast except California"
+    name = NAME_CUT.sub("", text).strip(" ,")
     return "United States" if name in ("U.S.", "US") else name
 
 
