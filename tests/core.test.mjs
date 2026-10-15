@@ -145,3 +145,15 @@ test("NYC inspection records match by name and distance", () => {
   assert.ok(inNYC(40.758, -73.9855));
   assert.ok(!inNYC(40.06, -74.4));
 });
+
+test("fuel tiles cover the search circle and rows become places", async () => {
+  const { fuelTileKeys, placesFromTiles } = await import("../docs/core.js");
+  assert.deepEqual(fuelTileKeys(40.5, -73.5, 3000), ["40_-74"]);
+  assert.deepEqual(fuelTileKeys(40.99, -73.01, 3000).sort(), ["40_-73", "40_-74", "41_-73", "41_-74"]);
+  const rows = [[40.762, -73.993, "Shell", "24/7", 1, "600 11th Avenue", "node/1"], [40.9, -73.9, "Far", "", 0, "", "node/2"]];
+  const p = placesFromTiles([rows], { lat: 40.758, lon: -73.9855 }, 3000);
+  assert.equal(p.length, 1);
+  assert.equal(p[0].tags["fuel:diesel"], "yes");
+  assert.equal(p[0].tags.opening_hours, "24/7");
+  assert.equal(p[0].address, "600 11th Avenue");
+});

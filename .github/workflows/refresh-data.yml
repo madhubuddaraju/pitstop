@@ -7,7 +7,7 @@ on:
     - cron: "23 13 * * 2"
   push:
     branches: [main]
-    paths: ["data/**", "scripts/build_dishes.py"]
+    paths: ["data/**", "scripts/**"]
   workflow_dispatch:
 
 permissions:
@@ -26,11 +26,14 @@ jobs:
         run: python scripts/fetch_gas.py
       - name: Dishes
         run: python scripts/build_dishes.py
+      - name: US gas stations (map tiles)
+        continue-on-error: true
+        run: python scripts/build_fuel_tiles.py
       - name: Commit if changed
         run: |
-          git add docs/gas.json docs/dishes.json
+          git add docs/gas.json docs/dishes.json docs/fuel
           if git diff --cached --quiet; then echo "No changes."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Refresh gas prices and dishes $(date -u +%Y-%m-%d)"
+          git commit -m "Refresh gas prices, stations and dishes $(date -u +%Y-%m-%d)"
           git push

@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_dishes  # noqa: E402
+import build_fuel_tiles  # noqa: E402
 import fetch_gas  # noqa: E402
 
 
@@ -62,3 +63,20 @@ def test_area_names():
     assert fetch_gas.area_name("Weekly U.S. Regular All Formulations Retail Gasoline Prices  (Dollars per Gallon)") == "United States"
     assert fetch_gas.area_name("Weekly Boston, MA Regular All Formulations Retail Gasoline Prices  (Dollars per Gallon)") == "Boston, MA"
     assert fetch_gas.area_name("Weekly West Coast (PADD 5) Except California No 2 Diesel Retail Prices  (Dollars per Gallon)") == "West Coast except California"
+
+
+def test_fuel_tiles_from_overpass_csv():
+    text = ("@type\t@id\t@lat\t@lon\tname\tbrand\topening_hours\tfuel:diesel\taddr:housenumber\taddr:street\taddr:city\n"
+            "node\t1\t40.762\t-73.993\tShell\tShell\t24/7\tyes\t600\t11th Avenue\tNew York\n"
+            "way\t2\t40.76201\t-73.99301\tShell\tShell\t\t\t\t\t\n"          # same station as an outline
+            "node\t3\t34.05\t-118.24\t\tArco\t\tno\t\t\t\n"
+            "node\t4\t\t\tBroken\t\t\t\t\t\t\n")
+    tiles = build_fuel_tiles.tiles_from_csv(text)
+    assert sorted(tiles) == ["34_-119", "40_-74"]
+    assert tiles["40_-74"] == [[40.762, -73.993, "Shell", "24/7", 1, "600 11th Avenue, New York", "node/1"]]
+    assert tiles["34_-119"][0][2] == "Arco"
+
+
+def test_fuel_query_asks_for_stations_in_the_us():
+    q = build_fuel_tiles.QUERY
+    assert '"fuel:diesel"' in q and "::lat" in q and 'nwr["amenity"="fuel"](area.us)' in q and "out center" in q

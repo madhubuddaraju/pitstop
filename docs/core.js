@@ -283,3 +283,28 @@ export function matchInspection(place, records) {
   }
   return best;
 }
+
+// ---------- prebuilt gas station tiles (US) ----------
+
+/** Keys of the 1-degree tiles that a circle of radius m around a point touches. */
+export function fuelTileKeys(lat, lon, m) {
+  const dLat = m / 111320, dLon = m / (111320 * Math.cos(lat * Math.PI / 180));
+  const keys = [];
+  for (let a = Math.floor(lat - dLat); a <= Math.floor(lat + dLat); a++)
+    for (let o = Math.floor(lon - dLon); o <= Math.floor(lon + dLon); o++) keys.push(`${a}_${o}`);
+  return keys;
+}
+
+/** Tile rows [lat, lon, name, hours, diesel, address, id] -> places within m, nearest first. */
+export function placesFromTiles(rowLists, origin, m) {
+  const out = [];
+  for (const rows of rowLists) for (const [lat, lon, name, hours, diesel, address, id] of rows) {
+    const dist = distanceMeters(origin.lat, origin.lon, lat, lon);
+    if (dist > m) continue;
+    const tags = { amenity: "fuel", name };
+    if (hours) tags.opening_hours = hours;
+    if (diesel) tags["fuel:diesel"] = "yes";
+    out.push({ id, name, lat, lon, tags, dist, address });
+  }
+  return out.sort((a, b) => a.dist - b.dist);
+}

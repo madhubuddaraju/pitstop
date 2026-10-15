@@ -47,12 +47,16 @@ flowchart LR
       Y[dishes.yaml + cuisines.yaml] --> B[build_dishes.py]
       WP[Wikipedia summaries] --> B
       B --> DJ[dishes.json]
+      OV[OpenStreetMap: every US gas station] --> F[build_fuel_tiles.py] --> FT[1-degree station tiles]
     end
-    GJ & DJ --> APP
+    GJ & DJ & FT --> APP
 ```
 
 - **Places** come live from OpenStreetMap. The search starts within ~700 m and widens until there are enough places
   to choose from (gas starts at 3 km). Three public Overpass servers are asked at once and the first answer is used. Results are cached for 15 minutes.
+- **Gas stations** in the US are extracted from OpenStreetMap once a week (one nationwide query) and split into
+  1-degree tiles, so the page loads the one or two tiles around you from GitHub's CDN instead of querying a map
+  server from every phone. Outside the US it falls back to a live query.
 - **Opening hours** are OSM `opening_hours` strings (`Mo-Th 11:00-22:00; Fr-Sa 11:00-02:00; PH off`), evaluated with
   the opening_hours.js library against your local time and public holidays. Places with missing or unparseable hours are
   shown separately as "hours not listed", not as closed.
@@ -74,6 +78,7 @@ pip install -r requirements.txt
 python -m pytest -q tests                        # data tests (EIA parsing, dish files)
 python scripts/fetch_gas.py                      # refresh docs/gas.json
 python scripts/build_dishes.py                   # rebuild docs/dishes.json with Wikipedia text and photos
+python scripts/build_fuel_tiles.py               # every US gas station into docs/fuel/ tiles
 python -m http.server -d docs 8000               # open http://localhost:8000
 ```
 
@@ -86,8 +91,9 @@ docs/index.html     the app (one page, no build step)
 docs/core.js        logic: distances, OSM queries, opening hours, cuisines, gas areas, inspection matching
 docs/dishes.json    built dish guide
 docs/gas.json       weekly prices by area
+docs/fuel/          US gas stations in 1-degree tiles
 data/               dishes.yaml and cuisines.yaml, written by hand
-scripts/            fetch_gas.py, build_dishes.py
+scripts/            fetch_gas.py, build_dishes.py, build_fuel_tiles.py
 tests/              Node tests for core.js, pytest for the data scripts
 ```
 

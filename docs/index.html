@@ -273,6 +273,7 @@ a { color: inherit; }
 import {
   overpassQuery, parsePlaces, cuisineIndex, cuisinesFor, cuisineLabel, dishesFor, dietBadges, serviceBadges,
   hoursStatus, lateNight, weekHours, formatDistance, gasForLocation, inNYC, matchInspection, OVERPASS_URLS, distanceMeters,
+  fuelTileKeys, placesFromTiles,
 } from "./core.js";
 
 const DATA_BASE = location.hostname.endsWith("github.io") || location.protocol === "file:"
@@ -468,13 +469,33 @@ async function findPlaces(kind) {
   // start close and widen until there's enough to choose from
   const radii = kind === "gas" ? [3000, 8000, 20000] : [700, 1600, 4000];
   const enough = kind === "gas" ? 6 : 30;
-  let places = [];
+  let places = kind === "gas" ? await stationsFromTiles(loc, radii, enough) : null;
+  if (places) return places;
+  places = [];
   for (const r of radii) {
     places = parsePlaces(await overpass(overpassQuery(kind, loc.lat, loc.lon, r)), kind, loc);
     if (places.length >= enough) break;
   }
   try { sessionStorage.setItem(key, JSON.stringify({ at: Date.now(), places })); } catch {}
   return places;
+}
+
+// US gas stations are prebuilt weekly into 1-degree tiles; elsewhere the live map servers are used.
+async function stationsFromTiles(loc, radii, enough) {
+  try {
+    S.fuelIndex ??= await (await fetch(DATA_BASE + "fuel/index.json")).json();
+    const have = new Set(S.fuelIndex.tiles);
+    const keys = fuelTileKeys(loc.lat, loc.lon, radii[radii.length - 1]).filter(k => have.has(k));
+    if (!keys.length) return null;
+    const rows = await Promise.all(keys.map(async k => {
+      S.fuelTiles ??= {};
+      S.fuelTiles[k] ??= await (await fetch(DATA_BASE + `fuel/${k}.json`)).json();
+      return S.fuelTiles[k];
+    }));
+    let places = [];
+    for (const r of radii) { places = placesFromTiles(rows, loc, r); if (places.length >= enough) break; }
+    return places.length ? places : null;
+  } catch { return null; }
 }
 
 // ---------- results ----------
