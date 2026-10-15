@@ -16,10 +16,16 @@ def check(url: str) -> None:
         browser = p.chromium.launch()
         page = browser.new_page(viewport={"width": 390, "height": 844}, timezone_id="America/New_York")
         errors = []
+        page.on("console", lambda m: print("  console:", m.type, m.text) if m.type in ("error", "warning") else None)
+        import os
+        os.makedirs("screenshots", exist_ok=True)
         page.on("pageerror", lambda e: errors.append(str(e)))
         for name, at in PLACES.items():
             page.goto(f"{url}?at={at}#food")
-            page.wait_for_selector(".item", timeout=60000)
+            try:
+                page.wait_for_selector(".item", timeout=60000)
+            finally:
+                page.screenshot(path=f"screenshots/{name.split(',')[0].replace(' ', '-')}-food.png")
             summary = page.text_content(".summary")
             items = page.locator(".item").count()
             print(f"{name} food: {summary.strip()} ({items} shown)")
@@ -38,7 +44,10 @@ def check(url: str) -> None:
                     break
                 page.go_back()
             page.goto(f"{url}?at={at}#gas")
-            page.wait_for_selector(".price-card", timeout=60000)
+            try:
+                page.wait_for_selector(".price-card", timeout=60000)
+            finally:
+                page.screenshot(path=f"screenshots/{name.split(',')[0].replace(' ', '-')}-gas.png")
             print(f"{name} gas: {page.text_content('.price-card .lbl')} {page.text_content('.price-big')}; "
                   f"{page.text_content('.summary')}")
         browser.close()

@@ -6,6 +6,9 @@ on:
     - cron: "37 14 * * 3"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -15,4 +18,12 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install playwright==1.55.0 && python -m playwright install --with-deps chromium
-      - run: python tests/live/check_live.py https://madhubuddaraju.github.io/pitstop/
+      - name: Check the published page
+        run: python tests/live/check_live.py https://madhubuddaraju.github.io/pitstop/ 2>&1 | tee live-check.txt; exit ${PIPESTATUS[0]}
+      - name: Keep the report on the live-check-log branch
+        if: always()
+        run: |
+          mkdir /tmp/report && cp live-check.txt /tmp/report/ && cp -r screenshots /tmp/report/ 2>/dev/null || true
+          cd /tmp/report && git init -q -b live-check-log && git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Live check $(date -u +%F)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" live-check-log
