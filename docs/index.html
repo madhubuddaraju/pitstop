@@ -435,8 +435,7 @@ async function loadGas() {
   return S.gas;
 }
 
-async function overpass(query) {
-  // Ask the public Overpass servers at the same time and use whichever answers first; any one can be slow or busy.
+async function overpassOnce(query) {
   const ctrls = OVERPASS_URLS.map(() => new AbortController());
   const timer = setTimeout(() => ctrls.forEach(c => c.abort()), 45000);
   try {
@@ -446,9 +445,17 @@ async function overpass(query) {
       if (!r.ok) throw new Error("HTTP " + r.status);
       const j = await r.json();
       ctrls.forEach((c, k) => { if (k !== i) c.abort(); });
+      S.server = new URL(url).hostname;
       return j;
     }));
   } finally { clearTimeout(timer); }
+}
+
+async function overpass(query) {
+  // Ask the public Overpass servers at the same time and use whichever answers first; any one can be slow or busy.
+  // If all of them turn the request away (they limit requests per visitor), wait a moment and try once more.
+  try { return await overpassOnce(query); }
+  catch { await new Promise(r => setTimeout(r, 4000)); return overpassOnce(query); }
 }
 
 async function findPlaces(kind) {
@@ -815,6 +822,7 @@ async function loadGrade(p) {
   } catch { box?.remove(); }
 }
 
+window.__server = () => S.server;
 route();
 if (urlLocation() && !location.hash) {
   const m = new URLSearchParams(location.search).get("mode");

@@ -1,8 +1,10 @@
 // Pure logic for Pitstop: distances, OpenStreetMap queries, opening hours, cuisines, gas price areas.
 // No DOM access here, so it can be tested in Node.
 
+// Public Overpass servers that allow requests from web pages. They are asked at the same time; first answer wins.
 export const OVERPASS_URLS = [
   "https://overpass-api.de/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
   "https://overpass.private.coffee/api/interpreter",
 ];
 
