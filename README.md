@@ -52,7 +52,7 @@ flowchart LR
 ```
 
 - **Places** come live from OpenStreetMap. The search starts within ~700 m and widens until there are enough places
-  to choose from (gas starts at 3 km). Results are cached for 15 minutes.
+  to choose from (gas starts at 3 km). Two public Overpass servers are asked at once and the first answer is used. Results are cached for 15 minutes.
 - **Opening hours** are OSM `opening_hours` strings (`Mo-Th 11:00-22:00; Fr-Sa 11:00-02:00; PH off`), evaluated with
   the opening_hours.js library against your local time and public holidays. Places with missing or unparseable hours are
   shown separately as "hours not listed", not as closed.
