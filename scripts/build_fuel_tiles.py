@@ -24,30 +24,42 @@ OUT = ROOT / "docs" / "fuel"
 SERVERS = ["https://overpass-api.de/api/interpreter", "https://maps.mail.ru/osm/tools/overpass/api/interpreter"]
 FIELDS = ["::type", "::id", "::lat", "::lon", "name", "brand", "opening_hours", "fuel:diesel",
           "addr:housenumber", "addr:street", "addr:city"]
-QUERY = ("[out:csv(" + ",".join(f'"{f}"' if ":" in f and not f.startswith("::") else f for f in FIELDS)
-         + ';true;"\\t")][timeout:900][maxsize:2000000000];'
-         'area["ISO3166-1"="US"][admin_level=2]->.us;'
-         'area["ISO3166-1"="PR"]->.pr;'
-         '(nwr["amenity"="fuel"](area.us);nwr["amenity"="fuel"](area.pr););out center;')
+HEADER = "\t".join("@" + f[2:] if f.startswith("::") else f for f in FIELDS)
+CSV = "[out:csv(" + ",".join(f'"{f}"' if ":" in f and not f.startswith("::") else f for f in FIELDS) + ';true;"\\t")]'
+# 5-degree boxes over the lower 48, plus Alaska, Hawaii and Puerto Rico. One nationwide query is too heavy for the
+# public servers, while a box takes a few seconds. Boxes include a little of Canada and Mexico, which is harmless.
+BOXES = ([(lat, lon, lat + 5, lon + 5) for lat in range(24, 50, 5) for lon in range(-125, -65, 5)]
+         + [(51, -180, 72, -129), (18, -161, 23, -154), (17.5, -68, 18.6, -65)])
+
+
+def query(box) -> str:
+    s, w, n, e = box
+    return f"{CSV}[timeout:180];nwr[\"amenity\"=\"fuel\"]({s},{w},{n},{e});out center;"
 
 
 def fetch() -> str:
     import requests
-    last = None
-    for url in SERVERS:
-        for attempt in range(2):
+    session = requests.Session()
+    session.headers["User-Agent"] = "pitstop-fuel-tiles/1.0 (github.com/madhubuddaraju/pitstop)"
+    lines = [HEADER]
+    for i, box in enumerate(BOXES):
+        for attempt in range(4):
+            url = SERVERS[attempt % len(SERVERS)]
             try:
-                r = requests.post(url, data={"data": QUERY}, timeout=1000,
-                                  headers={"User-Agent": "pitstop-fuel-tiles/1.0 (github.com/madhubuddaraju/pitstop)"})
-                if r.status_code == 200 and r.text.count("\n") > 1000:
-                    print(f"{url}: {len(r.content) / 1e6:.1f} MB")
-                    return r.text
-                last = f"{url}: HTTP {r.status_code}, {r.text[:200]!r}"
+                r = session.post(url, data={"data": query(box)}, timeout=240)
+                if r.status_code == 200 and r.text.startswith("@type"):
+                    rows = r.text.splitlines()[1:]
+                    lines += rows
+                    print(f"box {i + 1}/{len(BOXES)} {box}: {len(rows):,} stations ({url.split('/')[2]})")
+                    break
+                print(f"box {box}: {url} HTTP {r.status_code}", file=sys.stderr)
             except Exception as exc:
-                last = f"{url}: {exc}"
-            print(last, file=sys.stderr)
-            time.sleep(30)
-    sys.exit(f"Could not fetch gas stations: {last}")
+                print(f"box {box}: {url} {exc}", file=sys.stderr)
+            time.sleep(10 * (attempt + 1))
+        else:
+            sys.exit(f"Could not fetch gas stations for box {box}")
+        time.sleep(2)   # be gentle with the shared servers
+    return "\n".join(lines) + "\n"
 
 
 def tiles_from_csv(text: str) -> dict:

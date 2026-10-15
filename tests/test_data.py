@@ -77,6 +77,10 @@ def test_fuel_tiles_from_overpass_csv():
     assert tiles["34_-119"][0][2] == "Arco"
 
 
-def test_fuel_query_asks_for_stations_in_the_us():
-    q = build_fuel_tiles.QUERY
-    assert '"fuel:diesel"' in q and "::lat" in q and 'nwr["amenity"="fuel"](area.us)' in q and "out center" in q
+def test_fuel_queries_cover_the_us_in_boxes():
+    q = build_fuel_tiles.query((40, -75, 45, -70))
+    assert '"fuel:diesel"' in q and "::lat" in q and 'nwr["amenity"="fuel"](40,-75,45,-70)' in q and "out center" in q
+    assert build_fuel_tiles.HEADER.startswith("@type\t@id\t@lat\t@lon\tname")
+    covered = lambda lat, lon: any(s <= lat < n and w <= lon < e for s, w, n, e in build_fuel_tiles.BOXES)
+    for lat, lon in [(40.76, -73.99), (25.76, -80.19), (47.61, -122.33), (61.2, -149.9), (21.3, -157.86), (18.4, -66.1)]:
+        assert covered(lat, lon), (lat, lon)

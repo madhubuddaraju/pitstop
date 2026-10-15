@@ -54,7 +54,7 @@ flowchart LR
 
 - **Places** come live from OpenStreetMap. The search starts within ~700 m and widens until there are enough places
   to choose from (gas starts at 3 km). Three public Overpass servers are asked at once and the first answer is used. Results are cached for 15 minutes.
-- **Gas stations** in the US are extracted from OpenStreetMap once a week (one nationwide query) and split into
+- **Gas stations** in the US are extracted from OpenStreetMap once a week (in 75 boxes of 5 degrees) and split into
   1-degree tiles, so the page loads the one or two tiles around you from GitHub's CDN instead of querying a map
   server from every phone. Outside the US it falls back to a live query.
 - **Opening hours** are OSM `opening_hours` strings (`Mo-Th 11:00-22:00; Fr-Sa 11:00-02:00; PH off`), evaluated with
