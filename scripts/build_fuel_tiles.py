@@ -4,8 +4,10 @@ Stations change slowly, so a weekly extract is fresher than needed and far faste
 public map server live from every phone. Each tile is docs/fuel/<lat>_<lon>.json (floor of the coordinates) and holds
 rows of [lat, lon, name, opening_hours, diesel, address, osm_id].
 
-    python scripts/build_fuel_tiles.py                 # fetch from Overpass and write tiles
+    python scripts/build_fuel_tiles.py                 # fetch from Overpass box by box and update the tiles
     python scripts/build_fuel_tiles.py --from file.csv # rebuild tiles from a saved extract
+
+The public servers sometimes turn a box away; that box keeps last week's tiles and is retried next run.
 """
 
 import argparse
@@ -13,7 +15,6 @@ import csv
 import io
 import json
 import math
-import shutil
 import sys
 import time
 from collections import defaultdict
@@ -21,7 +22,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "fuel"
-SERVERS = ["https://overpass-api.de/api/interpreter", "https://maps.mail.ru/osm/tools/overpass/api/interpreter"]
+SERVERS = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter",
+           "https://maps.mail.ru/osm/tools/overpass/api/interpreter"]
 FIELDS = ["::type", "::id", "::lat", "::lon", "name", "brand", "opening_hours", "fuel:diesel",
           "addr:housenumber", "addr:street", "addr:city"]
 HEADER = "\t".join("@" + f[2:] if f.startswith("::") else f for f in FIELDS)
@@ -29,7 +31,7 @@ CSV = "[out:csv(" + ",".join(f'"{f}"' if ":" in f and not f.startswith("::") els
 # 5-degree boxes over the lower 48, plus Alaska, Hawaii and Puerto Rico. One nationwide query is too heavy for the
 # public servers, while a box takes a few seconds. Boxes include a little of Canada and Mexico, which is harmless.
 BOXES = ([(lat, lon, lat + 5, lon + 5) for lat in range(24, 50, 5) for lon in range(-125, -65, 5)]
-         + [(51, -180, 72, -129), (18, -161, 23, -154), (17.5, -68, 18.6, -65)])
+         + [(51, -180, 72, -129), (18, -161, 23, -154), (17, -68, 19, -65)])
 
 
 def query(box) -> str:
@@ -37,29 +39,25 @@ def query(box) -> str:
     return f"{CSV}[timeout:180];nwr[\"amenity\"=\"fuel\"]({s},{w},{n},{e});out center;"
 
 
-def fetch() -> str:
-    import requests
-    session = requests.Session()
-    session.headers["User-Agent"] = "pitstop-fuel-tiles/1.0 (github.com/madhubuddaraju/pitstop)"
-    lines = [HEADER]
-    for i, box in enumerate(BOXES):
-        for attempt in range(4):
-            url = SERVERS[attempt % len(SERVERS)]
-            try:
-                r = session.post(url, data={"data": query(box)}, timeout=240)
-                if r.status_code == 200 and r.text.startswith("@type"):
-                    rows = r.text.splitlines()[1:]
-                    lines += rows
-                    print(f"box {i + 1}/{len(BOXES)} {box}: {len(rows):,} stations ({url.split('/')[2]})")
-                    break
-                print(f"box {box}: {url} HTTP {r.status_code}", file=sys.stderr)
-            except Exception as exc:
-                print(f"box {box}: {url} {exc}", file=sys.stderr)
-            time.sleep(10 * (attempt + 1))
-        else:
-            sys.exit(f"Could not fetch gas stations for box {box}")
-        time.sleep(2)   # be gentle with the shared servers
-    return "\n".join(lines) + "\n"
+def fetch_box(session, box) -> str | None:
+    """CSV text for one box, trying each server in turn; None if all of them fail."""
+    for attempt in range(6):
+        url = SERVERS[attempt % len(SERVERS)]
+        try:
+            r = session.post(url, data={"data": query(box)}, timeout=240)
+            if r.status_code == 200 and r.text.startswith("@type"):
+                return r.text
+            print(f"  {box}: {url.split('/')[2]} HTTP {r.status_code}", file=sys.stderr)
+        except Exception as exc:
+            print(f"  {box}: {url.split('/')[2]} {type(exc).__name__}", file=sys.stderr)
+        time.sleep(8 * (attempt + 1))
+    return None
+
+
+def in_box(key: str, box) -> bool:
+    lat, lon = map(int, key.split("_"))
+    s, w, n, e = box
+    return s <= lat < n and w <= lon < e
 
 
 def tiles_from_csv(text: str) -> dict:
@@ -85,29 +83,47 @@ def tiles_from_csv(text: str) -> dict:
     return tiles
 
 
-def write(tiles: dict) -> None:
-    if OUT.exists():
-        shutil.rmtree(OUT)
-    OUT.mkdir(parents=True)
+def write(tiles: dict, boxes) -> None:
+    """Replace the tiles inside the boxes that were fetched; tiles of boxes that failed this time are kept."""
+    OUT.mkdir(parents=True, exist_ok=True)
+    for f in OUT.glob("*_*.json"):
+        if any(in_box(f.stem, b) for b in boxes):
+            f.unlink()
     for key, rows in tiles.items():
         rows.sort(key=lambda r: r[6])
         (OUT / f"{key}.json").write_text(json.dumps(rows, ensure_ascii=False, separators=(",", ":")))
-    (OUT / "index.json").write_text(json.dumps({"built": time.strftime("%Y-%m-%d"), "tiles": sorted(tiles),
-                                                "stations": sum(map(len, tiles.values()))}, separators=(",", ":")))
+    keys = sorted(f.stem for f in OUT.glob("*_*.json"))
+    total = sum(len(json.loads((OUT / f"{k}.json").read_text())) for k in keys)
+    (OUT / "index.json").write_text(json.dumps({"built": time.strftime("%Y-%m-%d"), "tiles": keys, "stations": total},
+                                               separators=(",", ":")))
+    print(f"{total:,} stations in {len(keys)} tiles")
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--from", dest="src")
+    p.add_argument("--from", dest="src", help="rebuild every tile from a saved CSV extract")
     args = p.parse_args()
-    text = Path(args.src).read_text() if args.src else fetch()
-    tiles = tiles_from_csv(text)
-    n = sum(map(len, tiles.values()))
-    if n < 50000 and not args.src:
-        sys.exit(f"Only {n} stations; refusing to replace the tiles with a partial extract")
-    write(tiles)
-    biggest = max(tiles.items(), key=lambda kv: len(kv[1]))
-    print(f"{n:,} stations in {len(tiles)} tiles; largest {biggest[0]} with {len(biggest[1]):,}")
+    if args.src:
+        write(tiles_from_csv(Path(args.src).read_text()), BOXES)
+        return
+    import requests
+    session = requests.Session()
+    session.headers["User-Agent"] = "pitstop-fuel-tiles/1.0 (github.com/madhubuddaraju/pitstop)"
+    done, failed, tiles = [], [], {}
+    for i, box in enumerate(BOXES):
+        text = fetch_box(session, box)
+        if text is None:
+            failed.append(box)
+            continue
+        got = tiles_from_csv(text)
+        tiles.update(got)
+        done.append(box)
+        print(f"box {i + 1}/{len(BOXES)} {box}: {sum(map(len, got.values())):,} stations")
+        time.sleep(2)   # be gentle with the shared servers
+    write(tiles, done)
+    print(f"Fetched {len(done)} of {len(BOXES)} boxes; kept the previous tiles for {len(failed)}: {failed}")
+    if not done:
+        sys.exit("No boxes could be fetched")
 
 
 if __name__ == "__main__":

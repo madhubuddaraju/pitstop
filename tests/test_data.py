@@ -84,3 +84,16 @@ def test_fuel_queries_cover_the_us_in_boxes():
     covered = lambda lat, lon: any(s <= lat < n and w <= lon < e for s, w, n, e in build_fuel_tiles.BOXES)
     for lat, lon in [(40.76, -73.99), (25.76, -80.19), (47.61, -122.33), (61.2, -149.9), (21.3, -157.86), (18.4, -66.1)]:
         assert covered(lat, lon), (lat, lon)
+
+
+def test_fuel_tiles_update_only_fetched_boxes(tmp_path, monkeypatch):
+    import json
+    monkeypatch.setattr(build_fuel_tiles, "OUT", tmp_path)
+    (tmp_path / "40_-74.json").write_text('[[40.5, -73.5, "Old", "", 0, "", "node/9"]]')     # inside the fetched box
+    (tmp_path / "34_-119.json").write_text('[[34.0, -118.5, "Kept", "", 0, "", "node/8"]]')  # box failed: keep
+    new = {"40_-74": [[40.6, -73.6, "New", "", 0, "", "node/1"]]}
+    build_fuel_tiles.write(new, [(39, -75, 44, -70)])
+    assert json.loads((tmp_path / "40_-74.json").read_text())[0][2] == "New"
+    assert json.loads((tmp_path / "34_-119.json").read_text())[0][2] == "Kept"
+    index = json.loads((tmp_path / "index.json").read_text())
+    assert index["tiles"] == ["34_-119", "40_-74"] and index["stations"] == 2
