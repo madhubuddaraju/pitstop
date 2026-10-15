@@ -1,0 +1,1930 @@
+# Dishes shown on a restaurant's page. Written by hand; the build adds a longer description and a photo from Wikipedia.
+# diet: meat | fish | veg | vegan  (what the usual version contains)
+# spicy: 0 none, 1 mild or optional, 2 hot
+# tip: optional, how to order or eat it
+
+cheeseburger:
+  name: Cheeseburger
+  wiki: Cheeseburger
+  about: A grilled beef patty with melted cheese in a soft bun.
+  diet: meat
+  spicy: 0
+  ingredients: [ground beef, American or cheddar cheese, bun, lettuce, tomato, onion, pickles, ketchup or sauce]
+  steps:
+    - Ground beef is shaped into a patty and seasoned with salt and pepper.
+    - It is cooked on a very hot griddle or grill, and cheese is laid on top in the last minute to melt.
+    - The patty goes into a toasted bun with lettuce, tomato, onion, pickles and sauce.
+  tip: You'll usually be asked how you want it cooked. "Medium" is pink in the middle; "well done" is cooked through.
+french-fries:
+  name: French fries
+  wiki: French fries
+  about: Strips of potato fried until crisp outside and soft inside.
+  diet: vegan
+  spicy: 0
+  ingredients: [potatoes, oil, salt]
+  steps:
+    - Potatoes are cut into strips and often soaked to remove starch.
+    - They are fried twice, first at a lower heat to cook through, then hotter to crisp.
+    - They are salted straight out of the oil.
+  tip: Some places fry in beef fat; ask if you need them vegetarian.
+milkshake:
+  name: Milkshake
+  wiki: Milkshake
+  about: A thick cold drink of ice cream blended with milk.
+  diet: veg
+  spicy: 0
+  ingredients: [ice cream, milk, flavouring such as chocolate, vanilla or strawberry, whipped cream]
+  steps:
+    - Ice cream and milk are blended until thick and smooth.
+    - Syrup, fruit or cookies are blended in for flavour.
+    - It is served in a tall glass, often topped with whipped cream.
+hot-dog:
+  name: Hot dog
+  wiki: Hot dog
+  about: A grilled or boiled sausage in a long soft bun.
+  diet: meat
+  spicy: 0
+  ingredients: [beef or pork frankfurter, bun, mustard, ketchup, onions, sauerkraut, relish]
+  steps:
+    - The frankfurter is boiled, steamed or grilled.
+    - It is placed in a split bun.
+    - It is topped with mustard and other toppings. In New York, mustard and sauerkraut or onions are classic.
+  tip: Most New York street hot dogs are all-beef; ask if you avoid pork.
+buffalo-wings:
+  name: Buffalo wings
+  wiki: Buffalo wing
+  about: Fried chicken wings tossed in a spicy, buttery hot sauce.
+  diet: meat
+  spicy: 2
+  ingredients: [chicken wings, cayenne hot sauce, butter, celery, blue cheese or ranch dip]
+  steps:
+    - Chicken wings are deep-fried until the skin is crisp.
+    - They are tossed in a sauce of melted butter and cayenne pepper hot sauce.
+    - They are served with celery sticks and a cool blue cheese or ranch dip.
+  tip: Heat levels are often mild, medium, hot. Medium is already spicy for many people.
+mac-and-cheese:
+  name: Mac and cheese
+  wiki: Macaroni and cheese
+  about: Pasta in a rich, creamy cheese sauce, sometimes baked with a crunchy top.
+  diet: veg
+  spicy: 0
+  ingredients: [macaroni pasta, cheddar cheese, milk, butter, flour, breadcrumbs]
+  steps:
+    - Butter and flour are cooked together, then milk is whisked in to make a white sauce.
+    - Grated cheddar is melted into the sauce.
+    - Cooked macaroni is mixed in, and it may be topped with breadcrumbs and baked.
+cobb-salad:
+  name: Cobb salad
+  wiki: Cobb salad
+  about: A large salad with rows of chicken, bacon, egg, avocado and blue cheese.
+  diet: meat
+  spicy: 0
+  ingredients: [lettuce, chicken, bacon, hard-boiled egg, avocado, tomato, blue cheese, vinaigrette]
+  steps:
+    - Lettuce is chopped and spread on a plate.
+    - Chicken, bacon, egg, avocado, tomato and blue cheese are arranged in rows on top.
+    - It is dressed with vinaigrette just before eating.
+fried-chicken:
+  name: Fried chicken
+  wiki: Fried chicken
+  about: Chicken pieces in a seasoned crunchy coating, deep-fried.
+  diet: meat
+  spicy: 1
+  ingredients: [chicken pieces, buttermilk, flour, salt, pepper, paprika, oil]
+  steps:
+    - Chicken is soaked in seasoned buttermilk to keep it juicy.
+    - It is dredged in seasoned flour.
+    - It is deep-fried until golden and cooked through.
+chicken-tenders:
+  name: Chicken tenders
+  wiki: Chicken fingers
+  about: Strips of breaded, fried chicken breast with dipping sauces.
+  diet: meat
+  spicy: 0
+  ingredients: [chicken breast, flour, egg, breadcrumbs, oil, honey mustard or barbecue sauce]
+  steps:
+    - Chicken breast is cut into strips.
+    - The strips are coated in flour, egg and breadcrumbs.
+    - They are fried until crisp and served with dipping sauces.
+pancakes:
+  name: Pancakes
+  wiki: Pancake
+  about: A stack of thick, fluffy pancakes with butter and maple syrup.
+  diet: veg
+  spicy: 0
+  ingredients: [flour, milk or buttermilk, eggs, baking powder, butter, maple syrup]
+  steps:
+    - Flour, milk, eggs and baking powder are mixed into a thick batter.
+    - Rounds of batter are cooked on a buttered griddle and flipped when bubbles appear.
+    - They are stacked and served with butter and syrup, often with berries or bacon.
+eggs-benedict:
+  name: Eggs Benedict
+  wiki: Eggs Benedict
+  about: Poached eggs and ham on an English muffin, covered in buttery hollandaise sauce.
+  diet: meat
+  spicy: 0
+  ingredients: [English muffin, Canadian bacon or ham, eggs, butter, lemon, egg yolks]
+  steps:
+    - English muffin halves are toasted and topped with warm ham.
+    - Eggs are poached in simmering water so the yolk stays runny.
+    - Hollandaise, a warm sauce of egg yolk, butter and lemon, is poured over the top.
+  tip: Versions with smoked salmon ("royale") or spinach ("florentine") are common.
+french-toast:
+  name: French toast
+  wiki: French toast
+  about: Thick bread soaked in egg and milk, fried in butter, served sweet.
+  diet: veg
+  spicy: 0
+  ingredients: [bread such as brioche or challah, eggs, milk, cinnamon, butter, maple syrup]
+  steps:
+    - Eggs, milk, sugar and cinnamon are whisked together.
+    - Thick slices of bread are soaked in the mixture.
+    - They are fried in butter until golden and served with syrup and fruit.
+omelette:
+  name: Omelette
+  wiki: Omelette
+  about: Beaten eggs cooked flat and folded around fillings like cheese and vegetables.
+  diet: veg
+  spicy: 0
+  ingredients: [eggs, butter, cheese, vegetables, ham]
+  steps:
+    - Eggs are beaten with salt.
+    - They are poured into a hot buttered pan and stirred gently until just set.
+    - Fillings are added and the omelette is folded in half.
+avocado-toast:
+  name: Avocado toast
+  wiki: Avocado toast
+  about: Toasted bread topped with mashed avocado, often with egg or chilli flakes.
+  diet: vegan
+  spicy: 1
+  ingredients: [sourdough bread, avocado, lemon or lime, salt, chilli flakes, optional egg]
+  steps:
+    - Bread is toasted.
+    - Ripe avocado is mashed with lemon juice and salt.
+    - It is spread on the toast and topped with chilli, seeds or a poached egg.
+ny-slice:
+  name: New York slice
+  wiki: New York-style pizza
+  about: A large, thin, foldable slice of cheese or pepperoni pizza.
+  diet: veg
+  spicy: 0
+  ingredients: [pizza dough, tomato sauce, mozzarella, oregano, optional pepperoni]
+  steps:
+    - Dough is stretched very thin into a wide round.
+    - It is topped with tomato sauce and low-moisture mozzarella.
+    - It is baked in a hot deck oven, cut into big slices and reheated when you order.
+  tip: Fold the slice in half lengthwise to eat it. A plain cheese slice is usually the cheapest meal in town.
+margherita-pizza:
+  name: Margherita pizza
+  wiki: Pizza Margherita
+  about: Pizza with tomato, fresh mozzarella and basil.
+  diet: veg
+  spicy: 0
+  ingredients: [pizza dough, San Marzano tomatoes, fresh mozzarella, basil, olive oil]
+  steps:
+    - Dough is stretched by hand into a round.
+    - It is topped with crushed tomatoes and pieces of fresh mozzarella.
+    - It is baked very hot until the crust blisters, then finished with basil and olive oil.
+garlic-knots:
+  name: Garlic knots
+  wiki: Garlic knot
+  about: Knots of pizza dough baked and coated in garlic butter.
+  diet: veg
+  spicy: 0
+  ingredients: [pizza dough, garlic, butter or olive oil, parsley, parmesan]
+  steps:
+    - Strips of dough are tied into knots.
+    - They are baked until golden.
+    - They are tossed in garlic butter, parsley and parmesan.
+calzone:
+  name: Calzone
+  wiki: Calzone
+  about: Pizza dough folded over and sealed around cheese and fillings, then baked.
+  diet: veg
+  spicy: 0
+  ingredients: [pizza dough, ricotta, mozzarella, optional ham or vegetables, tomato sauce for dipping]
+  steps:
+    - Dough is rolled into a round.
+    - Ricotta, mozzarella and fillings go on one half, and the dough is folded over and sealed.
+    - It is baked and served with tomato sauce.
+carbonara:
+  name: Spaghetti carbonara
+  wiki: Carbonara
+  about: Pasta in a silky sauce of egg, cheese and crispy cured pork.
+  diet: meat
+  spicy: 0
+  ingredients: [spaghetti, guanciale or pancetta, egg yolks, Pecorino Romano, black pepper]
+  steps:
+    - Cured pork is cooked until crisp.
+    - Hot pasta is tossed with the pork and its fat.
+    - Off the heat, egg yolks and grated cheese are stirred in to make a creamy sauce without cream.
+chicken-parm:
+  name: Chicken parmesan
+  wiki: Chicken parmigiana
+  about: Breaded fried chicken cutlet baked with tomato sauce and melted mozzarella.
+  diet: meat
+  spicy: 0
+  ingredients: [chicken breast, breadcrumbs, egg, tomato sauce, mozzarella, parmesan, spaghetti]
+  steps:
+    - Chicken breast is pounded thin, breaded and fried.
+    - It is covered in tomato sauce and mozzarella.
+    - It is baked until bubbling and served with pasta or in a sandwich (a "chicken parm hero").
+lasagna:
+  name: Lasagna
+  wiki: Lasagna
+  about: Layers of flat pasta, meat sauce, ricotta and mozzarella, baked.
+  diet: meat
+  spicy: 0
+  ingredients: [lasagna sheets, beef or pork ragù, ricotta, mozzarella, parmesan, tomato]
+  steps:
+    - A slow-cooked meat and tomato sauce is made.
+    - Pasta sheets, sauce, ricotta and mozzarella are layered in a deep pan.
+    - It is baked until bubbling and rested before cutting.
+risotto:
+  name: Risotto
+  wiki: Risotto
+  about: Creamy rice slowly cooked in broth with parmesan.
+  diet: veg
+  spicy: 0
+  ingredients: [arborio rice, broth, onion, white wine, butter, parmesan, mushrooms or seafood]
+  steps:
+    - Onion is softened in butter and the rice is toasted in it.
+    - Hot broth is added a ladle at a time while stirring, which releases starch and makes it creamy.
+    - Butter and parmesan are stirred in at the end.
+  tip: The broth may be chicken; ask if you need it vegetarian.
+tiramisu:
+  name: Tiramisu
+  wiki: Tiramisu
+  about: A layered dessert of coffee-soaked sponge fingers and mascarpone cream.
+  diet: veg
+  spicy: 0
+  ingredients: [ladyfinger biscuits, espresso, mascarpone, eggs, sugar, cocoa powder]
+  steps:
+    - Ladyfingers are dipped in strong coffee.
+    - They are layered with a cream of mascarpone, egg and sugar.
+    - It is chilled for hours and dusted with cocoa.
+  tip: Often contains a little alcohol (marsala or rum).
+tacos-al-pastor:
+  name: Tacos al pastor
+  wiki: Al pastor
+  about: Small corn tortillas with marinated pork cooked on a vertical spit, with pineapple.
+  diet: meat
+  spicy: 1
+  ingredients: [pork shoulder, dried chillies, achiote, pineapple, corn tortillas, onion, cilantro, lime]
+  steps:
+    - Pork is marinated in a paste of dried chillies, spices and achiote.
+    - It is stacked on a vertical spit and roasted, with pineapple on top.
+    - Thin slices are shaved into warm tortillas and topped with onion, cilantro, pineapple and salsa.
+  tip: Tacos are small, so order two or three. Squeeze the lime on top.
+burrito:
+  name: Burrito
+  wiki: Burrito
+  about: A large flour tortilla wrapped around rice, beans, meat and salsa.
+  diet: meat
+  spicy: 1
+  ingredients: [flour tortilla, rice, beans, grilled meat, cheese, salsa, sour cream, guacamole]
+  steps:
+    - A large flour tortilla is warmed so it folds easily.
+    - Rice, beans, meat, cheese and salsa are piled in the middle.
+    - The sides are folded in and it is rolled tightly, sometimes grilled to seal.
+enchiladas:
+  name: Enchiladas
+  wiki: Enchilada
+  about: Rolled corn tortillas filled and covered in chilli sauce and cheese.
+  diet: meat
+  spicy: 1
+  ingredients: [corn tortillas, chicken or cheese, red or green chilli sauce, cheese, onion, sour cream]
+  steps:
+    - Tortillas are softened in warm oil or sauce.
+    - They are filled with chicken, beef or cheese and rolled.
+    - They are covered in chilli sauce and cheese and baked.
+quesadilla:
+  name: Quesadilla
+  wiki: Quesadilla
+  about: A tortilla folded around melted cheese, grilled until crisp.
+  diet: veg
+  spicy: 0
+  ingredients: [tortilla, Oaxaca or Monterey Jack cheese, optional chicken, peppers or mushrooms]
+  steps:
+    - Cheese and fillings are spread on half a tortilla.
+    - It is folded and cooked on a griddle.
+    - It is flipped until both sides are crisp and the cheese melts, and served with salsa.
+guacamole:
+  name: Guacamole
+  wiki: Guacamole
+  about: A dip of mashed avocado with lime, onion, chilli and cilantro.
+  diet: vegan
+  spicy: 1
+  ingredients: [avocado, lime, onion, jalapeño, cilantro, salt, tomato]
+  steps:
+    - Ripe avocados are mashed, leaving some chunks.
+    - Lime juice, chopped onion, chilli, cilantro and salt are mixed in.
+    - It is served right away with tortilla chips.
+elote:
+  name: Elote
+  wiki: Elote
+  about: Grilled corn on the cob with mayonnaise, cheese, chilli and lime.
+  diet: veg
+  spicy: 1
+  ingredients: [corn on the cob, mayonnaise or crema, cotija cheese, chilli powder, lime]
+  steps:
+    - Corn is grilled until lightly charred.
+    - It is spread with mayonnaise or crema.
+    - It is rolled in crumbly cheese and sprinkled with chilli and lime.
+general-tso:
+  name: General Tso's chicken
+  wiki: General Tso's chicken
+  about: Crispy fried chicken in a sweet, tangy and slightly spicy sauce.
+  diet: meat
+  spicy: 1
+  ingredients: [chicken thigh, cornstarch, soy sauce, rice vinegar, sugar, garlic, ginger, dried chillies]
+  steps:
+    - Chicken pieces are coated in cornstarch and deep-fried until crisp.
+    - A sauce of soy, vinegar, sugar, garlic, ginger and dried chillies is cooked in a wok until glossy.
+    - The chicken is tossed in the sauce and served with rice and broccoli.
+  tip: An American-Chinese classic, very popular in New York takeout.
+dumplings:
+  name: Dumplings
+  wiki: Jiaozi
+  about: Thin dough parcels filled with pork, chicken or vegetables, steamed or pan-fried.
+  diet: meat
+  spicy: 0
+  ingredients: [wheat dough wrappers, ground pork, cabbage, scallion, ginger, soy sauce, vinegar dip]
+  steps:
+    - Ground meat is mixed with chopped cabbage, scallion and ginger.
+    - Spoonfuls are wrapped in thin dough and pleated shut.
+    - They are boiled, steamed, or pan-fried until the bottoms crisp, and dipped in soy and vinegar.
+fried-rice:
+  name: Fried rice
+  wiki: Fried rice
+  about: Cooked rice stir-fried in a very hot wok with egg, vegetables and meat.
+  diet: meat
+  spicy: 0
+  ingredients: [day-old rice, egg, scallion, peas, carrot, soy sauce, chicken, pork or shrimp]
+  steps:
+    - Egg is scrambled in a very hot wok.
+    - Cold cooked rice is added and tossed so each grain fries.
+    - Vegetables, meat and soy sauce are mixed in.
+lo-mein:
+  name: Lo mein
+  wiki: Lo mein
+  about: Soft egg noodles tossed with vegetables, meat and a savoury soy sauce.
+  diet: meat
+  spicy: 0
+  ingredients: [egg noodles, cabbage, carrot, scallion, soy sauce, oyster sauce, chicken, beef or shrimp]
+  steps:
+    - Egg noodles are boiled and drained.
+    - Meat and vegetables are stir-fried in a wok.
+    - The noodles are tossed in with soy and oyster sauce until coated.
+kung-pao:
+  name: Kung pao chicken
+  wiki: Kung Pao chicken
+  about: Diced chicken stir-fried with peanuts, dried chillies and Sichuan pepper.
+  diet: meat
+  spicy: 2
+  ingredients: [chicken, peanuts, dried chillies, Sichuan peppercorns, soy sauce, vinegar, scallion]
+  steps:
+    - Diced chicken is marinated in soy and cornstarch.
+    - Dried chillies and Sichuan pepper are fried in oil, then the chicken is stir-fried.
+    - Sauce and roasted peanuts are tossed in at the end.
+  tip: Contains peanuts.
+mapo-tofu:
+  name: Mapo tofu
+  wiki: Mapo tofu
+  about: Soft tofu in a fiery, numbing Sichuan sauce with minced meat.
+  diet: meat
+  spicy: 2
+  ingredients: [silken tofu, ground pork or beef, chilli bean paste, fermented black beans, Sichuan peppercorns]
+  steps:
+    - Ground meat is fried with chilli bean paste until the oil turns red.
+    - Cubes of soft tofu and broth are added and simmered gently.
+    - It is thickened and finished with ground Sichuan pepper, which makes your lips tingle.
+  tip: Vegetarian versions without meat are often available.
+peking-duck:
+  name: Peking duck
+  wiki: Peking duck
+  about: Roast duck with very crisp skin, eaten wrapped in thin pancakes.
+  diet: meat
+  spicy: 0
+  ingredients: [whole duck, maltose glaze, thin pancakes, hoisin sauce, scallion, cucumber]
+  steps:
+    - The duck is air-dried and glazed so the skin turns glassy and crisp when roasted.
+    - It is roasted whole and carved at the table.
+    - You wrap slices in a thin pancake with hoisin sauce, scallion and cucumber.
+  tip: Often ordered for a group; some restaurants need it ordered in advance.
+sushi:
+  name: Sushi
+  wiki: Sushi
+  about: Seasoned rice with raw or cooked fish, as rolls or hand-pressed pieces.
+  diet: fish
+  spicy: 0
+  ingredients: [short-grain rice, rice vinegar, raw fish, nori seaweed, wasabi, pickled ginger, soy sauce]
+  steps:
+    - Rice is cooked and seasoned with vinegar, sugar and salt.
+    - For nigiri, a slice of fish is pressed on a small mound of rice; for rolls (maki), rice and fillings are rolled in seaweed.
+    - It is served with soy sauce, wasabi and pickled ginger.
+  tip: Cooked or vegetarian rolls (California, cucumber, avocado) are good if you don't eat raw fish. Ginger is for between bites.
+sashimi:
+  name: Sashimi
+  wiki: Sashimi
+  about: Slices of very fresh raw fish, served without rice.
+  diet: fish
+  spicy: 0
+  ingredients: [raw tuna, salmon, yellowtail or other fish, daikon radish, wasabi, soy sauce]
+  steps:
+    - High-quality fish is chosen for eating raw.
+    - It is cut with a very sharp knife into neat slices.
+    - It is arranged with shredded radish and served with soy sauce and wasabi.
+miso-soup:
+  name: Miso soup
+  wiki: Miso soup
+  about: A light savoury soup of fermented soybean paste with tofu and seaweed.
+  diet: fish
+  spicy: 0
+  ingredients: [dashi broth, miso paste, tofu, wakame seaweed, scallion]
+  steps:
+    - Dashi broth is made from kelp and dried bonito flakes.
+    - Miso paste is dissolved into the hot broth without boiling.
+    - Tofu, seaweed and scallion are added.
+  tip: The broth usually contains fish.
+edamame:
+  name: Edamame
+  wiki: Edamame
+  about: Young green soybeans in the pod, boiled and salted.
+  diet: vegan
+  spicy: 0
+  ingredients: [soybeans in pods, salt]
+  steps:
+    - Soybean pods are boiled or steamed.
+    - They are sprinkled with coarse salt.
+    - You squeeze the beans out of the pod with your teeth; the pod isn't eaten.
+ramen:
+  name: Ramen
+  wiki: Ramen
+  about: Wheat noodles in a rich broth with pork, egg and toppings.
+  diet: meat
+  spicy: 1
+  ingredients: [wheat noodles, pork or chicken broth, tare seasoning, chashu pork, soft-boiled egg, scallion, nori]
+  steps:
+    - Broth is simmered for many hours from pork bones (tonkotsu), chicken, or with soy (shoyu) or miso.
+    - Fresh noodles are boiled for about a minute.
+    - Noodles and broth go into a bowl with sliced pork, a marinated egg and other toppings.
+  tip: Slurping is normal. Many shops offer a vegetarian broth.
+gyoza:
+  name: Gyoza
+  wiki: Jiaozi
+  about: Japanese pan-fried dumplings, crispy on the bottom and soft on top.
+  diet: meat
+  spicy: 0
+  ingredients: [thin wrappers, ground pork, cabbage, garlic, ginger, soy-vinegar dip]
+  steps:
+    - Pork and cabbage filling is wrapped in thin round wrappers.
+    - They are fried on one side until golden.
+    - Water is added and the pan covered to steam them through.
+tonkatsu:
+  name: Tonkatsu
+  wiki: Tonkatsu
+  about: A crisp breaded and fried pork cutlet with a sweet-tangy sauce.
+  diet: meat
+  spicy: 0
+  ingredients: [pork loin, panko breadcrumbs, egg, flour, shredded cabbage, tonkatsu sauce, rice]
+  steps:
+    - A thick pork cutlet is coated in flour, egg and panko.
+    - It is deep-fried until golden and sliced.
+    - It is served with shredded cabbage, rice and thick tonkatsu sauce.
+tempura:
+  name: Tempura
+  wiki: Tempura
+  about: Shrimp and vegetables in a very light, crisp batter.
+  diet: fish
+  spicy: 0
+  ingredients: [shrimp, vegetables such as sweet potato and broccoli, flour, ice water, dipping sauce]
+  steps:
+    - A thin batter is mixed quickly from flour and ice-cold water.
+    - Shrimp and vegetables are dipped and fried briefly in hot oil.
+    - They are served at once with a light soy-dashi dipping sauce.
+udon:
+  name: Udon
+  wiki: Udon
+  about: Thick, chewy wheat noodles in a light savoury broth.
+  diet: fish
+  spicy: 0
+  ingredients: [udon noodles, dashi, soy sauce, mirin, scallion, tempura or tofu]
+  steps:
+    - A broth is made from dashi, soy and mirin.
+    - Thick noodles are boiled.
+    - They are served in the broth with toppings like tempura, fried tofu or beef.
+poke-bowl:
+  name: Poke bowl
+  wiki: Poke (dish)
+  about: Cubes of raw marinated fish over rice with vegetables and sauces.
+  diet: fish
+  spicy: 1
+  ingredients: [raw tuna or salmon, soy sauce, sesame oil, rice, avocado, cucumber, seaweed, spicy mayo]
+  steps:
+    - Raw fish is cubed and marinated in soy and sesame.
+    - It is placed over rice or greens.
+    - Toppings and sauces are added. Usually you pick them yourself at the counter.
+  tip: Most shops also offer tofu or cooked chicken.
+butter-chicken:
+  name: Butter chicken
+  wiki: Butter chicken
+  about: Tandoori chicken in a mild, creamy tomato and butter sauce.
+  diet: meat
+  spicy: 1
+  ingredients: [chicken, yogurt, garam masala, tomato, butter, cream, fenugreek, ginger, garlic]
+  steps:
+    - Chicken is marinated in yogurt and spices and roasted in a tandoor oven.
+    - A sauce of tomatoes, butter, cream and spices is simmered until smooth.
+    - The chicken is simmered in the sauce and eaten with naan or rice.
+  tip: One of the mildest Indian dishes, a good first choice.
+tikka-masala:
+  name: Chicken tikka masala
+  wiki: Chicken tikka masala
+  about: Roasted chicken pieces in a spiced, creamy orange tomato sauce.
+  diet: meat
+  spicy: 1
+  ingredients: [chicken, yogurt, spices, tomato, onion, cream, ginger, garlic, cilantro]
+  steps:
+    - Marinated chicken pieces (tikka) are grilled or roasted.
+    - Onion, ginger, garlic and spices are fried, then tomatoes and cream are added.
+    - The chicken is simmered in the sauce.
+  tip: Restaurants usually ask how spicy you want it.
+biryani:
+  name: Biryani
+  wiki: Biryani
+  about: Fragrant long-grain rice layered with spiced meat and slow-cooked.
+  diet: meat
+  spicy: 1
+  ingredients: [basmati rice, chicken, goat or lamb, yogurt, onion, saffron, whole spices, mint]
+  steps:
+    - Meat is marinated in yogurt and spices.
+    - Basmati rice is part-boiled with whole spices.
+    - Rice and meat are layered with fried onions and saffron, sealed and cooked slowly so the flavours mix.
+  tip: Usually served with raita (yogurt sauce) to cool it down. Vegetable biryani is common.
+chana-masala:
+  name: Chana masala
+  wiki: Chana masala
+  about: Chickpeas simmered in a tangy, spiced onion and tomato sauce.
+  diet: vegan
+  spicy: 1
+  ingredients: [chickpeas, onion, tomato, ginger, garlic, chana masala spice mix, cilantro]
+  steps:
+    - Onion, ginger and garlic are fried until brown.
+    - Tomatoes and spices are cooked down into a thick sauce.
+    - Chickpeas are simmered in it until soft.
+palak-paneer:
+  name: Palak paneer
+  wiki: Palak paneer
+  about: Cubes of fresh Indian cheese in a smooth spiced spinach sauce.
+  diet: veg
+  spicy: 1
+  ingredients: [spinach, paneer cheese, onion, garlic, ginger, cream, garam masala]
+  steps:
+    - Spinach is blanched and blended to a smooth purée.
+    - Onion, garlic, ginger and spices are fried, then the spinach is added.
+    - Cubes of paneer are warmed in the sauce.
+samosa:
+  name: Samosa
+  wiki: Samosa
+  about: A crisp fried pastry triangle filled with spiced potato and peas.
+  diet: vegan
+  spicy: 1
+  ingredients: [flour pastry, potato, peas, cumin, coriander, green chilli, tamarind and mint chutneys]
+  steps:
+    - Potatoes are boiled and mashed with peas and spices.
+    - The filling is wrapped in pastry cones and sealed.
+    - They are deep-fried and served with sweet tamarind and green mint chutney.
+naan:
+  name: Naan
+  wiki: Naan
+  about: Soft, puffy flatbread baked on the wall of a tandoor oven.
+  diet: veg
+  spicy: 0
+  ingredients: [flour, yogurt, yeast, butter or ghee, garlic for garlic naan]
+  steps:
+    - A soft dough is made with flour, yogurt and yeast.
+    - It is stretched and slapped onto the hot inside wall of a clay tandoor.
+    - It puffs and chars in a minute and is brushed with butter.
+  tip: Tear off pieces to scoop up curry instead of using a fork.
+masala-dosa:
+  name: Masala dosa
+  wiki: Masala dosa
+  about: A large, thin, crisp fermented rice crêpe filled with spiced potatoes.
+  diet: vegan
+  spicy: 1
+  ingredients: [rice, urad dal lentils, potato, onion, mustard seeds, curry leaves, sambar, coconut chutney]
+  steps:
+    - Rice and lentils are soaked, ground and fermented overnight into a batter.
+    - The batter is spread thin on a hot griddle until crisp.
+    - It is filled with spiced potato and served with sambar (lentil soup) and coconut chutney.
+chicken-karahi:
+  name: Chicken karahi
+  wiki: Karahi
+  about: Chicken cooked fast in a wok-like pan with tomato, ginger and green chilli.
+  diet: meat
+  spicy: 2
+  ingredients: [chicken, tomato, ginger, garlic, green chilli, black pepper, cilantro]
+  steps:
+    - Chicken is seared in a karahi (a deep iron pan).
+    - Tomatoes, ginger and garlic are cooked down with it over high heat.
+    - It is finished with green chillies, ginger and cilantro and eaten with naan.
+nihari:
+  name: Nihari
+  wiki: Nihari
+  about: A slow-cooked, deeply spiced beef stew.
+  diet: meat
+  spicy: 2
+  ingredients: [beef shank, bone marrow, flour, nihari spice mix, ginger, green chilli, lemon]
+  steps:
+    - Beef is slow-cooked overnight with a blend of warm spices.
+    - The gravy is thickened with toasted flour.
+    - It is served topped with ginger, chilli, cilantro and lemon, with naan.
+seekh-kebab:
+  name: Seekh kebab
+  wiki: Seekh kebab
+  about: Spiced minced meat shaped on skewers and grilled over charcoal.
+  diet: meat
+  spicy: 1
+  ingredients: [ground lamb, beef or chicken, onion, green chilli, ginger, garlic, spices]
+  steps:
+    - Ground meat is mixed with onion, herbs and spices.
+    - It is pressed in long rolls around metal skewers.
+    - It is grilled over charcoal and served with onion, lemon and mint chutney.
+momo:
+  name: Momo
+  wiki: Momo (food)
+  about: Himalayan steamed dumplings with a spiced filling and tomato chutney.
+  diet: meat
+  spicy: 1
+  ingredients: [flour wrappers, chicken, beef or vegetables, onion, ginger, garlic, tomato-sesame chutney]
+  steps:
+    - Spiced meat or vegetable filling is wrapped in thin dough and pleated.
+    - The dumplings are steamed in stacked baskets.
+    - They are served with a spicy tomato and sesame dipping sauce.
+thukpa:
+  name: Thukpa
+  wiki: Thukpa
+  about: A hearty Tibetan noodle soup with vegetables and meat.
+  diet: meat
+  spicy: 1
+  ingredients: [noodles, broth, vegetables, chicken or beef, garlic, ginger, chilli]
+  steps:
+    - Broth is simmered with garlic, ginger and spices.
+    - Vegetables and meat are cooked in it.
+    - Noodles are added, and it is served hot.
+dal-bhat:
+  name: Dal bhat
+  wiki: Dal bhat
+  about: Nepal's everyday meal of lentil soup and rice with vegetable curry and pickle.
+  diet: vegan
+  spicy: 1
+  ingredients: [lentils, rice, vegetable curry, pickle (achar), greens]
+  steps:
+    - Lentils are simmered with turmeric and tempered with fried spices.
+    - Rice is steamed.
+    - They are served on one plate with vegetable curry, greens and pickle.
+pad-thai:
+  name: Pad thai
+  wiki: Pad thai
+  about: Stir-fried rice noodles with egg, tamarind sauce, bean sprouts and peanuts.
+  diet: fish
+  spicy: 1
+  ingredients: [rice noodles, egg, shrimp, chicken or tofu, tamarind, fish sauce, palm sugar, bean sprouts, peanuts, lime]
+  steps:
+    - Soaked rice noodles are stir-fried in a hot wok with egg and shrimp, chicken or tofu.
+    - A sweet-sour sauce of tamarind, fish sauce and palm sugar is added.
+    - It is tossed with bean sprouts and chives and served with crushed peanuts and lime.
+  tip: Contains peanuts and usually fish sauce.
+green-curry:
+  name: Green curry
+  wiki: Green curry
+  about: A creamy coconut curry made with green chilli paste and Thai basil.
+  diet: meat
+  spicy: 2
+  ingredients: [green curry paste, coconut milk, chicken, Thai eggplant, bamboo shoots, Thai basil, fish sauce]
+  steps:
+    - Green curry paste is fried in thick coconut cream until fragrant.
+    - Chicken and vegetables are simmered in coconut milk.
+    - It is seasoned with fish sauce and sugar and finished with Thai basil; eaten with jasmine rice.
+  tip: Thai "medium" can be hot. Ask for mild if unsure.
+tom-yum:
+  name: Tom yum
+  wiki: Tom yum
+  about: A hot and sour soup with lemongrass, lime and shrimp.
+  diet: fish
+  spicy: 2
+  ingredients: [shrimp, lemongrass, galangal, kaffir lime leaves, chilli, lime juice, fish sauce, mushrooms]
+  steps:
+    - Broth is simmered with lemongrass, galangal and lime leaves.
+    - Shrimp and mushrooms are cooked in it briefly.
+    - It is seasoned with lime juice, fish sauce and chilli paste.
+  tip: Don't eat the lemongrass and galangal pieces; they're only for flavour.
+pad-see-ew:
+  name: Pad see ew
+  wiki: Pad see ew
+  about: Wide rice noodles stir-fried with dark soy sauce, egg and Chinese broccoli.
+  diet: meat
+  spicy: 0
+  ingredients: [wide rice noodles, dark soy sauce, egg, Chinese broccoli, chicken, beef or tofu]
+  steps:
+    - Meat and garlic are stir-fried in a very hot wok.
+    - Wide noodles and egg are added and allowed to char a little.
+    - It is tossed with sweet dark soy and Chinese broccoli.
+  tip: A good non-spicy Thai choice.
+massaman-curry:
+  name: Massaman curry
+  wiki: Massaman curry
+  about: A mild, rich curry with coconut, potatoes, peanuts and warm spices.
+  diet: meat
+  spicy: 1
+  ingredients: [massaman paste, coconut milk, beef or chicken, potatoes, onion, peanuts, tamarind]
+  steps:
+    - Curry paste with cardamom, cinnamon and cloves is fried in coconut cream.
+    - Meat and potatoes are simmered in coconut milk until tender.
+    - It is finished with peanuts, tamarind and palm sugar.
+mango-sticky-rice:
+  name: Mango sticky rice
+  wiki: Mango sticky rice
+  about: Sweet sticky rice with fresh mango and coconut cream.
+  diet: vegan
+  spicy: 0
+  ingredients: [glutinous rice, coconut milk, sugar, salt, ripe mango, sesame seeds]
+  steps:
+    - Glutinous rice is soaked and steamed.
+    - It is mixed with warm sweetened coconut milk.
+    - It is served with sliced mango and more coconut cream.
+bibimbap:
+  name: Bibimbap
+  wiki: Bibimbap
+  about: A rice bowl topped with vegetables, beef, a fried egg and chilli paste, mixed before eating.
+  diet: meat
+  spicy: 1
+  ingredients: [rice, seasoned vegetables, beef, egg, gochujang chilli paste, sesame oil]
+  steps:
+    - Vegetables like spinach, carrot, bean sprouts and mushroom are cooked and seasoned separately.
+    - They are arranged over rice with beef and a fried egg.
+    - Often served in a hot stone bowl (dolsot) so the rice gets crispy; you mix in gochujang.
+  tip: Mix everything together before eating. Easy to get vegetarian.
+korean-fried-chicken:
+  name: Korean fried chicken
+  wiki: Korean fried chicken
+  about: Extra-crispy double-fried chicken, plain or glazed in sweet-spicy sauce.
+  diet: meat
+  spicy: 1
+  ingredients: [chicken, potato starch batter, gochujang, soy garlic sauce, pickled radish]
+  steps:
+    - Chicken is coated in a thin starch batter.
+    - It is fried twice, which makes the skin very thin and crackly.
+    - It is served plain or glazed in soy-garlic or sweet-spicy sauce.
+bulgogi:
+  name: Bulgogi
+  wiki: Bulgogi
+  about: Thin slices of beef marinated in sweet soy and grilled.
+  diet: meat
+  spicy: 0
+  ingredients: [beef, soy sauce, Asian pear, sugar, garlic, sesame oil, scallion]
+  steps:
+    - Thinly sliced beef is marinated in soy, pear, garlic and sesame oil.
+    - It is grilled or pan-cooked quickly.
+    - It is eaten with rice, or wrapped in lettuce leaves with sauce.
+kimchi-jjigae:
+  name: Kimchi stew
+  wiki: Kimchi-jjigae
+  about: A bubbling, spicy stew of aged kimchi, pork and tofu.
+  diet: meat
+  spicy: 2
+  ingredients: [kimchi, pork belly, tofu, gochugaru chilli, onion, scallion]
+  steps:
+    - Pork and well-fermented kimchi are fried together.
+    - Water or broth is added with chilli flakes and simmered.
+    - Tofu is added and it is served boiling hot with rice.
+tteokbokki:
+  name: Tteokbokki
+  wiki: Tteok-bokki
+  about: Chewy rice cakes in a sweet and spicy red chilli sauce.
+  diet: fish
+  spicy: 2
+  ingredients: [rice cakes, gochujang, fish cakes, anchovy broth, scallion, boiled egg]
+  steps:
+    - A sauce of gochujang, chilli and sugar is simmered in broth.
+    - Cylinder-shaped rice cakes and fish cakes are cooked in it until soft and chewy.
+    - It is served with boiled egg and scallion.
+pho:
+  name: Pho
+  wiki: Pho
+  about: A fragrant beef broth with rice noodles, thin beef slices and fresh herbs.
+  diet: meat
+  spicy: 0
+  ingredients: [beef bones, star anise, cinnamon, charred onion and ginger, rice noodles, beef slices, herbs, lime, bean sprouts]
+  steps:
+    - Beef bones are simmered for hours with charred onion, ginger and spices like star anise.
+    - Rice noodles and thin raw beef go into a bowl, and the boiling broth cooks the beef.
+    - You add basil, bean sprouts, lime, chilli, hoisin and sriracha yourself.
+  tip: Say it "fuh". Chicken pho (pho ga) is common too.
+banh-mi:
+  name: Banh mi
+  wiki: Bánh mì
+  about: A Vietnamese sandwich on a crisp baguette with pork, pickles and herbs.
+  diet: meat
+  spicy: 1
+  ingredients: [baguette, grilled pork or cold cuts, pâté, mayonnaise, pickled carrot and daikon, cucumber, cilantro, chilli]
+  steps:
+    - A light, crusty baguette is split and spread with pâté and mayonnaise.
+    - It is filled with grilled pork or cold cuts.
+    - It is topped with pickled vegetables, cucumber, cilantro and chilli.
+spring-rolls:
+  name: Fresh spring rolls
+  wiki: Gỏi cuốn
+  about: Rice paper rolls with shrimp, herbs and noodles, served cold with peanut sauce.
+  diet: fish
+  spicy: 0
+  ingredients: [rice paper, shrimp, pork, rice vermicelli, lettuce, mint, peanut hoisin sauce]
+  steps:
+    - Rice paper is softened in warm water.
+    - Shrimp, noodles, lettuce and herbs are laid on it.
+    - It is rolled tightly and served cold with peanut-hoisin dipping sauce.
+bun-cha:
+  name: Bun cha
+  wiki: Bún chả
+  about: Grilled pork patties in a sweet-tangy dipping broth with rice noodles and herbs.
+  diet: meat
+  spicy: 1
+  ingredients: [pork patties, pork belly, fish sauce dressing, rice vermicelli, herbs, lettuce]
+  steps:
+    - Marinated pork patties and pork belly are grilled over charcoal.
+    - They are served in a bowl of fish sauce, lime and sugar dressing.
+    - You dip noodles and herbs into the bowl and eat everything together.
+adobo:
+  name: Chicken adobo
+  wiki: Philippine adobo
+  about: Chicken or pork braised in vinegar, soy sauce, garlic and bay leaves.
+  diet: meat
+  spicy: 0
+  ingredients: [chicken or pork, vinegar, soy sauce, garlic, bay leaves, black peppercorns]
+  steps:
+    - Meat is marinated in vinegar, soy and garlic.
+    - It is simmered in the marinade with bay leaves and peppercorns until tender.
+    - It is often browned at the end and served with rice.
+lumpia:
+  name: Lumpia
+  wiki: Lumpia
+  about: Thin, crisp Filipino spring rolls filled with pork and vegetables.
+  diet: meat
+  spicy: 0
+  ingredients: [spring roll wrappers, ground pork, carrot, onion, garlic, sweet chilli sauce]
+  steps:
+    - Ground pork and vegetables are mixed.
+    - The filling is rolled tightly in thin wrappers.
+    - They are fried until golden and served with sweet chilli sauce.
+pancit:
+  name: Pancit
+  wiki: Pancit
+  about: Stir-fried noodles with vegetables and meat, a Filipino party dish.
+  diet: meat
+  spicy: 0
+  ingredients: [rice or egg noodles, chicken, pork, cabbage, carrot, soy sauce, calamansi]
+  steps:
+    - Meat and vegetables are stir-fried.
+    - Noodles and broth are added and cooked until absorbed.
+    - It is served with calamansi (a small citrus) to squeeze on top.
+sisig:
+  name: Sisig
+  wiki: Sisig
+  about: Chopped crispy pork served sizzling with onion, chilli and calamansi.
+  diet: meat
+  spicy: 1
+  ingredients: [pork belly and face, onion, chilli, calamansi, egg, soy sauce]
+  steps:
+    - Pork is boiled, then grilled until crisp.
+    - It is chopped finely with onion and chilli.
+    - It is served on a sizzling iron plate, often with a raw egg stirred in.
+nasi-lemak:
+  name: Nasi lemak
+  wiki: Nasi lemak
+  about: Coconut rice with spicy sambal, crispy anchovies, peanuts and egg.
+  diet: fish
+  spicy: 2
+  ingredients: [coconut rice, sambal, fried anchovies, peanuts, egg, cucumber, chicken]
+  steps:
+    - Rice is cooked in coconut milk with pandan leaf.
+    - Sambal chilli sauce is slow-fried until dark.
+    - The rice is served with sambal, anchovies, peanuts, egg and cucumber, often with fried chicken.
+satay:
+  name: Satay
+  wiki: Satay
+  about: Grilled skewers of marinated meat with peanut sauce.
+  diet: meat
+  spicy: 1
+  ingredients: [chicken or beef, lemongrass, turmeric, peanut sauce, cucumber, onion]
+  steps:
+    - Meat is marinated in lemongrass, turmeric and spices.
+    - It is threaded on skewers and grilled over charcoal.
+    - It is served with a sweet-spicy peanut sauce.
+laksa:
+  name: Laksa
+  wiki: Laksa
+  about: A spicy coconut curry noodle soup with shrimp and tofu.
+  diet: fish
+  spicy: 2
+  ingredients: [rice noodles, coconut milk, laksa paste, shrimp, tofu puffs, bean sprouts, egg]
+  steps:
+    - Laksa paste of chilli, shrimp paste and spices is fried.
+    - Broth and coconut milk are added and simmered.
+    - It is poured over noodles with shrimp, tofu and bean sprouts.
+gyro:
+  name: Gyro
+  wiki: Gyros
+  about: Meat roasted on a vertical spit, sliced into warm pita with tzatziki.
+  diet: meat
+  spicy: 0
+  ingredients: [pork, chicken or lamb-beef, pita, tzatziki, tomato, onion, fries]
+  steps:
+    - Seasoned meat is stacked on a vertical rotisserie and roasted.
+    - Thin slices are shaved off.
+    - They are wrapped in warm pita with tzatziki (yogurt-cucumber sauce), tomato and onion.
+  tip: In New York, "gyro" from a halal cart is usually lamb-beef.
+souvlaki:
+  name: Souvlaki
+  wiki: Souvlaki
+  about: Grilled skewers of marinated pork or chicken.
+  diet: meat
+  spicy: 0
+  ingredients: [pork or chicken, olive oil, lemon, oregano, pita, tzatziki]
+  steps:
+    - Meat is marinated in olive oil, lemon and oregano.
+    - It is threaded onto skewers and grilled.
+    - It is served on the skewer or in pita with tzatziki.
+greek-salad:
+  name: Greek salad
+  wiki: Greek salad
+  about: Tomato, cucumber, onion, olives and a slab of feta with olive oil.
+  diet: veg
+  spicy: 0
+  ingredients: [tomato, cucumber, red onion, green pepper, kalamata olives, feta, olive oil, oregano]
+  steps:
+    - Vegetables are cut into chunks.
+    - They are topped with olives and a block of feta cheese.
+    - It is dressed with olive oil and oregano.
+moussaka:
+  name: Moussaka
+  wiki: Moussaka
+  about: Baked layers of eggplant, spiced meat sauce and creamy béchamel.
+  diet: meat
+  spicy: 0
+  ingredients: [eggplant, ground lamb or beef, tomato, cinnamon, béchamel sauce, potatoes]
+  steps:
+    - Eggplant slices are fried or roasted.
+    - They are layered with a meat sauce spiced with cinnamon.
+    - It is topped with thick béchamel and baked until golden.
+spanakopita:
+  name: Spanakopita
+  wiki: Spanakopita
+  about: Flaky filo pastry pie filled with spinach and feta.
+  diet: veg
+  spicy: 0
+  ingredients: [filo pastry, spinach, feta, onion, dill, egg, olive oil]
+  steps:
+    - Spinach is wilted and mixed with feta, herbs and egg.
+    - It is layered between sheets of filo brushed with oil.
+    - It is baked until crisp and golden.
+falafel:
+  name: Falafel
+  wiki: Falafel
+  about: Crispy fried balls of ground chickpeas and herbs, often in pita.
+  diet: vegan
+  spicy: 0
+  ingredients: [soaked chickpeas, parsley, cilantro, onion, garlic, cumin, pita, tahini sauce]
+  steps:
+    - Soaked (not cooked) chickpeas are ground with herbs, onion and spices.
+    - The mixture is formed into balls or patties.
+    - They are deep-fried until crisp and served in pita with salad and tahini.
+hummus:
+  name: Hummus
+  wiki: Hummus
+  about: A smooth dip of chickpeas, tahini, lemon and garlic.
+  diet: vegan
+  spicy: 0
+  ingredients: [chickpeas, tahini, lemon juice, garlic, olive oil, paprika]
+  steps:
+    - Chickpeas are cooked until very soft.
+    - They are blended with tahini, lemon and garlic until silky.
+    - It is served with olive oil on top and eaten with pita.
+shawarma:
+  name: Shawarma
+  wiki: Shawarma
+  about: Spiced meat roasted on a vertical spit, wrapped in flatbread with garlic sauce.
+  diet: meat
+  spicy: 1
+  ingredients: [chicken, beef or lamb, spices, garlic sauce, tahini, pickles, flatbread]
+  steps:
+    - Meat is marinated with spices like cumin, cardamom and turmeric.
+    - It is stacked on a vertical spit and roasted slowly.
+    - Shaved slices are wrapped in flatbread with garlic sauce, pickles and vegetables.
+doner-kebab:
+  name: Döner kebab
+  wiki: Doner kebab
+  about: Turkish spit-roasted meat in bread or on a plate with salad and sauce.
+  diet: meat
+  spicy: 1
+  ingredients: [lamb, beef or chicken, flatbread, salad, yogurt sauce, chilli sauce]
+  steps:
+    - Seasoned meat is stacked on a vertical rotating spit.
+    - It is roasted and thinly sliced.
+    - It is served in bread or over rice with salad and sauces.
+baba-ghanoush:
+  name: Baba ghanoush
+  wiki: Baba ghanoush
+  about: A smoky dip of roasted eggplant with tahini and lemon.
+  diet: vegan
+  spicy: 0
+  ingredients: [eggplant, tahini, lemon, garlic, olive oil]
+  steps:
+    - Eggplant is roasted over a flame until the skin chars and the inside is soft.
+    - The flesh is scooped out and mashed.
+    - It is mixed with tahini, lemon and garlic.
+tabbouleh:
+  name: Tabbouleh
+  wiki: Tabbouleh
+  about: A fresh herb salad of parsley, bulgur, tomato, mint and lemon.
+  diet: vegan
+  spicy: 0
+  ingredients: [parsley, bulgur wheat, tomato, mint, onion, lemon juice, olive oil]
+  steps:
+    - Bulgur is soaked until tender.
+    - Lots of parsley, mint, tomato and onion are finely chopped.
+    - It is dressed with lemon and olive oil.
+baklava:
+  name: Baklava
+  wiki: Baklava
+  about: Layers of thin pastry and chopped nuts, soaked in syrup or honey.
+  diet: veg
+  spicy: 0
+  ingredients: [filo pastry, walnuts or pistachios, butter, sugar syrup or honey]
+  steps:
+    - Filo sheets are brushed with butter and layered with chopped nuts.
+    - It is cut into diamonds and baked until crisp.
+    - Hot syrup is poured over and left to soak in.
+chicken-over-rice:
+  name: Chicken over rice
+  wiki: Halal cart
+  about: New York halal cart classic, spiced chicken on yellow rice with white sauce and hot sauce.
+  diet: meat
+  spicy: 2
+  ingredients: [chicken thigh, cumin, coriander, turmeric yellow rice, lettuce, white yogurt-mayo sauce, red hot sauce, pita]
+  steps:
+    - Chicken is marinated with spices and cooked on a flat griddle, then chopped.
+    - It is piled on yellow rice with lettuce and tomato.
+    - It is covered with creamy white sauce and red hot sauce.
+  tip: The red sauce is very hot. Ask for "a little hot sauce". "Combo" means chicken and lamb.
+tagine:
+  name: Tagine
+  wiki: Tajine
+  about: A slow-cooked Moroccan stew with warm spices, often with olives or dried fruit.
+  diet: meat
+  spicy: 1
+  ingredients: [chicken or lamb, onion, preserved lemon, olives, apricots or prunes, ginger, saffron, cinnamon]
+  steps:
+    - Meat is browned with onion and spices.
+    - It is cooked slowly in a cone-lidded clay pot that keeps it moist.
+    - Preserved lemon and olives, or dried fruit and almonds, are added.
+couscous:
+  name: Couscous
+  wiki: Couscous
+  about: Tiny steamed semolina grains served with a stew of vegetables and meat.
+  diet: meat
+  spicy: 0
+  ingredients: [semolina couscous, lamb or chicken, carrots, zucchini, chickpeas, broth, spices]
+  steps:
+    - Couscous grains are steamed until light and fluffy.
+    - Meat and vegetables are simmered in a spiced broth.
+    - The stew is spooned over the couscous.
+shakshuka:
+  name: Shakshuka
+  wiki: Shakshouka
+  about: Eggs poached in a spiced tomato and pepper sauce, eaten with bread.
+  diet: veg
+  spicy: 1
+  ingredients: [eggs, tomatoes, red peppers, onion, garlic, cumin, paprika, bread]
+  steps:
+    - Onion, peppers and garlic are softened with spices.
+    - Tomatoes are added and simmered into a thick sauce.
+    - Eggs are cracked in and gently poached in the sauce.
+injera:
+  name: Injera platter
+  wiki: Injera
+  about: A big spongy sour flatbread topped with stews, used to scoop up the food.
+  diet: vegan
+  spicy: 1
+  ingredients: [teff flour, water, assorted stews (wat)]
+  steps:
+    - Teff flour batter is fermented for several days.
+    - It is cooked on one side on a large griddle, forming a bubbly, spongy surface.
+    - It is covered with portions of different stews and eaten by hand.
+  tip: Eat with your right hand, tearing off injera to pick up the stews. A "veggie combo" is a great sampler.
+doro-wat:
+  name: Doro wat
+  wiki: Doro wat
+  about: Ethiopia's spicy chicken stew with berbere and a hard-boiled egg.
+  diet: meat
+  spicy: 2
+  ingredients: [chicken, onions, berbere spice, niter kibbeh spiced butter, hard-boiled eggs]
+  steps:
+    - Lots of onions are cooked slowly without oil until deeply browned.
+    - Spiced butter and berbere (a hot red spice blend) are added.
+    - Chicken and eggs are simmered in the sauce.
+misir-wat:
+  name: Misir wat
+  wiki: Wat (food)
+  about: Red lentils stewed with berbere spice, a vegan Ethiopian staple.
+  diet: vegan
+  spicy: 2
+  ingredients: [red lentils, onion, garlic, berbere, oil]
+  steps:
+    - Onions are cooked down with garlic and berbere.
+    - Red lentils and water are added.
+    - It is simmered until thick and soft.
+tibs:
+  name: Tibs
+  wiki: Tibs
+  about: Pan-fried beef or lamb with onion, rosemary and chilli.
+  diet: meat
+  spicy: 1
+  ingredients: [beef or lamb, onion, jalapeño, rosemary, spiced butter]
+  steps:
+    - Cubes of meat are seared quickly in a hot pan.
+    - Onion, chilli and rosemary are added with spiced butter.
+    - It is served sizzling with injera.
+jollof-rice:
+  name: Jollof rice
+  wiki: Jollof rice
+  about: West African rice cooked in a smoky, spicy tomato and pepper sauce.
+  diet: vegan
+  spicy: 2
+  ingredients: [long-grain rice, tomatoes, red peppers, scotch bonnet, onion, thyme, curry powder]
+  steps:
+    - Tomatoes, peppers and onion are blended and fried into a thick base.
+    - Rice and stock are added and cooked slowly in the sauce.
+    - The bottom is allowed to char slightly for a smoky flavour.
+suya:
+  name: Suya
+  wiki: Suya
+  about: Nigerian grilled beef skewers coated in a spicy peanut spice mix.
+  diet: meat
+  spicy: 2
+  ingredients: [beef, yaji spice (ground peanuts, chilli, ginger), onion, tomato]
+  steps:
+    - Thin beef strips are coated in yaji spice.
+    - They are skewered and grilled over an open flame.
+    - They are served with raw onion, tomato and more spice.
+fufu:
+  name: Fufu with soup
+  wiki: Fufu
+  about: A soft, stretchy dough of cassava or yam eaten with rich soups.
+  diet: vegan
+  spicy: 1
+  ingredients: [cassava, plantain or yam, soup such as egusi or light soup]
+  steps:
+    - Cassava or yam is boiled and pounded into a smooth, stretchy dough.
+    - It is shaped into balls.
+    - You pinch off a piece, dip it in the soup and swallow without much chewing.
+steak-frites:
+  name: Steak frites
+  wiki: Steak frites
+  about: Pan-seared steak with French fries and a butter or pepper sauce.
+  diet: meat
+  spicy: 0
+  ingredients: [steak, butter, shallots, herbs, fries, béarnaise or peppercorn sauce]
+  steps:
+    - Steak is seared in a very hot pan and basted with butter.
+    - It is rested and sliced.
+    - It is served with fries and a sauce like béarnaise.
+french-onion-soup:
+  name: French onion soup
+  wiki: French onion soup
+  about: Deeply caramelised onion soup topped with bread and melted cheese.
+  diet: meat
+  spicy: 0
+  ingredients: [onions, butter, beef broth, white wine, baguette, Gruyère cheese]
+  steps:
+    - Onions are cooked slowly for about an hour until dark and sweet.
+    - Beef broth and wine are added and simmered.
+    - It is topped with toasted bread and Gruyère and grilled until bubbling.
+croque-monsieur:
+  name: Croque monsieur
+  wiki: Croque monsieur
+  about: A grilled ham and cheese sandwich covered in béchamel.
+  diet: meat
+  spicy: 0
+  ingredients: [bread, ham, Gruyère, béchamel, butter]
+  steps:
+    - Ham and Gruyère go between slices of bread.
+    - It is topped with béchamel and more cheese.
+    - It is baked or grilled until golden. With a fried egg on top it's a croque madame.
+coq-au-vin:
+  name: Coq au vin
+  wiki: Coq au vin
+  about: Chicken braised in red wine with mushrooms, bacon and onions.
+  diet: meat
+  spicy: 0
+  ingredients: [chicken, red wine, bacon, mushrooms, pearl onions, garlic, thyme]
+  steps:
+    - Chicken is browned with bacon.
+    - It is braised slowly in red wine with herbs.
+    - Mushrooms and small onions are added and the sauce is reduced.
+creme-brulee:
+  name: Crème brûlée
+  wiki: Crème brûlée
+  about: Cold vanilla custard under a thin layer of caramelised sugar.
+  diet: veg
+  spicy: 0
+  ingredients: [cream, egg yolks, sugar, vanilla]
+  steps:
+    - Cream, egg yolks, sugar and vanilla are baked gently into a custard.
+    - It is chilled.
+    - Sugar is sprinkled on top and burned with a torch into a hard caramel shell.
+  tip: Tap the top with your spoon to crack it.
+croissant:
+  name: Croissant
+  wiki: Croissant
+  about: A flaky, buttery crescent-shaped pastry.
+  diet: veg
+  spicy: 0
+  ingredients: [flour, butter, yeast, milk, sugar]
+  steps:
+    - Yeast dough is folded around a block of butter and rolled out many times, building thin layers.
+    - It is cut into triangles and rolled into crescents.
+    - It rises and is baked until the layers puff and crisp.
+paella:
+  name: Paella
+  wiki: Paella
+  about: Saffron rice cooked in a wide pan with seafood, chicken or vegetables.
+  diet: fish
+  spicy: 0
+  ingredients: [short-grain rice, saffron, stock, shrimp, mussels, chicken, chorizo, peppers]
+  steps:
+    - Meat, seafood and vegetables are browned in a wide, shallow pan.
+    - Rice, saffron and stock are added and cooked without stirring.
+    - The bottom forms a crispy crust called socarrat.
+  tip: Often made for two or more and can take 30–40 minutes.
+patatas-bravas:
+  name: Patatas bravas
+  wiki: Patatas bravas
+  about: Fried potato cubes with spicy tomato sauce and garlic mayonnaise.
+  diet: veg
+  spicy: 1
+  ingredients: [potatoes, olive oil, spicy tomato sauce, aioli]
+  steps:
+    - Potato cubes are fried until crisp.
+    - A spicy smoked-paprika tomato sauce is made.
+    - The potatoes are topped with the sauce and garlic aioli.
+tortilla-espanola:
+  name: Spanish tortilla
+  wiki: Spanish omelette
+  about: A thick omelette of potatoes and onions, served in wedges.
+  diet: veg
+  spicy: 0
+  ingredients: [potatoes, eggs, onion, olive oil, salt]
+  steps:
+    - Sliced potatoes and onions are cooked slowly in olive oil until soft.
+    - They are mixed with beaten eggs.
+    - It is cooked in a pan, flipped with a plate, and cooked on the other side.
+gambas-al-ajillo:
+  name: Garlic shrimp
+  wiki: Gambas al ajillo
+  about: Shrimp sizzled in olive oil with lots of garlic and chilli.
+  diet: fish
+  spicy: 1
+  ingredients: [shrimp, olive oil, garlic, dried chilli, parsley, bread]
+  steps:
+    - Garlic and chilli are warmed in plenty of olive oil.
+    - Shrimp are cooked in it for a couple of minutes.
+    - It is served sizzling with bread to soak up the oil.
+churros:
+  name: Churros
+  wiki: Churro
+  about: Fried ridged dough sticks rolled in sugar, often with chocolate.
+  diet: veg
+  spicy: 0
+  ingredients: [flour, water, butter, sugar, cinnamon, chocolate sauce]
+  steps:
+    - A thick dough is piped through a star-shaped nozzle into hot oil.
+    - It is fried until crisp.
+    - It is rolled in cinnamon sugar and dipped in hot chocolate.
+jerk-chicken:
+  name: Jerk chicken
+  wiki: Jerk (cooking)
+  about: Jamaican chicken marinated in a hot, smoky allspice and scotch bonnet paste, grilled.
+  diet: meat
+  spicy: 2
+  ingredients: [chicken, scotch bonnet pepper, allspice, thyme, scallion, garlic, ginger]
+  steps:
+    - Chicken is marinated overnight in a paste of scotch bonnet, allspice and herbs.
+    - It is grilled slowly over pimento wood or charcoal.
+    - It is chopped and served with rice and peas and plantain.
+  tip: Usually hot. Ask for the sauce on the side.
+oxtail:
+  name: Oxtail stew
+  wiki: Oxtail
+  about: Rich, slow-braised oxtail with butter beans in a dark gravy.
+  diet: meat
+  spicy: 1
+  ingredients: [oxtail, butter beans, onion, garlic, thyme, allspice, browning sauce]
+  steps:
+    - Oxtail is seasoned and browned.
+    - It is braised for hours until it falls off the bone.
+    - Butter beans are added and the gravy is thickened.
+jamaican-patty:
+  name: Jamaican beef patty
+  wiki: Jamaican patty
+  about: A flaky golden turnover filled with spiced ground beef.
+  diet: meat
+  spicy: 1
+  ingredients: [flaky pastry with turmeric, ground beef, scotch bonnet, thyme, onion]
+  steps:
+    - Ground beef is cooked with onion, thyme and pepper.
+    - The filling is folded into turmeric-coloured pastry and sealed.
+    - It is baked until flaky.
+  tip: Ask for it "with coco bread" for a patty sandwich.
+rice-and-peas:
+  name: Rice and peas
+  wiki: Rice and peas
+  about: Rice cooked with kidney beans, coconut milk and thyme.
+  diet: vegan
+  spicy: 0
+  ingredients: [rice, kidney beans, coconut milk, scallion, thyme, allspice]
+  steps:
+    - Kidney beans are cooked until soft.
+    - Rice, coconut milk and seasonings are added.
+    - It simmers until the rice absorbs the liquid.
+ackee-saltfish:
+  name: Ackee and saltfish
+  wiki: Ackee and saltfish
+  about: Jamaica's national dish of ackee fruit sautéed with salt cod and peppers.
+  diet: fish
+  spicy: 1
+  ingredients: [ackee, salt cod, onion, tomato, scotch bonnet, peppers]
+  steps:
+    - Salt cod is soaked and boiled to remove salt, then flaked.
+    - Onion, peppers and tomato are sautéed.
+    - Ackee (which looks like scrambled egg) and the fish are folded in gently.
+empanadas:
+  name: Empanadas
+  wiki: Empanada
+  about: Baked or fried pastry turnovers with meat, cheese or vegetable filling.
+  diet: meat
+  spicy: 0
+  ingredients: [dough, ground beef or chicken, onion, olives, cheese]
+  steps:
+    - A savoury filling is cooked.
+    - It is wrapped in dough circles and crimped shut.
+    - They are baked or fried until golden.
+mofongo:
+  name: Mofongo
+  wiki: Mofongo
+  about: Fried green plantains mashed with garlic and crispy pork.
+  diet: meat
+  spicy: 0
+  ingredients: [green plantains, garlic, pork cracklings, olive oil, broth]
+  steps:
+    - Green plantains are sliced and fried.
+    - They are mashed in a wooden pestle with garlic and pork cracklings.
+    - It is shaped into a mound and served with broth or a stew of shrimp, chicken or beef.
+pernil:
+  name: Pernil
+  wiki: Pernil
+  about: Slow-roasted pork shoulder with garlic and oregano and crispy skin.
+  diet: meat
+  spicy: 0
+  ingredients: [pork shoulder, garlic, oregano, adobo seasoning, sour orange]
+  steps:
+    - Pork is marinated with garlic, oregano and citrus.
+    - It is roasted slowly for hours.
+    - The skin becomes crackling-crisp (cuerito).
+arroz-con-pollo:
+  name: Arroz con pollo
+  wiki: Arroz con pollo
+  about: Chicken and rice cooked together with sofrito, peppers and olives.
+  diet: meat
+  spicy: 0
+  ingredients: [chicken, rice, sofrito, peppers, olives, sazón, peas]
+  steps:
+    - Chicken is browned with sofrito, a base of onion, pepper and garlic.
+    - Rice and broth are added.
+    - It cooks covered until the rice is tender and flavoured by the chicken.
+tostones:
+  name: Tostones
+  wiki: Tostones
+  about: Twice-fried smashed green plantain slices, crispy and salty.
+  diet: vegan
+  spicy: 0
+  ingredients: [green plantains, oil, salt, garlic dip]
+  steps:
+    - Green plantain slices are fried until soft.
+    - They are smashed flat.
+    - They are fried again until crisp and salted.
+pupusa:
+  name: Pupusa
+  wiki: Pupusa
+  about: Salvadoran thick corn tortillas stuffed with cheese, beans or pork.
+  diet: veg
+  spicy: 0
+  ingredients: [corn masa, cheese, refried beans, pork (chicharrón), curtido slaw, tomato salsa]
+  steps:
+    - Corn dough is filled with cheese, beans or pork and patted into a disc.
+    - It is cooked on a griddle until browned.
+    - It is served with curtido (pickled cabbage slaw) and tomato salsa.
+cuban-sandwich:
+  name: Cuban sandwich
+  wiki: Cuban sandwich
+  about: Roast pork, ham, Swiss cheese, pickles and mustard, pressed on Cuban bread.
+  diet: meat
+  spicy: 0
+  ingredients: [Cuban bread, roast pork, ham, Swiss cheese, pickles, mustard]
+  steps:
+    - Bread is filled with roast pork, ham, cheese, pickles and mustard.
+    - It is buttered on the outside.
+    - It is pressed in a hot sandwich press until crisp and melted.
+arepa:
+  name: Arepa
+  wiki: Arepa
+  about: A thick grilled corn cake split and stuffed with fillings.
+  diet: veg
+  spicy: 0
+  ingredients: [pre-cooked corn flour, cheese, shredded beef, black beans, avocado]
+  steps:
+    - Corn dough is shaped into thick discs.
+    - They are grilled or fried until crisp outside.
+    - They are split and stuffed with cheese, beef, beans or avocado.
+ceviche:
+  name: Ceviche
+  wiki: Ceviche
+  about: Raw fish "cooked" in fresh lime juice with chilli and red onion.
+  diet: fish
+  spicy: 1
+  ingredients: [fresh white fish, lime juice, red onion, ají chilli, cilantro, sweet potato, corn]
+  steps:
+    - Very fresh fish is cut into cubes.
+    - It is soaked in lime juice, which firms the fish, with chilli and salt.
+    - It is served cold with red onion, sweet potato and corn.
+lomo-saltado:
+  name: Lomo saltado
+  wiki: Lomo saltado
+  about: A Peruvian stir-fry of beef, tomato and onion with soy, served with fries and rice.
+  diet: meat
+  spicy: 1
+  ingredients: [beef sirloin, red onion, tomato, soy sauce, vinegar, ají amarillo, fries, rice]
+  steps:
+    - Beef strips are seared in a very hot wok.
+    - Onion, tomato and chilli are tossed in with soy and vinegar.
+    - It is served with fries and rice.
+pollo-a-la-brasa:
+  name: Peruvian rotisserie chicken
+  wiki: Pollo a la brasa
+  about: Spice-marinated chicken roasted on a spit, with green sauce.
+  diet: meat
+  spicy: 1
+  ingredients: [chicken, garlic, cumin, paprika, soy, beer or vinegar, green ají sauce, fries]
+  steps:
+    - Whole chicken is marinated in garlic, spices and soy.
+    - It is roasted on a rotisserie over charcoal.
+    - It is served with fries, salad and creamy green sauce.
+aji-de-gallina:
+  name: Ají de gallina
+  wiki: Ají de gallina
+  about: Shredded chicken in a creamy, mildly spicy yellow pepper sauce.
+  diet: meat
+  spicy: 1
+  ingredients: [chicken, ají amarillo, bread, milk, walnuts, parmesan, rice, egg, olives]
+  steps:
+    - Chicken is poached and shredded.
+    - A sauce of yellow chilli, bread soaked in milk, nuts and cheese is cooked until creamy.
+    - The chicken is mixed in and served with rice, egg and olives.
+picanha:
+  name: Picanha
+  wiki: Picanha
+  about: Brazilian grilled top sirloin cap with a thick fat layer, sliced off skewers.
+  diet: meat
+  spicy: 0
+  ingredients: [beef sirloin cap, coarse salt, farofa, vinaigrette salsa]
+  steps:
+    - The cut is folded onto skewers with the fat outside and rubbed with coarse salt.
+    - It is grilled over charcoal, the fat basting the meat.
+    - It is sliced off the skewer at the table.
+  tip: At a churrascaria, flip your card to green to keep the meat coming, red to stop.
+feijoada:
+  name: Feijoada
+  wiki: Feijoada
+  about: Brazil's black bean stew with pork and sausage.
+  diet: meat
+  spicy: 0
+  ingredients: [black beans, pork, sausage, bacon, garlic, rice, collard greens, orange]
+  steps:
+    - Black beans are simmered with smoked and salted pork.
+    - It cooks for hours into a thick, dark stew.
+    - It is served with rice, greens, farofa and orange slices.
+pao-de-queijo:
+  name: Pão de queijo
+  wiki: Pão de queijo
+  about: Small, chewy Brazilian cheese breads.
+  diet: veg
+  spicy: 0
+  ingredients: [tapioca flour, cheese, milk, egg, oil]
+  steps:
+    - Tapioca flour is mixed with hot milk and oil.
+    - Egg and cheese are beaten in.
+    - Small balls are baked until puffed, crisp outside and chewy inside.
+lobster-roll:
+  name: Lobster roll
+  wiki: Lobster roll
+  about: Chunks of lobster in a buttered, toasted hot dog bun.
+  diet: fish
+  spicy: 0
+  ingredients: [lobster meat, mayonnaise or butter, celery, lemon, split-top bun]
+  steps:
+    - Lobster is boiled and the meat is picked out.
+    - It is dressed with mayonnaise (Maine style) or warm butter (Connecticut style).
+    - It is piled into a toasted, buttered bun.
+clam-chowder:
+  name: Clam chowder
+  wiki: Clam chowder
+  about: A thick, creamy soup of clams, potatoes and bacon.
+  diet: fish
+  spicy: 0
+  ingredients: [clams, potatoes, onion, bacon, cream, oyster crackers]
+  steps:
+    - Bacon and onion are cooked.
+    - Potatoes, clam juice and cream are added and simmered.
+    - Chopped clams are stirred in at the end. Manhattan-style is tomato-based instead of creamy.
+fish-and-chips:
+  name: Fish and chips
+  wiki: Fish and chips
+  about: Battered fried white fish with thick fries.
+  diet: fish
+  spicy: 0
+  ingredients: [cod or haddock, flour, beer batter, potatoes, tartar sauce, lemon, malt vinegar]
+  steps:
+    - Fish fillets are dipped in a beer batter.
+    - They are deep-fried until crisp and golden.
+    - They are served with thick fries, tartar sauce, lemon and vinegar.
+grilled-salmon:
+  name: Grilled salmon
+  wiki: Salmon as food
+  about: A salmon fillet grilled with crisp skin, with vegetables.
+  diet: fish
+  spicy: 0
+  ingredients: [salmon fillet, olive oil, lemon, herbs, vegetables or rice]
+  steps:
+    - Salmon is seasoned with salt, pepper and oil.
+    - It is grilled or seared skin-side down until crisp.
+    - It is finished with lemon and herbs and served with vegetables.
+oysters:
+  name: Raw oysters
+  wiki: Oyster
+  about: Fresh oysters on ice, opened to order and eaten raw.
+  diet: fish
+  spicy: 0
+  ingredients: [oysters, ice, lemon, mignonette (shallot vinegar), cocktail sauce]
+  steps:
+    - Live oysters are opened (shucked) right before serving.
+    - They are served on ice in the half-shell.
+    - You add lemon or mignonette and slurp them from the shell.
+  tip: Often sold by the piece; many bars have a cheaper "happy hour" oyster deal.
+ribeye:
+  name: Ribeye steak
+  wiki: Rib eye steak
+  about: A rich, well-marbled steak grilled or broiled to your chosen doneness.
+  diet: meat
+  spicy: 0
+  ingredients: [ribeye steak, salt, pepper, butter]
+  steps:
+    - The steak is seasoned with salt and pepper.
+    - It is seared at very high heat, often under a broiler.
+    - It is rested and served, often with butter melting on top.
+  tip: Rare is red and cool inside, medium-rare warm red, medium pink, well done grey.
+creamed-spinach:
+  name: Creamed spinach
+  wiki: Creamed spinach
+  about: Spinach cooked in a rich cream sauce, a steakhouse side.
+  diet: veg
+  spicy: 0
+  ingredients: [spinach, cream, butter, garlic, parmesan, nutmeg]
+  steps:
+    - Spinach is wilted and squeezed dry.
+    - A sauce of butter, cream and garlic is made.
+    - The spinach is folded in with parmesan and nutmeg.
+wedge-salad:
+  name: Wedge salad
+  wiki: Wedge salad
+  about: A crisp wedge of iceberg lettuce with blue cheese dressing and bacon.
+  diet: meat
+  spicy: 0
+  ingredients: [iceberg lettuce, blue cheese dressing, bacon, tomato, red onion]
+  steps:
+    - A head of iceberg lettuce is cut into quarters.
+    - Each wedge is covered in blue cheese dressing.
+    - It is topped with bacon, tomato and onion.
+brisket:
+  name: Brisket
+  wiki: Brisket
+  about: Beef smoked low and slow for 12+ hours until tender, with a dark peppery crust.
+  diet: meat
+  spicy: 0
+  ingredients: [beef brisket, salt, black pepper, wood smoke]
+  steps:
+    - Brisket is rubbed with salt and coarse pepper.
+    - It is smoked over wood at low heat for 12 hours or more.
+    - It is rested and sliced; the outer crust is called bark.
+  tip: BBQ is often sold by weight. Half a pound is a good portion.
+pulled-pork:
+  name: Pulled pork
+  wiki: Pulled pork
+  about: Smoked pork shoulder pulled into shreds and sauced.
+  diet: meat
+  spicy: 0
+  ingredients: [pork shoulder, spice rub, barbecue sauce, bun, coleslaw]
+  steps:
+    - Pork shoulder is rubbed with spices.
+    - It is smoked slowly until very tender.
+    - It is pulled apart and served with sauce, often in a bun with slaw.
+ribs:
+  name: Barbecue ribs
+  wiki: Pork ribs
+  about: Pork ribs smoked until tender and glazed with sauce.
+  diet: meat
+  spicy: 0
+  ingredients: [pork ribs, spice rub, barbecue sauce]
+  steps:
+    - Ribs are coated in a spice rub.
+    - They are smoked for several hours.
+    - They are brushed with sauce and finished over heat.
+cornbread:
+  name: Cornbread
+  wiki: Cornbread
+  about: A slightly sweet, crumbly bread made from cornmeal.
+  diet: veg
+  spicy: 0
+  ingredients: [cornmeal, flour, buttermilk, eggs, butter, sugar]
+  steps:
+    - Cornmeal, flour and buttermilk are mixed.
+    - The batter is poured into a hot buttered pan.
+    - It is baked until golden.
+coleslaw:
+  name: Coleslaw
+  wiki: Coleslaw
+  about: Shredded cabbage salad in a creamy or vinegar dressing.
+  diet: veg
+  spicy: 0
+  ingredients: [cabbage, carrot, mayonnaise or vinegar, sugar]
+  steps:
+    - Cabbage and carrot are finely shredded.
+    - They are mixed with a creamy or tangy dressing.
+    - It is chilled before serving.
+pastrami-on-rye:
+  name: Pastrami on rye
+  wiki: Pastrami on rye
+  about: A towering New York deli sandwich of hot sliced pastrami with mustard.
+  diet: meat
+  spicy: 0
+  ingredients: [beef pastrami, rye bread, mustard, pickles]
+  steps:
+    - Beef brisket is brined, coated in pepper and coriander, smoked and steamed into pastrami.
+    - It is sliced hot and piled high on rye bread.
+    - It is served with mustard and a pickle.
+  tip: Deli sandwiches are huge; sharing one is normal.
+reuben:
+  name: Reuben sandwich
+  wiki: Reuben sandwich
+  about: Corned beef, Swiss cheese, sauerkraut and Russian dressing on grilled rye.
+  diet: meat
+  spicy: 0
+  ingredients: [corned beef, Swiss cheese, sauerkraut, Russian dressing, rye bread]
+  steps:
+    - Corned beef, cheese and sauerkraut are layered on rye with dressing.
+    - The bread is buttered.
+    - It is grilled until crisp and the cheese melts.
+bacon-egg-cheese:
+  name: Bacon, egg and cheese
+  wiki: Bacon, egg and cheese sandwich
+  about: New York's classic breakfast sandwich, on a roll or bagel.
+  diet: meat
+  spicy: 0
+  ingredients: [eggs, bacon, American cheese, kaiser roll or bagel, salt, pepper, ketchup]
+  steps:
+    - Eggs are fried or scrambled on the griddle.
+    - Bacon and American cheese are added so the cheese melts.
+    - It goes on a buttered roll, often with "salt, pepper, ketchup".
+  tip: Order it at any deli or bodega as "a BEC". "SPK" means salt, pepper, ketchup.
+blt:
+  name: BLT
+  wiki: BLT
+  about: A sandwich of bacon, lettuce and tomato with mayonnaise on toast.
+  diet: meat
+  spicy: 0
+  ingredients: [bacon, lettuce, tomato, mayonnaise, toasted bread]
+  steps:
+    - Bacon is cooked until crisp.
+    - Bread is toasted and spread with mayonnaise.
+    - It is layered with bacon, lettuce and tomato.
+bagel-cream-cheese:
+  name: Bagel with cream cheese
+  wiki: Bagel
+  about: A chewy boiled-and-baked bagel spread with cream cheese.
+  diet: veg
+  spicy: 0
+  ingredients: [bagel, cream cheese, toppings like sesame or "everything" seasoning]
+  steps:
+    - Bagel dough is shaped into rings and boiled briefly, which makes them chewy.
+    - They are baked until shiny and golden.
+    - The bagel is split, often toasted, and spread with cream cheese.
+  tip: Order "everything bagel with scallion cream cheese" for a classic.
+bagel-lox:
+  name: Bagel with lox
+  wiki: Lox
+  about: A bagel with cream cheese, thin smoked salmon, capers and onion.
+  diet: fish
+  spicy: 0
+  ingredients: [bagel, cream cheese, lox (cured salmon), red onion, capers, tomato]
+  steps:
+    - Salmon is cured in salt (lox) or cold-smoked (nova).
+    - It is sliced very thin.
+    - It is layered on a bagel with cream cheese, onion, capers and tomato.
+latte:
+  name: Latte
+  wiki: Caffè latte
+  about: Espresso with a lot of steamed milk and a thin layer of foam.
+  diet: veg
+  spicy: 0
+  ingredients: [espresso, steamed milk]
+  steps:
+    - A shot of espresso is pulled.
+    - Milk is steamed until silky.
+    - The milk is poured into the espresso, often with a design on top.
+  tip: Oat, almond and soy milk are usually available for a small extra charge.
+cappuccino:
+  name: Cappuccino
+  wiki: Cappuccino
+  about: Espresso with equal parts steamed milk and thick foam.
+  diet: veg
+  spicy: 0
+  ingredients: [espresso, steamed milk, milk foam]
+  steps:
+    - A shot of espresso is pulled.
+    - Milk is steamed with more air to make thick foam.
+    - It is poured so the cup is about one third foam.
+cold-brew:
+  name: Cold brew
+  wiki: Cold brew coffee
+  about: Coffee steeped in cold water for many hours, smooth and strong, served over ice.
+  diet: vegan
+  spicy: 0
+  ingredients: [coarse ground coffee, cold water, ice]
+  steps:
+    - Coarse coffee grounds are soaked in cold water for 12 to 24 hours.
+    - It is strained into a concentrate.
+    - It is served over ice, black or with milk.
+matcha-latte:
+  name: Matcha latte
+  wiki: Matcha
+  about: Powdered Japanese green tea whisked with steamed milk.
+  diet: veg
+  spicy: 0
+  ingredients: [matcha green tea powder, hot water, milk, sweetener]
+  steps:
+    - Matcha powder is whisked with a little hot water until frothy.
+    - Milk is steamed.
+    - They are combined, hot or over ice.
+bubble-tea:
+  name: Bubble tea
+  wiki: Bubble tea
+  about: Sweet milk tea with chewy tapioca pearls, drunk through a wide straw.
+  diet: veg
+  spicy: 0
+  ingredients: [black or green tea, milk, sugar, tapioca pearls]
+  steps:
+    - Tapioca pearls are boiled until chewy and soaked in syrup.
+    - Tea is brewed and mixed with milk and sugar.
+    - It is shaken with ice and poured over the pearls.
+  tip: You can usually choose sweetness (like 50%) and ice level.
+donut:
+  name: Donut
+  wiki: Doughnut
+  about: A sweet fried ring or round of dough, glazed or filled.
+  diet: veg
+  spicy: 0
+  ingredients: [flour, yeast, milk, sugar, eggs, glaze or icing]
+  steps:
+    - A soft yeast dough rises and is cut into rings.
+    - They are fried until puffed and golden.
+    - They are dipped in glaze, icing or sugar, or filled with jam or cream.
+cheesecake:
+  name: New York cheesecake
+  wiki: Cheesecake
+  about: A dense, rich and creamy baked cheesecake on a graham cracker crust.
+  diet: veg
+  spicy: 0
+  ingredients: [cream cheese, sugar, eggs, sour cream, graham crackers, butter]
+  steps:
+    - Crushed graham crackers and butter are pressed into a pan.
+    - Cream cheese, sugar, eggs and sour cream are beaten smooth and poured on top.
+    - It is baked slowly and chilled overnight.
+gelato:
+  name: Gelato
+  wiki: Gelato
+  about: Dense Italian ice cream with intense flavour.
+  diet: veg
+  spicy: 0
+  ingredients: [milk, sugar, flavourings such as pistachio, chocolate or fruit]
+  steps:
+    - A base of milk and sugar is flavoured.
+    - It is churned slowly so less air is whipped in than in ice cream.
+    - It is served slightly warmer than ice cream, so it's softer.
+buddha-bowl:
+  name: Grain bowl
+  wiki: Buddha bowl
+  about: A bowl of grains, roasted vegetables, greens, protein and a sauce.
+  diet: vegan
+  spicy: 0
+  ingredients: [quinoa or rice, roasted vegetables, greens, chickpeas or tofu, avocado, tahini dressing]
+  steps:
+    - A base of grains is cooked.
+    - Vegetables and protein are roasted or prepared separately.
+    - Everything is arranged in a bowl and dressed.
+veggie-burger:
+  name: Veggie burger
+  wiki: Veggie burger
+  about: A burger with a plant-based patty.
+  diet: vegan
+  spicy: 0
+  ingredients: [plant-based patty (beans, grains or soy), bun, lettuce, tomato, sauce]
+  steps:
+    - A patty is made from beans, grains and vegetables, or a meat-like plant protein.
+    - It is grilled or griddled.
+    - It is served in a bun with toppings.
+  tip: Check the bun and cheese if you're vegan.
+schnitzel:
+  name: Schnitzel
+  wiki: Schnitzel
+  about: A thin breaded and fried cutlet of pork or veal.
+  diet: meat
+  spicy: 0
+  ingredients: [pork or veal cutlet, flour, egg, breadcrumbs, lemon, potato salad]
+  steps:
+    - Meat is pounded very thin.
+    - It is coated in flour, egg and breadcrumbs.
+    - It is fried until golden and served with lemon and potato salad.
+bratwurst:
+  name: Bratwurst
+  wiki: Bratwurst
+  about: A grilled German pork sausage with mustard and sauerkraut.
+  diet: meat
+  spicy: 0
+  ingredients: [pork sausage, mustard, sauerkraut, bread roll]
+  steps:
+    - Fresh pork sausage is grilled or pan-fried.
+    - It is served in a roll or on a plate.
+    - It comes with mustard and sauerkraut.
+pretzel:
+  name: Soft pretzel
+  wiki: Pretzel
+  about: A chewy knotted bread with a dark, salty crust.
+  diet: veg
+  spicy: 0
+  ingredients: [flour, yeast, lye or baking soda bath, coarse salt, mustard]
+  steps:
+    - Dough is rolled into ropes and twisted into a knot.
+    - It is dipped in an alkaline bath, which gives the dark crust.
+    - It is salted and baked.
+pierogi:
+  name: Pierogi
+  wiki: Pierogi
+  about: Boiled dumplings filled with potato and cheese, meat or cabbage.
+  diet: veg
+  spicy: 0
+  ingredients: [dough, potato, farmer's cheese, onion, sour cream, butter]
+  steps:
+    - Dough circles are filled and pinched closed.
+    - They are boiled, then often pan-fried in butter.
+    - They are served with fried onions and sour cream.
+borscht:
+  name: Borscht
+  wiki: Borscht
+  about: A sweet-sour beet soup, served with sour cream.
+  diet: meat
+  spicy: 0
+  ingredients: [beets, cabbage, potato, carrot, onion, beef broth, dill, sour cream]
+  steps:
+    - Beets and vegetables are simmered in broth.
+    - It is seasoned with vinegar or lemon for tang.
+    - It is served with sour cream and dill.
+khachapuri:
+  name: Khachapuri
+  wiki: Khachapuri
+  about: Georgian boat-shaped cheese bread with an egg and butter in the middle.
+  diet: veg
+  spicy: 0
+  ingredients: [bread dough, sulguni and feta cheese, egg, butter]
+  steps:
+    - Dough is shaped into a boat and filled with cheese.
+    - It is baked until golden.
+    - An egg yolk and butter are added at the end; you stir them into the cheese and dip the crust.

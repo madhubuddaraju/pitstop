@@ -1,0 +1,36 @@
+name: Refresh data
+
+# Gas prices: EIA publishes on Monday afternoons; refresh Tuesday morning.
+# Dishes: rebuild descriptions and photos from Wikipedia whenever the dish files change, and monthly.
+on:
+  schedule:
+    - cron: "23 13 * * 2"
+  push:
+    branches: [main]
+    paths: ["data/**", "scripts/build_dishes.py"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Gas prices
+        run: python scripts/fetch_gas.py
+      - name: Dishes
+        run: python scripts/build_dishes.py
+      - name: Commit if changed
+        run: |
+          git add docs/gas.json docs/dishes.json
+          if git diff --cached --quiet; then echo "No changes."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Refresh gas prices and dishes $(date -u +%Y-%m-%d)"
+          git push

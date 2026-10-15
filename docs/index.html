@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pitstop · gas and food near you</title>
+<meta name="description" content="Gas stations and restaurants open near you, with closing times and what to order.">
+<meta name="theme-color" content="#F5F1EA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151412" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pitstop">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231B1A17'/%3E%3Cpath d='M20 46V18h14a9 9 0 0 1 0 18H27' fill='none' stroke='%23F2A93B' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F5F1EA; --card: #FFFFFF; --ink: #1B1A17; --muted: #6B665D; --line: #E3DCD0; --soft: #EDE7DC;
+  --gas: #F2A93B; --gas-ink: #8A5600; --food: #D94A2B; --food-ink: #B23A1F;
+  --open: #1E7A4C; --open-bg: #E3F2EA; --soon: #A86100; --soon-bg: #FBEBD3; --closed: #8A847A; --closed-bg: #EEEAE3;
+  --shadow: 0 1px 2px rgba(27,26,23,.06), 0 4px 16px rgba(27,26,23,.06);
+  --radius: 18px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151412; --card: #1F1D1A; --ink: #F3EFE7; --muted: #A39D92; --line: #33302B; --soft: #29261F;
+    --gas-ink: #F5BC62; --food-ink: #FF8A6E;
+    --open: #5BC48E; --open-bg: #1C3328; --soon: #F0AE52; --soon-bg: #3A2C17; --closed: #9A948A; --closed-bg: #2A2824;
+    --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151412; --card: #1F1D1A; --ink: #F3EFE7; --muted: #A39D92; --line: #33302B; --soft: #29261F;
+  --gas-ink: #F5BC62; --food-ink: #FF8A6E;
+  --open: #5BC48E; --open-bg: #1C3328; --soon: #F0AE52; --soon-bg: #3A2C17; --closed: #9A948A; --closed-bg: #2A2824;
+  --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 16px/1.45 Figtree, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+  min-height: 100dvh;
+}
+h1, h2, h3, .display { font-family: "Bricolage Grotesque", Figtree, sans-serif; letter-spacing: -0.02em; margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; }
+.wrap { max-width: 640px; margin: 0 auto; padding: 0 16px calc(32px + env(safe-area-inset-bottom)); }
+.hidden { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* ---------- start screen ---------- */
+#home { min-height: 100dvh; display: flex; flex-direction: column; padding-top: calc(28px + env(safe-area-inset-top)); }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark { width: 38px; height: 38px; border-radius: 11px; background: var(--ink); display: grid; place-items: center; }
+.brand-mark svg { width: 22px; height: 22px; }
+.brand h1 { font-size: 26px; font-weight: 800; }
+.road { height: 4px; margin: 22px 0 0; background: repeating-linear-gradient(90deg, var(--line) 0 22px, transparent 22px 36px); border-radius: 2px; }
+.ask { margin: 40px 0 6px; font-size: clamp(34px, 9vw, 46px); font-weight: 800; line-height: 1.02; }
+.ask-sub { color: var(--muted); margin: 0 0 24px; }
+.choices { display: grid; gap: 14px; }
+.choice {
+  display: grid; grid-template-columns: 64px 1fr 20px; align-items: center; gap: 16px; text-align: left;
+  background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 22px 20px;
+  box-shadow: var(--shadow); transition: transform .12s ease, border-color .12s ease;
+}
+.choice:active { transform: scale(.985); }
+.choice:hover { border-color: var(--muted); }
+.choice .ic { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; }
+.choice.gas .ic { background: var(--gas); color: #1B1A17; }
+.choice.food .ic { background: var(--food); color: #fff; }
+.choice .ic svg { width: 34px; height: 34px; }
+.choice strong { display: block; font: 800 26px/1.1 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; }
+.choice > span > span { color: var(--muted); font-size: 15px; display: block; }
+.choice strong { color: var(--ink); }
+.choice .arrow { color: var(--muted); }
+.where { margin-top: 22px; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; }
+.where svg { width: 16px; height: 16px; flex: none; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; font-weight: 600; }
+.home-foot { margin-top: auto; padding-top: 40px; font-size: 12.5px; color: var(--muted); }
+
+/* ---------- results ---------- */
+.bar {
+  position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  padding: calc(10px + env(safe-area-inset-top)) 0 10px; margin: 0 -16px; padding-left: 16px; padding-right: 16px;
+}
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.iconbtn { width: 42px; height: 42px; flex: none; border-radius: 50%; border: 1px solid var(--line); background: var(--card); display: grid; place-items: center; }
+.iconbtn svg { width: 20px; height: 20px; }
+.bar h2 { font-size: 23px; font-weight: 800; flex: 1; min-width: 0; }
+.switch { display: inline-flex; background: var(--soft); border-radius: 999px; padding: 3px; }
+.switch button { border: 0; background: none; padding: 7px 13px; border-radius: 999px; font-weight: 600; font-size: 14px; color: var(--muted); }
+.switch button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+.loc { margin-top: 6px; font-size: 13.5px; color: var(--muted); display: flex; gap: 6px; align-items: center; min-width: 0; }
+.loc span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.loc svg { width: 14px; height: 14px; flex: none; }
+
+.search { position: relative; margin-top: 10px; }
+.search input {
+  width: 100%; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 14px;
+  padding: 12px 14px 12px 40px; font: inherit; font-size: 16px; outline: none;
+}
+.search input:focus { border-color: var(--ink); }
+.search svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); }
+.chips { display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px 2px; margin: 0 -16px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 7px 13px;
+  font-size: 14px; font-weight: 600; white-space: nowrap;
+}
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip .n { color: var(--muted); font-weight: 500; margin-left: 3px; }
+.chip[aria-pressed="true"] .n { color: inherit; opacity: .7; }
+
+.summary { color: var(--muted); font-size: 14px; margin: 14px 2px 8px; }
+.list { display: grid; gap: 10px; }
+.item {
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; text-align: left; width: 100%;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow);
+}
+.item:active { transform: scale(.99); }
+.item h3 { font: 700 17.5px/1.25 Figtree, sans-serif; letter-spacing: 0; }
+.item .meta { color: var(--muted); font-size: 14px; grid-column: 1 / -1; }
+.item .right { text-align: right; font-size: 13.5px; color: var(--muted); white-space: nowrap; }
+.item .row2 { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 4px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 10px; font-size: 13.5px; font-weight: 600; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill.open { color: var(--open); background: var(--open-bg); }
+.pill.soon { color: var(--soon); background: var(--soon-bg); }
+.pill.closed, .pill.unknown { color: var(--closed); background: var(--closed-bg); }
+.tag { font-size: 12.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; }
+.section-label { font: 700 13px/1 Figtree, sans-serif; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 22px 2px 10px; }
+.more { margin: 14px auto 0; display: block; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 10px 18px; font-weight: 600; }
+.state { text-align: center; padding: 48px 12px; color: var(--muted); }
+.state h3 { color: var(--ink); font-size: 21px; margin-bottom: 6px; }
+.spinner { width: 28px; height: 28px; border: 3px solid var(--line); border-top-color: var(--ink); border-radius: 50%; margin: 0 auto 14px; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.skeleton { height: 82px; border-radius: var(--radius); background: linear-gradient(90deg, var(--soft), var(--card), var(--soft)); background-size: 200% 100%; animation: shimmer 1.2s infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* gas price card */
+.price-card { background: var(--ink); color: var(--bg); border-radius: 22px; padding: 18px 18px 16px; margin-top: 12px; }
+.price-card .lbl { font-size: 13.5px; opacity: .75; }
+.price-row { display: flex; align-items: flex-end; gap: 14px; margin-top: 6px; }
+.price-big { font: 800 46px/1 "Bricolage Grotesque", sans-serif; letter-spacing: -0.03em; }
+.price-big small { font-size: 18px; font-weight: 600; opacity: .7; margin-left: 2px; }
+.delta { font-size: 14px; font-weight: 600; padding-bottom: 6px; white-space: nowrap; }
+.delta.down { color: #7FD8A6; } .delta.up { color: #FFB199; }
+.spark { margin-left: auto; width: 110px; height: 40px; }
+.price-sub { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; opacity: .8; margin-top: 12px; border-top: 1px solid rgba(255,255,255,.14); padding-top: 10px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .price-card { background: #2A2722; color: var(--ink); } }
+:root[data-theme="dark"] .price-card { background: #2A2722; color: var(--ink); }
+.note { font-size: 13.5px; color: var(--muted); background: var(--soft); border-radius: 14px; padding: 12px 14px; margin-top: 10px; }
+.seen { color: var(--gas-ink); font-weight: 700; }
+
+/* ---------- sheet (place + dish) ---------- */
+.sheet { position: fixed; inset: 0; z-index: 20; background: var(--bg); overflow-y: auto; -webkit-overflow-scrolling: touch; animation: up .22s ease; }
+@keyframes up { from { transform: translateY(24px); opacity: 0; } }
+.sheet .wrap { padding-top: calc(10px + env(safe-area-inset-top)); }
+.sheet-top { display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; padding: 6px 0; background: var(--bg); z-index: 2; }
+.place-head { margin-top: 8px; }
+.place-head h2 { font-size: 30px; font-weight: 800; line-height: 1.08; }
+.place-head .sub { color: var(--muted); margin-top: 6px; }
+.actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 8px; margin-top: 16px; }
+.action { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); text-decoration: none; font-size: 13.5px; font-weight: 600; }
+.action svg { width: 22px; height: 22px; }
+.action.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; margin-top: 12px; }
+.hours { width: 100%; border-collapse: collapse; font-size: 15px; }
+.hours td { padding: 5px 0; }
+.hours td:last-child { text-align: right; color: var(--muted); }
+.hours tr.today td { font-weight: 700; color: var(--ink); }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.grade { display: flex; gap: 12px; align-items: center; }
+.grade b { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; font: 800 26px/1 "Bricolage Grotesque", sans-serif; border: 3px solid currentColor; }
+.grade .A { color: #1F5FAD; } .grade .B { color: #2E8B57; } .grade .C { color: #C2671D; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .grade .A { color: #78A9EA; } }
+.dish { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center; padding: 13px 0; border-top: 1px solid var(--line); }
+.dish:first-of-type { border-top: 0; }
+.dish h4 { margin: 0; font-size: 16.5px; }
+.dish p { margin: 0; color: var(--muted); font-size: 14px; grid-column: 1; }
+.dish .marks { font-size: 12.5px; color: var(--muted); margin-top: 3px; grid-column: 1; display: flex; gap: 8px; }
+.explain { grid-row: 1 / span 3; grid-column: 2; border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: 14px; }
+.explain:active { background: var(--soft); }
+.dish-hero { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 20px; background: var(--soft); display: block; margin-top: 8px; }
+.dish-title { font-size: 32px; font-weight: 800; margin-top: 16px; line-height: 1.05; }
+.lead { font-size: 18px; margin: 8px 0 0; }
+.wiki { color: var(--muted); margin: 12px 0 0; font-size: 15px; }
+.ingr { display: flex; flex-wrap: wrap; gap: 6px; }
+.ingr span { background: var(--soft); border-radius: 999px; padding: 5px 11px; font-size: 14px; }
+.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; }
+.steps li { counter-increment: s; position: relative; padding: 0 0 14px 40px; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: -1px; width: 27px; height: 27px; border-radius: 50%; background: var(--food); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+.steps li:last-child { padding-bottom: 0; }
+.tip { border-left: 4px solid var(--gas); }
+.panel h3 { font: 700 13px/1 Figtree, sans-serif; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 12px; }
+.credit { font-size: 12.5px; color: var(--muted); margin-top: 14px; }
+.field { display: flex; gap: 8px; margin-top: 10px; }
+.field input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font: inherit; font-size: 16px; background: var(--bg); color: var(--ink); }
+.btn { border: 0; background: var(--ink); color: var(--bg); border-radius: 12px; padding: 10px 16px; font-weight: 700; }
+.results-list button { display: block; width: 100%; text-align: left; border: 0; border-top: 1px solid var(--line); background: none; padding: 12px 2px; }
+.results-list button:first-child { border-top: 0; }
+.fuel-prices { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.fp { font-weight: 700; color: var(--gas-ink); font-size: 15px; }
+.fp small { color: var(--muted); font-weight: 500; }
+.cheapest { background: var(--gas); color: #1B1A17; font-weight: 700; font-size: 12.5px; border-radius: 999px; padding: 2px 9px; }
+</style>
+</head>
+<body>
+
+<!-- start: what do you need? -->
+<main id="home" class="wrap">
+  <div class="brand">
+    <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#F2A93B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20V4h6a5 5 0 0 1 0 10H10"/></svg></div>
+    <h1>Pitstop</h1>
+  </div>
+  <div class="road"></div>
+  <h2 class="ask">What do you need?</h2>
+  <p class="ask-sub">Gas or food, near where you are right now.</p>
+  <div class="choices">
+    <button class="choice gas" data-go="gas">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16"/><path d="M3 21h13"/><path d="M7 7h5v4H7z"/><path d="M15 9h2a2 2 0 0 1 2 2v6a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg></span>
+      <span><strong>Gas</strong><span>Stations near you and this week's price</span></span>
+      <svg class="arrow" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+    </button>
+    <button class="choice food" data-go="food">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a2 2 0 0 0 2 2v9"/><path d="M10 3v7a2 2 0 0 1-2 2"/><path d="M8 3v5"/><path d="M17 21V3c-2.2 1-3.5 3.5-3.5 7v3H17"/></svg></span>
+      <span><strong>Food</strong><span>Open now, closing times and what to order</span></span>
+      <svg class="arrow" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+    </button>
+  </div>
+  <div class="where" id="homeWhere">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+    <span id="homeWhereText">Uses your location when you choose. It stays on your phone.</span>
+  </div>
+  <p class="home-foot">Places from OpenStreetMap · gas prices from the U.S. Energy Information Administration · NYC health grades from NYC Open Data.</p>
+</main>
+
+<!-- results -->
+<main id="results" class="wrap hidden">
+  <div class="bar">
+    <div class="bar-row">
+      <button class="iconbtn" id="backHome" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m15 6-6 6 6 6"/></svg></button>
+      <h2 id="resultsTitle">Near you</h2>
+      <div class="switch" role="group" aria-label="Show">
+        <button data-mode="gas" aria-pressed="false">Gas</button>
+        <button data-mode="food" aria-pressed="false">Food</button>
+      </div>
+    </div>
+    <div class="loc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+      <span id="locText">Finding you…</span>
+      <button class="linkbtn" id="changeLoc">Change</button>
+    </div>
+    <div id="foodControls" class="hidden">
+      <label class="search"><span class="sr">Search</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Search a name or cuisine" autocomplete="off">
+      </label>
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+  <div id="content"></div>
+</main>
+
+<!-- place / dish / location sheets are rendered here -->
+<div id="sheet" class="sheet hidden" role="dialog" aria-modal="true"></div>
+
+<script type="module">
+import {
+  overpassQuery, parsePlaces, cuisineIndex, cuisinesFor, cuisineLabel, dishesFor, dietBadges, serviceBadges,
+  hoursStatus, lateNight, weekHours, formatDistance, gasForLocation, inNYC, matchInspection, OVERPASS_URLS, distanceMeters,
+} from "./core.js";
+
+const DATA_BASE = location.hostname.endsWith("github.io") || location.protocol === "file:"
+  ? "https://raw.githubusercontent.com/madhubuddaraju/pitstop/main/docs/" : "./";
+const OH_URL = "https://cdn.jsdelivr.net/npm/opening_hours@3.15.0/+esm";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("pitstop:" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("pitstop:" + k, JSON.stringify(v)); } catch {} },
+};
+
+const S = {
+  mode: null, loc: null, places: {}, loading: {}, OH: null, dishes: null, cIndex: null, gas: null,
+  filters: { open: true, late: false, halal: false, veg: false, cuisine: null, q: "" }, shown: 40,
+};
+
+// ---------- icons ----------
+const I = {
+  nav: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 11 21 3l-8 18-2-8z"/></svg>',
+  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 3h4l2 5-2.5 1.5a11 11 0 0 0 6 6L16 13l5 2v4a2 2 0 0 1-2 2A17 17 0 0 1 3 5a2 2 0 0 1 2-2"/></svg>',
+  web: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
+  menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3h12v18H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',
+  close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m15 6-6 6 6 6"/></svg>',
+};
+const DIET = { meat: "Has meat", fish: "Seafood", veg: "Vegetarian", vegan: "Vegan" };
+const spice = n => n === 2 ? "🌶🌶 Spicy" : n === 1 ? "🌶 Mild heat" : "";
+
+// ---------- navigation (hash routes so the phone's back button works) ----------
+function route() {
+  const h = location.hash.slice(1);
+  const [view, arg] = h.split("/");
+  if (view === "gas" || view === "food") {
+    closeSheet(true);
+    showResults(view);
+  } else if (view === "place" && S.mode) {
+    openPlace(decodeURIComponent(arg));
+  } else if (view === "dish" && S.dishes) {
+    openDish(decodeURIComponent(arg));
+  } else {
+    closeSheet(true);
+    $("#results").classList.add("hidden");
+    $("#home").classList.remove("hidden");
+    document.title = "Pitstop · gas and food near you";
+  }
+}
+window.addEventListener("hashchange", route);
+document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { location.hash = b.dataset.go; });
+document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { location.hash = b.dataset.mode; });
+$("#backHome").onclick = () => { location.hash = ""; };
+$("#changeLoc").onclick = () => openLocationSheet();
+
+// ---------- location ----------
+function urlLocation() {
+  const at = new URLSearchParams(location.search).get("at");
+  if (!at) return null;
+  const [lat, lon] = at.split(",").map(Number);
+  return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
+}
+
+function getPosition() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error("Location isn't available in this browser."));
+    navigator.geolocation.getCurrentPosition(
+      p => resolve({ lat: p.coords.latitude, lon: p.coords.longitude, accuracy: p.coords.accuracy }),
+      e => reject(new Error(e.code === 1 ? "Location permission was turned off." : "Couldn't get your location.")),
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 120000 });
+  });
+}
+
+async function ensureLocation() {
+  if (S.loc) return S.loc;
+  const fixed = urlLocation();
+  const pos = fixed || await getPosition();
+  setLocation(pos);
+  return S.loc;
+}
+
+function setLocation(pos, label) {
+  S.loc = { lat: pos.lat, lon: pos.lon, label: label || "Your location", country: "us", stateCode: null };
+  S.places = {};
+  $("#locText").textContent = S.loc.label;
+  reverseGeocode(S.loc).then(() => { if (S.mode === "gas") renderGas(); });
+}
+
+async function reverseGeocode(loc) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=17&addressdetails=1&lat=${loc.lat}&lon=${loc.lon}`,
+      { headers: { "Accept-Language": "en" } });
+    const j = await r.json();
+    const a = j.address || {};
+    loc.country = (a.country_code || "us").toLowerCase();
+    loc.state = a.state;
+    const iso = a["ISO3166-2-lvl4"] || "";
+    loc.stateCode = iso.startsWith("US-") ? iso.slice(3) : null;
+    if (loc.label === "Your location") {
+      const near = a.road || a.pedestrian || a.neighbourhood || a.suburb;
+      const area = a.neighbourhood && a.road ? a.neighbourhood : a.suburb || a.city || a.town || a.village;
+      loc.label = "Near " + [near, area].filter(Boolean).filter((v, i, x) => x.indexOf(v) === i).join(", ");
+    }
+    if (loc === S.loc) $("#locText").textContent = loc.label;
+  } catch { /* the label just stays generic */ }
+}
+
+function openLocationSheet() {
+  const sheet = $("#sheet");
+  sheet.innerHTML = `<div class="wrap">
+    <div class="sheet-top"><span></span><button class="iconbtn" data-close aria-label="Close">${I.close}</button></div>
+    <h2 class="dish-title" style="margin-top:4px">Where are you?</h2>
+    <div class="panel">
+      <button class="btn" id="useGps" style="width:100%;padding:13px">Use my current location</button>
+      <div class="field"><input id="placeQ" type="search" placeholder="Or type an address, place or ZIP" autocomplete="off"><button class="btn" id="placeGo">Search</button></div>
+      <div class="results-list" id="placeResults"></div>
+    </div></div>`;
+  sheet.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  sheet.querySelector("[data-close]").onclick = () => closeSheet();
+  $("#useGps").onclick = async () => {
+    $("#useGps").textContent = "Finding you…";
+    try { setLocation(await getPosition()); closeSheet(); reload(); }
+    catch (e) { $("#useGps").textContent = e.message + " Try searching instead."; }
+  };
+  const go = async () => {
+    const q = $("#placeQ").value.trim();
+    if (!q) return;
+    $("#placeResults").innerHTML = `<p class="summary">Searching…</p>`;
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q=${encodeURIComponent(q)}`, { headers: { "Accept-Language": "en" } });
+      const res = await r.json();
+      $("#placeResults").innerHTML = res.length ? res.map((p, i) => `<button data-i="${i}">${esc(p.display_name)}</button>`).join("")
+        : `<p class="summary">Nothing found. Try adding the city.</p>`;
+      $("#placeResults").querySelectorAll("button").forEach(b => b.onclick = () => {
+        const p = res[+b.dataset.i];
+        setLocation({ lat: +p.lat, lon: +p.lon }, "Near " + p.display_name.split(",").slice(0, 2).join(","));
+        closeSheet(); reload();
+      });
+    } catch { $("#placeResults").innerHTML = `<p class="summary">Search isn't working right now.</p>`; }
+  };
+  $("#placeGo").onclick = go;
+  $("#placeQ").onkeydown = e => { if (e.key === "Enter") go(); };
+}
+
+// ---------- data ----------
+async function loadOH() {
+  if (!S.OH) S.OH = (await import(OH_URL)).default;
+  return S.OH;
+}
+async function loadDishes() {
+  if (!S.dishes) {
+    S.dishes = await (await fetch(DATA_BASE + "dishes.json")).json();
+    S.cIndex = cuisineIndex(S.dishes.cuisines);
+  }
+  return S.dishes;
+}
+async function loadGas() {
+  if (!S.gas) { try { S.gas = await (await fetch(DATA_BASE + "gas.json")).json(); } catch { S.gas = {}; } }
+  return S.gas;
+}
+
+async function overpass(query) {
+  let lastErr;
+  for (const url of OVERPASS_URLS) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 30000);
+    try {
+      const r = await fetch(url, { method: "POST", body: "data=" + encodeURIComponent(query), signal: ctrl.signal,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" } });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return await r.json();
+    } catch (e) { lastErr = e; } finally { clearTimeout(timer); }
+  }
+  throw lastErr;
+}
+
+async function findPlaces(kind) {
+  const loc = S.loc;
+  const key = `places:${kind}:${loc.lat.toFixed(3)},${loc.lon.toFixed(3)}`;
+  try {
+    const c = JSON.parse(sessionStorage.getItem(key) || "null");
+    if (c && Date.now() - c.at < 15 * 60000) return c.places;
+  } catch {}
+  // start close and widen until there's enough to choose from
+  const radii = kind === "gas" ? [3000, 8000, 20000] : [700, 1600, 4000];
+  const enough = kind === "gas" ? 6 : 30;
+  let places = [];
+  for (const r of radii) {
+    places = parsePlaces(await overpass(overpassQuery(kind, loc.lat, loc.lon, r)), kind, loc);
+    if (places.length >= enough) break;
+  }
+  try { sessionStorage.setItem(key, JSON.stringify({ at: Date.now(), places })); } catch {}
+  return places;
+}
+
+// ---------- results ----------
+async function showResults(mode) {
+  S.mode = mode;
+  $("#home").classList.add("hidden");
+  $("#results").classList.remove("hidden");
+  $("#resultsTitle").textContent = mode === "gas" ? "Gas near you" : "Food near you";
+  document.title = (mode === "gas" ? "Gas" : "Food") + " near you · Pitstop";
+  document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+  $("#foodControls").classList.toggle("hidden", mode !== "food");
+  S.shown = 40;
+  window.scrollTo(0, 0);
+  await reload();
+}
+
+async function reload() {
+  const mode = S.mode;
+  if (!mode) return;
+  const content = $("#content");
+  if (!S.places[mode]) {
+    content.innerHTML = `<div class="list" style="margin-top:14px">${'<div class="skeleton"></div>'.repeat(5)}</div>`;
+    try { await ensureLocation(); }
+    catch (e) {
+      $("#locText").textContent = "Location not set";
+      content.innerHTML = `<div class="state"><h3>Where are you?</h3><p>${esc(e.message)}</p><button class="btn" id="setLoc">Set location</button></div>`;
+      $("#setLoc").onclick = openLocationSheet;
+      return;
+    }
+    try {
+      const [places] = await Promise.all([findPlaces(mode), loadOH(), mode === "food" ? loadDishes() : loadGas()]);
+      S.places[mode] = places;
+    } catch (e) {
+      content.innerHTML = `<div class="state"><h3>Couldn't load places</h3><p>The map service is busy or you're offline.</p><button class="btn" id="retry">Try again</button></div>`;
+      $("#retry").onclick = reload;
+      return;
+    }
+  }
+  if (S.mode !== mode) return;
+  enrich(mode);
+  mode === "food" ? renderFood() : renderGas();
+}
+
+function ohContext() {
+  return { lat: S.loc.lat, lon: S.loc.lon, address: { country_code: S.loc.country || "us", state: S.loc.state || "" } };
+}
+
+function enrich(mode) {
+  const now = new Date();
+  for (const p of S.places[mode]) {
+    p.status = hoursStatus(S.OH, p.tags.opening_hours, now, ohContext());
+    if (mode === "food") {
+      p.cuisines = cuisinesFor(p.tags, S.cIndex);
+      p.cuisineText = cuisineLabel(p.tags, p.cuisines, S.dishes.cuisines);
+      p.diet = dietBadges(p.tags);
+      p.late = lateNight(p.status, now);
+    }
+  }
+}
+
+const miles = () => (S.loc?.country || "us") === "us";
+const pill = st => `<span class="pill ${st.soon ? "soon" : st.state}">${esc(st.label)}</span>`;
+
+function renderFood() {
+  const all = S.places.food;
+  const f = S.filters;
+  // cuisine chips from what is actually nearby
+  const counts = {};
+  for (const p of all) for (const k of p.cuisines) counts[k] = (counts[k] || 0) + 1;
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 12);
+  const chip = (id, label, on, n) => `<button class="chip" data-chip="${id}" aria-pressed="${on}">${esc(label)}${n ? `<span class="n">${n}</span>` : ""}</button>`;
+  $("#chips").innerHTML = chip("open", "Open now", f.open) + chip("late", "Late night", f.late) + chip("halal", "Halal", f.halal) + chip("veg", "Vegetarian", f.veg)
+    + top.map(([k, n]) => chip("c:" + k, S.dishes.cuisines[k].label, f.cuisine === k, n)).join("");
+  $("#chips").querySelectorAll("[data-chip]").forEach(b => b.onclick = () => {
+    const id = b.dataset.chip;
+    if (id.startsWith("c:")) f.cuisine = f.cuisine === id.slice(2) ? null : id.slice(2);
+    else f[id] = !f[id];
+    S.shown = 40; renderFood();
+  });
+
+  const q = f.q.toLowerCase();
+  const match = p => {
+    if (f.cuisine && !p.cuisines.includes(f.cuisine)) return false;
+    if (f.late && !p.late) return false;
+    if (f.halal && !p.diet.some(d => d.startsWith("Halal")) && !p.cuisines.includes("halal")) return false;
+    if (f.veg && !p.diet.some(d => /Vegan|Vegetarian/.test(d))) return false;
+    if (q && !(p.name.toLowerCase().includes(q) || p.cuisineText.toLowerCase().includes(q) || (p.tags.cuisine || "").includes(q))) return false;
+    return true;
+  };
+  const matched = all.filter(match);
+  const open = matched.filter(p => p.status.state === "open");
+  const unknown = matched.filter(p => p.status.state === "unknown");
+  const closed = matched.filter(p => p.status.state === "closed");
+  const content = $("#content");
+  if (!matched.length) {
+    content.innerHTML = `<div class="state"><h3>Nothing matches</h3><p>Try removing a filter.</p></div>`;
+    return;
+  }
+  let html = `<p class="summary">${open.length} open now${f.open ? "" : ` · ${closed.length} closed`} · ${unknown.length} without listed hours</p>`;
+  const groups = f.open
+    ? [["", open], ["Hours not listed · may be open", unknown]]
+    : [["", [...open, ...closed, ...unknown].sort((a, b) => a.dist - b.dist)]];
+  let budget = S.shown, remaining = 0;
+  for (const [label, items] of groups) {
+    if (!items.length) continue;
+    const take = items.slice(0, Math.max(0, budget));
+    remaining += items.length - take.length;
+    budget -= take.length;
+    if (!take.length) continue;
+    if (label) html += `<p class="section-label">${label}</p>`;
+    html += `<div class="list">${take.map(foodItem).join("")}</div>`;
+  }
+  if (remaining) html += `<button class="more" id="more">Show ${Math.min(remaining, 40)} more</button>`;
+  html += `<p class="credit">Places and hours © OpenStreetMap contributors. Hours can be out of date, so call ahead late at night.</p>`;
+  content.innerHTML = html;
+  bindItems();
+  $("#more")?.addEventListener("click", () => { S.shown += 40; renderFood(); });
+}
+
+function foodItem(p) {
+  const tags = [...p.diet.slice(0, 2)];
+  if (p.late && !p.status.open24) tags.push("Late night");
+  return `<button class="item" data-place="${esc(p.id)}">
+    <h3>${esc(p.name)}</h3><span class="right">${esc(formatDistance(p.dist, { miles: miles() }).split(" · ")[1] || "")}</span>
+    <span class="meta">${esc(p.cuisineText)} · ${esc(formatDistance(p.dist, { miles: miles() }).split(" · ")[0])}</span>
+    <span class="row2">${pill(p.status)}${tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}</span>
+  </button>`;
+}
+
+$("#q").addEventListener("input", e => { S.filters.q = e.target.value.trim(); S.shown = 40; if (S.places.food) renderFood(); });
+
+function bindItems() {
+  $("#content").querySelectorAll("[data-place]").forEach(b => b.onclick = () => { location.hash = "place/" + encodeURIComponent(b.dataset.place); });
+}
+
+// ---------- gas ----------
+const seenPrices = () => store.get("seen", {});
+function ago(ts) {
+  const d = Math.round((Date.now() - ts) / 86400000);
+  return d <= 0 ? "today" : d === 1 ? "yesterday" : `${d} days ago`;
+}
+function spark(series) {
+  const v = series.map(s => s[1]);
+  const min = Math.min(...v), max = Math.max(...v), span = max - min || 0.01;
+  const pts = v.map((p, i) => `${(i / (v.length - 1)) * 106 + 2},${36 - ((p - min) / span) * 32}`).join(" ");
+  return `<svg class="spark" viewBox="0 0 110 40" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/></svg>`;
+}
+
+function priceCard() {
+  const g = gasForLocation(S.gas, S.loc.stateCode, S.loc.lat, S.loc.lon);
+  if (!g?.regular) return `<div class="note">This week's average price isn't available right now.</div>`;
+  const s = g.regular.series, last = s[s.length - 1][1], prev = s.length > 1 ? s[s.length - 2][1] : last;
+  const cents = Math.round((last - prev) * 100);
+  const delta = cents === 0 ? `<span class="delta">Same as last week</span>`
+    : `<span class="delta ${cents < 0 ? "down" : "up"}">${cents < 0 ? "↓" : "↑"} ${Math.abs(cents)}¢ vs last week</span>`;
+  const week = new Date(s[s.length - 1][0] + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const d = g.diesel?.series;
+  return `<div class="price-card">
+    <div class="lbl">Average regular gas · ${esc(g.regular.name)}</div>
+    <div class="price-row"><div class="price-big">$${last.toFixed(2)}<small>/gal</small></div>${delta}${spark(s)}</div>
+    <div class="price-sub"><span>Week of ${week} · 12-week trend</span>${d ? `<span>Diesel $${d[d.length - 1][1].toFixed(2)}${g.diesel.code !== g.regular.code ? ` (${esc(g.diesel.name)})` : ""}</span>` : ""}</div>
+  </div>`;
+}
+
+function renderGas() {
+  if (S.mode !== "gas" || !S.places.gas) return;
+  const seen = seenPrices();
+  const places = S.places.gas.slice(0, S.shown);
+  const known = places.filter(p => seen[p.id]);
+  const cheapestSeen = known.length ? known.reduce((a, b) => seen[a.id].price <= seen[b.id].price ? a : b).id : null;
+  let html = priceCard();
+  html += `<div class="note">Stations don't publish live prices openly, so this shows the official average for your area. Tap a station to note the price you see; Pitstop remembers it on this phone and points out the cheapest.</div>`;
+  html += `<p class="summary">${S.places.gas.length} stations nearby</p><div class="list">`;
+  html += places.map(p => {
+    const sp = seen[p.id];
+    const fuels = [p.tags["fuel:diesel"] === "yes" ? "Diesel" : null, p.tags["fuel:e85"] === "yes" ? "E85" : null].filter(Boolean);
+    return `<button class="item" data-place="${esc(p.id)}">
+      <h3>${esc(p.name)}</h3><span class="right">${esc(formatDistance(p.dist, { miles: miles(), mode: "drive" }).split(" · ")[1] || "")}</span>
+      <span class="meta">${esc([formatDistance(p.dist, { miles: miles(), mode: "drive" }).split(" · ")[0], p.address].filter(Boolean).join(" · "))}</span>
+      <span class="row2">${pill(p.status)}${fuels.map(t => `<span class="tag">${t}</span>`).join("")}
+        ${sp ? `<span class="seen">$${sp.price.toFixed(2)} you saw ${ago(sp.at)}</span>` : ""}${p.id === cheapestSeen && known.length > 1 ? `<span class="cheapest">Cheapest you've seen</span>` : ""}</span>
+    </button>`;
+  }).join("");
+  html += `</div>`;
+  if (S.places.gas.length > S.shown) html += `<button class="more" id="more">Show more stations</button>`;
+  html += `<p class="credit">Stations © OpenStreetMap contributors. Prices: U.S. Energy Information Administration, weekly retail averages.</p>`;
+  $("#content").innerHTML = html;
+  bindItems();
+  $("#more")?.addEventListener("click", () => { S.shown += 40; renderGas(); });
+}
+
+// ---------- place sheet ----------
+function findPlace(id) {
+  for (const k of ["food", "gas"]) { const p = S.places[k]?.find(x => x.id === id); if (p) return [p, k]; }
+  return [null, null];
+}
+
+function directionsUrl(p) {
+  const apple = /iPhone|iPad|Macintosh/.test(navigator.userAgent) && "ontouchend" in document;
+  return apple ? `https://maps.apple.com/?daddr=${p.lat},${p.lon}&q=${encodeURIComponent(p.name)}`
+    : `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}`;
+}
+const cleanUrl = u => u && (/^https?:\/\//.test(u) ? u : "https://" + u);
+
+function openPlace(id) {
+  const [p, kind] = findPlace(id);
+  if (!p) { location.hash = S.mode || ""; return; }
+  const t = p.tags;
+  const phone = t.phone || t["contact:phone"];
+  const web = cleanUrl(t.website || t["contact:website"]);
+  const menu = cleanUrl(t["website:menu"] || t["menu:url"] || t.menu);
+  const week = t.opening_hours ? weekHours(S.OH, t.opening_hours, new Date(), ohContext()) : [];
+  const badges = kind === "food" ? [...p.diet, ...serviceBadges(t)] : serviceBadges(t);
+  const fuels = kind === "gas" ? Object.entries(t).filter(([k, v]) => k.startsWith("fuel:") && v === "yes")
+    .map(([k]) => ({ diesel: "Diesel", e85: "E85", octane_91: "Premium 91", octane_93: "Premium 93", lpg: "Propane", adblue: "DEF" }[k.slice(5)])).filter(Boolean) : [];
+  const sub = kind === "food" ? `${esc(p.cuisineText)} · ${esc(formatDistance(p.dist, { miles: miles() }))}`
+    : esc(formatDistance(p.dist, { miles: miles(), mode: "drive" }));
+
+  let html = `<div class="wrap">
+    <div class="sheet-top"><button class="iconbtn" data-close aria-label="Back">${I.back}</button></div>
+    <div class="place-head"><h2>${esc(p.name)}</h2><div class="sub">${sub}</div>
+      <div style="margin-top:10px">${pill(p.status)}</div>
+      ${p.address ? `<div class="sub" style="margin-top:8px">${esc(p.address)}</div>` : ""}</div>
+    <div class="actions">
+      <a class="action primary" href="${directionsUrl(p)}" target="_blank" rel="noopener">${I.nav}Directions</a>
+      ${phone ? `<a class="action" href="tel:${esc(phone.split(";")[0].replace(/[^\d+]/g, ""))}">${I.phone}Call</a>` : ""}
+      ${web ? `<a class="action" href="${esc(web)}" target="_blank" rel="noopener">${I.web}Website</a>` : ""}
+      ${menu ? `<a class="action" href="${esc(menu)}" target="_blank" rel="noopener">${I.menu}Menu</a>` : ""}
+    </div>`;
+  if (badges.length || fuels.length) html += `<div class="badges">${[...fuels, ...badges].map(b => `<span class="tag">${esc(b)}</span>`).join("")}</div>`;
+  if (kind === "food" && inNYC(p.lat, p.lon)) html += `<div class="panel" id="grade"><h3>NYC health inspection</h3><p class="summary" style="margin:0">Checking…</p></div>`;
+  if (kind === "gas") html += gasPricePanel(p);
+  if (week.length) {
+    html += `<div class="panel"><h3>Hours</h3><table class="hours">${week.map((r, i) => `<tr class="${i === 0 ? "today" : ""}"><td>${r.day}</td><td>${esc(r.text)}</td></tr>`).join("")}</table></div>`;
+  } else if (kind === "food") {
+    html += `<div class="panel"><h3>Hours</h3><p style="margin:0;color:var(--muted)">This place hasn't listed its hours${phone ? ", so call to check" : ""}.</p></div>`;
+  }
+  if (kind === "food") html += dishesPanel(p);
+  html += `<p class="credit">Details © OpenStreetMap contributors · <a href="https://www.openstreetmap.org/${esc(p.id)}" target="_blank" rel="noopener">fix something wrong</a></p></div>`;
+
+  const sheet = $("#sheet");
+  sheet.innerHTML = html;
+  sheet.classList.remove("hidden");
+  sheet.scrollTop = 0;
+  document.body.style.overflow = "hidden";
+  document.title = p.name + " · Pitstop";
+  sheet.querySelector("[data-close]").onclick = () => history.back();
+  sheet.querySelectorAll("[data-dish]").forEach(b => b.onclick = () => { location.hash = "dish/" + b.dataset.dish; });
+  if (kind === "gas") bindPriceForm(p);
+  if (kind === "food" && inNYC(p.lat, p.lon)) loadGrade(p);
+}
+
+function dishesPanel(p) {
+  const ids = dishesFor(p.cuisines, S.dishes.cuisines);
+  if (!ids.length) {
+    return `<div class="panel"><h3>What to order</h3><p style="margin:0;color:var(--muted)">This place hasn't listed its cuisine, so there are no dish suggestions.${p.tags["website:menu"] || p.tags.website ? " Check their menu or website above." : ""}</p></div>`;
+  }
+  const label = S.dishes.cuisines[p.cuisines[0]].label;
+  return `<div class="panel"><h3>Popular at ${esc(label)} places</h3>
+    ${ids.map(id => { const d = S.dishes.dishes[id]; return `<div class="dish">
+      <h4>${esc(d.name)}</h4>
+      <button class="explain" data-dish="${id}">Explain</button>
+      <p>${esc(d.about)}</p>
+      <div class="marks"><span>${DIET[d.diet]}</span>${d.spicy ? `<span>${spice(d.spicy)}</span>` : ""}</div>
+    </div>`; }).join("")}
+    <p class="credit" style="margin-top:6px">Typical dishes for this kind of restaurant. Check the menu for what they serve.</p>
+  </div>`;
+}
+
+// ---------- dish sheet ----------
+function openDish(id) {
+  const d = S.dishes.dishes[id];
+  if (!d) { history.back(); return; }
+  const w = d.wiki_summary || {};
+  const html = `<div class="wrap">
+    <div class="sheet-top"><button class="iconbtn" data-close aria-label="Back">${I.back}</button></div>
+    ${w.image ? `<img class="dish-hero" src="${esc(w.image)}" alt="${esc(d.name)}" loading="lazy" referrerpolicy="no-referrer">` : ""}
+    <h2 class="dish-title">${esc(d.name)}</h2>
+    <div class="badges"><span class="tag">${DIET[d.diet]}</span>${d.spicy ? `<span class="tag">${spice(d.spicy)}</span>` : `<span class="tag">Not spicy</span>`}</div>
+    <p class="lead">${esc(d.about)}</p>
+    ${w.extract ? `<p class="wiki">${esc(w.extract)}</p>` : ""}
+    <div class="panel"><h3>What's in it</h3><div class="ingr">${d.ingredients.map(x => `<span>${esc(x)}</span>`).join("")}</div></div>
+    <div class="panel"><h3>How it's made</h3><ol class="steps">${d.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol></div>
+    ${d.tip ? `<div class="panel tip"><h3>Good to know</h3><p style="margin:0">${esc(d.tip)}</p></div>` : ""}
+    ${w.url ? `<p class="credit">Photo and longer description from <a href="${esc(w.url)}" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA). Recipes vary from place to place.</p>` : `<p class="credit">Recipes vary from place to place.</p>`}
+  </div>`;
+  const sheet = $("#sheet");
+  sheet.innerHTML = html;
+  sheet.classList.remove("hidden");
+  sheet.scrollTop = 0;
+  document.body.style.overflow = "hidden";
+  document.title = d.name + " · Pitstop";
+  sheet.querySelector("[data-close]").onclick = () => history.back();
+  const img = sheet.querySelector(".dish-hero");
+  if (img) img.onerror = () => img.remove();
+}
+
+function closeSheet(silent) {
+  const sheet = $("#sheet");
+  if (sheet.classList.contains("hidden")) return;
+  sheet.classList.add("hidden");
+  sheet.innerHTML = "";
+  document.body.style.overflow = "";
+  if (!silent && location.hash.startsWith("#place")) history.back();
+}
+
+// ---------- gas price notes ----------
+function gasPricePanel(p) {
+  const sp = seenPrices()[p.id];
+  return `<div class="panel"><h3>Price here</h3>
+    ${sp ? `<p style="margin:0"><span class="seen">$${sp.price.toFixed(2)}</span> regular, you noted ${ago(sp.at)}.</p>` : `<p style="margin:0;color:var(--muted)">Note the regular price on the sign and Pitstop will compare stations for you.</p>`}
+    <form class="field" id="priceForm"><input id="priceIn" inputmode="decimal" placeholder="e.g. 3.19" aria-label="Regular price per gallon"><button class="btn">Save</button></form>
+  </div>`;
+}
+function bindPriceForm(p) {
+  $("#priceForm").onsubmit = e => {
+    e.preventDefault();
+    const v = parseFloat($("#priceIn").value.replace(/[^\d.]/g, ""));
+    if (!(v > 0.5 && v < 15)) { $("#priceIn").value = ""; $("#priceIn").placeholder = "Enter a price like 3.19"; return; }
+    const seen = seenPrices();
+    seen[p.id] = { price: v, at: Date.now(), name: p.name };
+    store.set("seen", seen);
+    openPlace(p.id);
+    renderGas();
+  };
+}
+
+// ---------- NYC inspection grade ----------
+async function loadGrade(p) {
+  const box = $("#grade");
+  const d = 0.0015;
+  const where = `latitude between ${(p.lat - d).toFixed(5)} and ${(p.lat + d).toFixed(5)} and longitude between ${(p.lon - d).toFixed(5)} and ${(p.lon + d).toFixed(5)} and grade in('A','B','C')`;
+  const url = "https://data.cityofnewyork.us/resource/43nn-pn8j.json?" + new URLSearchParams({
+    $select: "camis,dba,grade,grade_date,inspection_date,latitude,longitude,score",
+    $where: where, $order: "inspection_date DESC", $limit: "400",
+  });
+  try {
+    const rows = await (await fetch(url)).json();
+    const m = Array.isArray(rows) ? matchInspection(p, rows) : null;
+    if (!box.isConnected) return;
+    if (!m) { box.remove(); return; }
+    const when = new Date(m.grade_date || m.inspection_date).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    const meaning = { A: "Few or no food-safety problems found.", B: "Some food-safety problems found.", C: "Many food-safety problems found." }[m.grade];
+    box.innerHTML = `<h3>NYC health inspection</h3><div class="grade"><b class="${m.grade}">${m.grade}</b><div><strong>Grade ${m.grade}</strong> · graded ${when}<div class="summary" style="margin:2px 0 0">${meaning}</div></div></div>`;
+  } catch { box?.remove(); }
+}
+
+route();
+if (urlLocation() && !location.hash) {
+  const m = new URLSearchParams(location.search).get("mode");
+  if (m === "gas" || m === "food") location.hash = m;
+}
+</script>
+</body>
+</html>

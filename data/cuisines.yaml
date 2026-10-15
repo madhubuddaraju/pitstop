@@ -1,0 +1,176 @@
+# OpenStreetMap cuisine values -> the dishes shown as "popular in this kind of restaurant".
+# `osm` lists the cuisine=* values that map to this entry (a restaurant can have several, separated by ";").
+# Dish ids refer to data/dishes.yaml. The first dishes listed are shown first.
+
+american:
+  label: American
+  osm: [american, diner, regional, soul_food, southern]
+  dishes: [cheeseburger, buffalo-wings, mac-and-cheese, fried-chicken, pancakes, cobb-salad]
+burger:
+  label: Burgers
+  osm: [burger, hot_dog]
+  dishes: [cheeseburger, french-fries, milkshake, hot-dog]
+pizza:
+  label: Pizza
+  osm: [pizza]
+  dishes: [ny-slice, margherita-pizza, garlic-knots, calzone]
+italian:
+  label: Italian
+  osm: [italian, italian_pizza, pasta]
+  dishes: [carbonara, chicken-parm, lasagna, margherita-pizza, risotto, tiramisu]
+mexican:
+  label: Mexican
+  osm: [mexican, tex-mex, tacos, burrito, tex_mex]
+  dishes: [tacos-al-pastor, burrito, enchiladas, quesadilla, guacamole, elote]
+chinese:
+  label: Chinese
+  osm: [chinese, cantonese, sichuan, szechuan, dim_sum, hunan, taiwanese, shanghainese, dumpling]
+  dishes: [general-tso, dumplings, fried-rice, lo-mein, kung-pao, mapo-tofu, peking-duck]
+japanese:
+  label: Japanese
+  osm: [japanese, teriyaki, izakaya]
+  dishes: [sushi, ramen, tonkatsu, tempura, gyoza, miso-soup]
+sushi:
+  label: Sushi
+  osm: [sushi]
+  dishes: [sushi, sashimi, miso-soup, edamame]
+ramen:
+  label: Ramen and noodles
+  osm: [ramen, noodle, noodles, udon]
+  dishes: [ramen, gyoza, udon]
+poke:
+  label: Poke
+  osm: [poke, hawaiian]
+  dishes: [poke-bowl, edamame]
+indian:
+  label: Indian
+  osm: [indian, north_indian, south_indian, punjabi]
+  dishes: [butter-chicken, tikka-masala, biryani, chana-masala, palak-paneer, samosa, naan, masala-dosa]
+pakistani:
+  label: Pakistani and Bangladeshi
+  osm: [pakistani, bangladeshi, bengali, afghan]
+  dishes: [biryani, chicken-karahi, nihari, seekh-kebab, naan, samosa]
+nepalese:
+  label: Nepali and Tibetan
+  osm: [nepalese, nepali, tibetan, himalayan]
+  dishes: [momo, thukpa, dal-bhat]
+thai:
+  label: Thai
+  osm: [thai]
+  dishes: [pad-thai, green-curry, tom-yum, pad-see-ew, massaman-curry, mango-sticky-rice]
+korean:
+  label: Korean
+  osm: [korean]
+  dishes: [bibimbap, korean-fried-chicken, bulgogi, kimchi-jjigae, tteokbokki]
+vietnamese:
+  label: Vietnamese
+  osm: [vietnamese]
+  dishes: [pho, banh-mi, spring-rolls, bun-cha]
+filipino:
+  label: Filipino
+  osm: [filipino]
+  dishes: [adobo, lumpia, pancit, sisig]
+malaysian:
+  label: Malaysian and Indonesian
+  osm: [malaysian, indonesian, singaporean]
+  dishes: [nasi-lemak, satay, laksa, fried-rice]
+greek:
+  label: Greek
+  osm: [greek]
+  dishes: [gyro, souvlaki, greek-salad, moussaka, spanakopita]
+mediterranean:
+  label: Mediterranean
+  osm: [mediterranean]
+  dishes: [falafel, hummus, gyro, greek-salad, shawarma]
+middle_eastern:
+  label: Middle Eastern
+  osm: [middle_eastern, lebanese, turkish, persian, israeli, syrian, arab, kebab, falafel, shawarma, yemeni, egyptian]
+  dishes: [shawarma, falafel, hummus, doner-kebab, baba-ghanoush, tabbouleh, baklava]
+halal:
+  label: Halal
+  osm: [halal]
+  dishes: [chicken-over-rice, gyro, falafel, seekh-kebab]
+moroccan:
+  label: North African
+  osm: [moroccan, african, north_african, tunisian, algerian]
+  dishes: [tagine, couscous, shakshuka]
+ethiopian:
+  label: Ethiopian
+  osm: [ethiopian, eritrean]
+  dishes: [injera, doro-wat, misir-wat, tibs]
+west_african:
+  label: West African
+  osm: [west_african, nigerian, ghanaian, senegalese]
+  dishes: [jollof-rice, suya, fufu]
+french:
+  label: French
+  osm: [french, bistro, brasserie]
+  dishes: [steak-frites, french-onion-soup, croque-monsieur, coq-au-vin, creme-brulee, croissant]
+spanish:
+  label: Spanish
+  osm: [spanish, tapas, basque]
+  dishes: [paella, patatas-bravas, tortilla-espanola, gambas-al-ajillo, churros]
+caribbean:
+  label: Caribbean
+  osm: [caribbean, jamaican, trinidadian, haitian, west_indian, guyanese]
+  dishes: [jerk-chicken, oxtail, jamaican-patty, rice-and-peas, ackee-saltfish]
+latin_american:
+  label: Latin American
+  osm: [latin_american, dominican, puerto_rican, cuban, colombian, venezuelan, ecuadorian, salvadoran, honduran, latin, argentinian]
+  dishes: [empanadas, mofongo, pernil, arroz-con-pollo, tostones, pupusa, cuban-sandwich, arepa]
+peruvian:
+  label: Peruvian
+  osm: [peruvian]
+  dishes: [ceviche, lomo-saltado, pollo-a-la-brasa, aji-de-gallina]
+brazilian:
+  label: Brazilian
+  osm: [brazilian]
+  dishes: [picanha, feijoada, pao-de-queijo]
+seafood:
+  label: Seafood
+  osm: [seafood, fish, fish_and_chips, oyster]
+  dishes: [lobster-roll, clam-chowder, fish-and-chips, grilled-salmon, oysters]
+steak:
+  label: Steakhouse
+  osm: [steak_house, steak, steakhouse, grill]
+  dishes: [ribeye, creamed-spinach, wedge-salad, french-fries]
+bbq:
+  label: Barbecue
+  osm: [barbecue, bbq, smokehouse]
+  dishes: [brisket, pulled-pork, ribs, mac-and-cheese, cornbread, coleslaw]
+chicken:
+  label: Chicken
+  osm: [chicken, fried_chicken, wings]
+  dishes: [fried-chicken, buffalo-wings, chicken-tenders, french-fries]
+sandwich:
+  label: Sandwiches and deli
+  osm: [sandwich, deli, delicatessen, sub, hoagie, jewish]
+  dishes: [pastrami-on-rye, reuben, bacon-egg-cheese, blt, cuban-sandwich]
+bagel:
+  label: Bagels
+  osm: [bagel]
+  dishes: [bagel-cream-cheese, bagel-lox, bacon-egg-cheese]
+breakfast:
+  label: Breakfast and brunch
+  osm: [breakfast, brunch, pancake, crepe, waffle]
+  dishes: [pancakes, eggs-benedict, french-toast, omelette, avocado-toast]
+coffee:
+  label: Coffee
+  osm: [coffee_shop, coffee, cafe, tea, bubble_tea]
+  dishes: [latte, cappuccino, cold-brew, matcha-latte, croissant, avocado-toast, bubble-tea]
+donut:
+  label: Donuts and desserts
+  osm: [donut, doughnut, dessert, cake, cupcake, ice_cream, frozen_yogurt, gelato, bakery, pastry]
+  dishes: [donut, cheesecake, gelato, churros]
+vegan:
+  label: Vegetarian and vegan
+  osm: [vegan, vegetarian, salad, juice, healthy]
+  dishes: [buddha-bowl, falafel, veggie-burger, avocado-toast]
+german:
+  label: German
+  osm: [german, austrian, beer_garden]
+  dishes: [schnitzel, bratwurst, pretzel]
+eastern_european:
+  label: Eastern European
+  osm: [polish, ukrainian, russian, georgian, eastern_european, hungarian]
+  dishes: [pierogi, borscht, khachapuri]
