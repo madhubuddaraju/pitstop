@@ -29,8 +29,13 @@ You open the page and it asks one thing: **Gas or Food?**
 - Stations near you by distance, with hours and fuel types.
 - **This week's average price for your area** (metro, state or region, whichever is most local), the change from last
   week and a 12-week trend.
-- Station-level prices aren't published as open data, so you can note the price on a sign and Pitstop remembers it on
-  your phone and marks the cheapest station you've seen.
+- Each station's own price with a Google key (below); without one, you can note the price on a sign and Pitstop
+  remembers it on your phone and marks the cheapest station you've seen.
+
+**Optional: live prices with your own Google key.** Station-level prices aren't open data anywhere in the US, but
+Google's Places API has them. Paste your own key under "Google data" on the start screen (it stays in that phone's
+browser) and the gas list shows each station's regular, premium and diesel price, sorted cheapest first; restaurant
+pages add the Google rating, price level and hours. For one person, the monthly free allowance covers normal use.
 
 Your location is used in the browser only; nothing is stored on a server.
 
@@ -67,6 +72,9 @@ flowchart LR
   7 regions, 9 states and 10 metro areas). `fetch_gas.py` reads the spreadsheets by series id
   (`EMM_EPMR_PTE_Y35NY_DPG` = regular, New York City) and keeps 12 weeks. The page picks the most local series:
   metro if you're within 60 km of one, then state, then region, then the US.
+- **Google data** (optional) uses Places API (New) Nearby Search for `gas_station` with `fuelOptions`, called from the
+  browser with the user's key. Restaurant pages run a Text Search near the place and accept the result only if it is
+  within 150 m with a matching name.
 - **Inspection grades** are matched from NYC Open Data by name and distance (within 120 m), using the latest graded
   inspection.
 

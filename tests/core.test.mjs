@@ -157,3 +157,22 @@ test("fuel tiles cover the search circle and rows become places", async () => {
   assert.equal(p[0].tags.opening_hours, "24/7");
   assert.equal(p[0].address, "600 11th Avenue");
 });
+
+test("Google fuel prices, opening status and place matching", async () => {
+  const { googleFuel, googleStatus, fromGoogle, sameGooglePlace } = await import("../docs/core.js");
+  const fuel = googleFuel({ fuelPrices: [
+    { type: "REGULAR_UNLEADED", price: { currencyCode: "USD", units: "3", nanos: 890000000 }, updateTime: "2026-10-15T14:00:00Z" },
+    { type: "DIESEL", price: { currencyCode: "USD", units: "4", nanos: 590000000 }, updateTime: "2026-10-15T15:00:00Z" },
+  ] });
+  assert.deepEqual(fuel, { regular: 3.89, diesel: 4.59, updated: "2026-10-15T15:00:00Z" });
+  assert.equal(googleStatus({ openNow: true, nextCloseTime: "2026-10-16T03:30:00Z" }, thu930pm).label, "Open · closes 11:30 pm");
+  assert.equal(googleStatus({ openNow: true }, thu930pm).label, "Open 24 hours");
+  assert.equal(googleStatus({ openNow: false, nextOpenTime: "2026-10-16T11:00:00Z" }, thu930pm).label, "Closed · opens 7 am tomorrow");
+  const p = fromGoogle({ id: "abc", displayName: { text: "Shell" }, location: { latitude: 40.762, longitude: -73.993 },
+    formattedAddress: "600 11th Ave, New York, NY 10036, USA", fuelOptions: {} }, { lat: 40.758, lon: -73.9855 });
+  assert.equal(p.id, "g/abc");
+  assert.equal(p.address, "600 11th Ave, New York, NY 10036");
+  const results = [{ displayName: { text: "Joe's Pizza Broadway" }, location: { latitude: 40.7547, longitude: -73.9877 } }];
+  assert.ok(sameGooglePlace({ name: "Joe's Pizza", lat: 40.7548, lon: -73.9876 }, results));
+  assert.equal(sameGooglePlace({ name: "Sushi Bar", lat: 40.7548, lon: -73.9876 }, results), null);
+});

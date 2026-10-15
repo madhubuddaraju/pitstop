@@ -206,6 +206,11 @@ a { color: inherit; }
 .fuel-prices { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 .fp { font-weight: 700; color: var(--gas-ink); font-size: 15px; }
 .fp small { color: var(--muted); font-weight: 500; }
+.gprice { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 2px; }
+.gprice div { font-size: 13px; color: var(--muted); }
+.gprice b { display: block; font: 800 22px/1.1 "Bricolage Grotesque", sans-serif; color: var(--ink); }
+.sortrow { display: flex; gap: 8px; margin: 14px 0 0; }
+.stars { color: var(--gas-ink); font-weight: 700; }
 .cheapest { background: var(--gas); color: #1B1A17; font-weight: 700; font-size: 12.5px; border-radius: 999px; padding: 2px 9px; }
 </style>
 </head>
@@ -236,7 +241,7 @@ a { color: inherit; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
     <span id="homeWhereText">Uses your location when you choose. It stays on your phone.</span>
   </div>
-  <p class="home-foot">Places from OpenStreetMap · gas prices from the U.S. Energy Information Administration · NYC health grades from NYC Open Data.</p>
+  <p class="home-foot"><button class="linkbtn" id="googleBtn">Google data: off</button><br><br>Places from OpenStreetMap · gas prices from the U.S. Energy Information Administration · NYC health grades from NYC Open Data.</p>
 </main>
 
 <!-- results -->
@@ -273,7 +278,7 @@ a { color: inherit; }
 import {
   overpassQuery, parsePlaces, cuisineIndex, cuisinesFor, cuisineLabel, dishesFor, dietBadges, serviceBadges,
   hoursStatus, lateNight, weekHours, formatDistance, gasForLocation, inNYC, matchInspection, OVERPASS_URLS, distanceMeters,
-  fuelTileKeys, placesFromTiles,
+  fuelTileKeys, placesFromTiles, GOOGLE_NEARBY, GOOGLE_TEXT, googleStatus, fromGoogle, sameGooglePlace,
 } from "./core.js";
 
 const DATA_BASE = location.hostname.endsWith("github.io") || location.protocol === "file:"
@@ -419,6 +424,69 @@ function openLocationSheet() {
   $("#placeQ").onkeydown = e => { if (e.key === "Enter") go(); };
 }
 
+// ---------- Google (optional; the key is the user's own and stays on this phone) ----------
+const gkey = () => store.get("gkey", "");
+function updateGoogleBtn() { $("#googleBtn").textContent = gkey() ? "Google data: on" : "Google data: off · add for gas prices"; }
+$("#googleBtn").onclick = () => openGoogleSheet();
+
+function openGoogleSheet() {
+  const sheet = $("#sheet");
+  const has = !!gkey();
+  sheet.innerHTML = `<div class="wrap">
+    <div class="sheet-top"><span></span><button class="iconbtn" data-close aria-label="Close">${I.close}</button></div>
+    <h2 class="dish-title" style="margin-top:4px">Google data</h2>
+    <p class="lead">With your own Google Maps key, Pitstop shows <b>each station's gas prices</b>, and Google ratings and hours on restaurant pages.</p>
+    <div class="panel">
+      <h3>${has ? "Key saved on this phone" : "Paste your key"}</h3>
+      <form class="field" id="gform"><input id="gin" placeholder="${has ? "Saved. Paste a new one to replace it" : "AIza…"}" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn">Save</button></form>
+      ${has ? `<button class="linkbtn" id="gdel" style="margin-top:12px">Remove the key</button>` : ""}
+      <p class="summary" id="gmsg" style="margin:10px 0 0"></p>
+    </div>
+    <div class="note">The key is stored only in this browser on this phone and is sent only to Google. Create it in Google Cloud with <b>Places API (New)</b> enabled, restricted to the website <b>madhubuddaraju.github.io/*</b>. Google gives a free monthly allowance; set a budget alert to be safe.</div>
+  </div>`;
+  sheet.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  sheet.querySelector("[data-close]").onclick = () => closeSheet();
+  $("#gform").onsubmit = async e => {
+    e.preventDefault();
+    const k = $("#gin").value.trim();
+    if (!/^AIza[\w-]{30,}$/.test(k)) { $("#gmsg").textContent = "That doesn't look like a Google API key (they start with AIza)."; return; }
+    $("#gmsg").textContent = "Checking the key…";
+    try {
+      await googleSearch(GOOGLE_NEARBY, { includedTypes: ["gas_station"], maxResultCount: 1,
+        locationRestriction: { circle: { center: { latitude: 40.758, longitude: -73.9855 }, radius: 3000 } } }, "places.id", k);
+      store.set("gkey", k);
+      S.places = {};
+      updateGoogleBtn();
+      $("#gmsg").textContent = "Key works. Gas prices are on.";
+      setTimeout(() => closeSheet(), 900);
+    } catch (err) { $("#gmsg").textContent = "Google didn't accept it: " + err.message; }
+  };
+  $("#gdel")?.addEventListener("click", () => { store.set("gkey", ""); S.places = {}; updateGoogleBtn(); closeSheet(); });
+}
+
+async function googleSearch(url, body, fields, key = gkey()) {
+  const r = await fetch(url, { method: "POST", body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": fields } });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error?.message?.split(".")[0] || "HTTP " + r.status);
+  return j.places || [];
+}
+
+const GAS_FIELDS = "places.id,places.displayName,places.location,places.formattedAddress,places.shortFormattedAddress,"
+  + "places.currentOpeningHours,places.fuelOptions,places.googleMapsUri,places.nationalPhoneNumber,places.rating,places.userRatingCount";
+
+async function googleStations(loc) {
+  let places = [];
+  for (const radius of [5000, 15000]) {
+    const res = await googleSearch(GOOGLE_NEARBY, { includedTypes: ["gas_station"], maxResultCount: 20, rankPreference: "DISTANCE",
+      locationRestriction: { circle: { center: { latitude: loc.lat, longitude: loc.lon }, radius } } }, GAS_FIELDS);
+    places = res.map(g => fromGoogle(g, loc));
+    if (places.length >= 8) break;
+  }
+  return places;
+}
+
 // ---------- data ----------
 async function loadOH() {
   if (!S.OH) S.OH = (await import(OH_URL)).default;
@@ -461,7 +529,7 @@ async function overpass(query) {
 
 async function findPlaces(kind) {
   const loc = S.loc;
-  const key = `places:${kind}:${loc.lat.toFixed(3)},${loc.lon.toFixed(3)}`;
+  const key = `places:${kind}:${kind === "gas" && gkey() ? "g:" : ""}${loc.lat.toFixed(3)},${loc.lon.toFixed(3)}`;
   try {
     const c = JSON.parse(sessionStorage.getItem(key) || "null");
     if (c && Date.now() - c.at < 15 * 60000) return c.places;
@@ -469,7 +537,13 @@ async function findPlaces(kind) {
   // start close and widen until there's enough to choose from
   const radii = kind === "gas" ? [3000, 8000, 20000] : [700, 1600, 4000];
   const enough = kind === "gas" ? 6 : 30;
-  let places = kind === "gas" ? await stationsFromTiles(loc, radii, enough) : null;
+  let places = null;
+  S.googleError = null;
+  if (kind === "gas" && gkey()) {
+    try { places = await googleStations(loc); if (places.length) return places; }
+    catch (e) { S.googleError = e.message; }
+  }
+  places = kind === "gas" ? await stationsFromTiles(loc, radii, enough) : null;
   if (places) return places;
   places = [];
   for (const r of radii) {
@@ -546,7 +620,7 @@ function ohContext() {
 function enrich(mode) {
   const now = new Date();
   for (const p of S.places[mode]) {
-    p.status = hoursStatus(S.OH, p.tags.opening_hours, now, ohContext());
+    p.status = p.google ? googleStatus(p.googleStatus, now) : hoursStatus(S.OH, p.tags.opening_hours, now, ohContext());
     if (mode === "food") {
       p.cuisines = cuisinesFor(p.tags, S.cIndex);
       p.cuisineText = cuisineLabel(p.tags, p.cuisines, S.dishes.cuisines);
@@ -663,12 +737,24 @@ function priceCard() {
 function renderGas() {
   if (S.mode !== "gas" || !S.places.gas) return;
   const seen = seenPrices();
-  const places = S.places.gas.slice(0, S.shown);
+  const priced = S.places.gas.filter(p => p.fuel?.regular);
+  const sortCheap = priced.length >= 2 && S.gasSort !== "near";
+  const all = sortCheap
+    ? [...priced].sort((a, b) => a.fuel.regular - b.fuel.regular || a.dist - b.dist).concat(S.places.gas.filter(p => !p.fuel?.regular))
+    : S.places.gas;
+  const cheapestLive = priced.length ? Math.min(...priced.map(p => p.fuel.regular)) : null;
+  const places = all.slice(0, S.shown);
   const known = places.filter(p => seen[p.id]);
   const cheapestSeen = known.length ? known.reduce((a, b) => seen[a.id].price <= seen[b.id].price ? a : b).id : null;
   let html = priceCard();
-  html += `<div class="note">Stations don't publish live prices openly, so this shows the official average for your area. Tap a station to note the price you see; Pitstop remembers it on this phone and points out the cheapest.</div>`;
-  html += `<p class="summary">${S.places.gas.length} stations nearby</p><div class="list">`;
+  if (priced.length) {
+    html += `<div class="sortrow"><button class="chip" data-sort="cheap" aria-pressed="${sortCheap}">Cheapest first</button><button class="chip" data-sort="near" aria-pressed="${!sortCheap}">Nearest first</button></div>`;
+  } else if (S.googleError) {
+    html += `<div class="note">Google data didn't load (${esc(S.googleError)}), so stations come from OpenStreetMap. <button class="linkbtn" data-gsettings>Check the key</button></div>`;
+  } else if (!gkey()) {
+    html += `<div class="note">Station prices need Google data. <button class="linkbtn" data-gsettings>Add your Google key</button> to see each station's price, or tap a station to note the price you see.</div>`;
+  }
+  html += `<p class="summary">${S.places.gas.length} stations nearby${priced.length ? ` · ${priced.length} with prices from Google` : ""}</p><div class="list">`;
   html += places.map(p => {
     const sp = seen[p.id];
     const fuels = [p.tags["fuel:diesel"] === "yes" ? "Diesel" : null, p.tags["fuel:e85"] === "yes" ? "E85" : null].filter(Boolean);
@@ -676,15 +762,18 @@ function renderGas() {
       <h3>${esc(p.name)}</h3><span class="right">${esc(formatDistance(p.dist, { miles: miles(), mode: "drive" }).split(" · ")[1] || "")}</span>
       <span class="meta">${esc([formatDistance(p.dist, { miles: miles(), mode: "drive" }).split(" · ")[0], p.address].filter(Boolean).join(" · "))}</span>
       <span class="row2">${pill(p.status)}${fuels.map(t => `<span class="tag">${t}</span>`).join("")}
-        ${sp ? `<span class="seen">$${sp.price.toFixed(2)} you saw ${ago(sp.at)}</span>` : ""}${p.id === cheapestSeen && known.length > 1 ? `<span class="cheapest">Cheapest you've seen</span>` : ""}</span>
+        ${p.fuel?.regular ? `<span class="seen">$${p.fuel.regular.toFixed(2)} regular</span>${p.fuel.regular === cheapestLive ? `<span class="cheapest">Cheapest nearby</span>` : ""}` : ""}
+        ${sp && !p.fuel?.regular ? `<span class="seen">$${sp.price.toFixed(2)} you saw ${ago(sp.at)}</span>` : ""}${p.id === cheapestSeen && known.length > 1 ? `<span class="cheapest">Cheapest you've seen</span>` : ""}</span>
     </button>`;
   }).join("");
   html += `</div>`;
   if (S.places.gas.length > S.shown) html += `<button class="more" id="more">Show more stations</button>`;
-  html += `<p class="credit">Stations © OpenStreetMap contributors. Prices: U.S. Energy Information Administration, weekly retail averages.</p>`;
+  html += `<p class="credit">${priced.length ? "Stations and prices from Google. " : "Stations © OpenStreetMap contributors. "}Area average: U.S. Energy Information Administration, weekly retail prices.</p>`;
   $("#content").innerHTML = html;
   bindItems();
   $("#more")?.addEventListener("click", () => { S.shown += 40; renderGas(); });
+  $("#content").querySelectorAll("[data-sort]").forEach(b => b.onclick = () => { S.gasSort = b.dataset.sort; renderGas(); });
+  $("#content").querySelectorAll("[data-gsettings]").forEach(b => b.onclick = openGoogleSheet);
 }
 
 // ---------- place sheet ----------
@@ -727,14 +816,16 @@ function openPlace(id) {
     </div>`;
   if (badges.length || fuels.length) html += `<div class="badges">${[...fuels, ...badges].map(b => `<span class="tag">${esc(b)}</span>`).join("")}</div>`;
   if (kind === "food" && inNYC(p.lat, p.lon)) html += `<div class="panel" id="grade"><h3>NYC health inspection</h3><p class="summary" style="margin:0">Checking…</p></div>`;
-  if (kind === "gas") html += gasPricePanel(p);
+  if (kind === "gas" && p.fuel && Object.keys(p.fuel).some(k => k !== "updated")) html += googleFuelPanel(p);
+  else if (kind === "gas") html += gasPricePanel(p);
+  if (kind === "food" && gkey()) html += `<div class="panel" id="gpanel"><h3>On Google</h3><p class="summary" style="margin:0">Loading…</p></div>`;
   if (week.length) {
     html += `<div class="panel"><h3>Hours</h3><table class="hours">${week.map((r, i) => `<tr class="${i === 0 ? "today" : ""}"><td>${r.day}</td><td>${esc(r.text)}</td></tr>`).join("")}</table></div>`;
   } else if (kind === "food") {
     html += `<div class="panel"><h3>Hours</h3><p style="margin:0;color:var(--muted)">This place hasn't listed its hours${phone ? ", so call to check" : ""}.</p></div>`;
   }
   if (kind === "food") html += dishesPanel(p);
-  html += `<p class="credit">Details © OpenStreetMap contributors · <a href="https://www.openstreetmap.org/${esc(p.id)}" target="_blank" rel="noopener">fix something wrong</a></p></div>`;
+  html += p.google ? `</div>` : `<p class="credit">Details © OpenStreetMap contributors · <a href="https://www.openstreetmap.org/${esc(p.id)}" target="_blank" rel="noopener">fix something wrong</a></p></div>`;
 
   const sheet = $("#sheet");
   sheet.innerHTML = html;
@@ -744,7 +835,8 @@ function openPlace(id) {
   document.title = p.name + " · Pitstop";
   sheet.querySelector("[data-close]").onclick = () => history.back();
   sheet.querySelectorAll("[data-dish]").forEach(b => b.onclick = () => { location.hash = "dish/" + b.dataset.dish; });
-  if (kind === "gas") bindPriceForm(p);
+  if (kind === "gas" && $("#priceForm")) bindPriceForm(p);
+  if (kind === "food" && gkey()) loadGoogleDetails(p);
   if (kind === "food" && inNYC(p.lat, p.lon)) loadGrade(p);
 }
 
@@ -802,6 +894,33 @@ function closeSheet(silent) {
   if (!silent && location.hash.startsWith("#place")) history.back();
 }
 
+function googleFuelPanel(p) {
+  const f = p.fuel;
+  const when = f.updated ? ago(Date.parse(f.updated)) : "";
+  const cell = (k, label) => f[k] ? `<div>${label}<b>$${f[k].toFixed(2)}</b></div>` : "";
+  return `<div class="panel"><h3>Prices here</h3><div class="gprice">${cell("regular", "Regular")}${cell("midgrade", "Midgrade")}${cell("premium", "Premium")}${cell("diesel", "Diesel")}</div>
+    <p class="credit" style="margin-top:10px">From Google${when ? `, updated ${when}` : ""}. ${p.mapsUri ? `<a href="${esc(p.mapsUri)}" target="_blank" rel="noopener">Open in Google Maps</a>` : ""}</p></div>`;
+}
+
+async function loadGoogleDetails(p) {
+  const box = $("#gpanel");
+  try {
+    const res = await googleSearch(GOOGLE_TEXT, { textQuery: p.name, maxResultCount: 5,
+      locationBias: { circle: { center: { latitude: p.lat, longitude: p.lon }, radius: 150 } } },
+      "places.id,places.displayName,places.location,places.rating,places.userRatingCount,places.priceLevel,places.currentOpeningHours,places.googleMapsUri,places.editorialSummary");
+    const g = sameGooglePlace(p, res);
+    if (!box.isConnected) return;
+    if (!g) { box.remove(); return; }
+    const price = { PRICE_LEVEL_INEXPENSIVE: "$", PRICE_LEVEL_MODERATE: "$$", PRICE_LEVEL_EXPENSIVE: "$$$", PRICE_LEVEL_VERY_EXPENSIVE: "$$$$" }[g.priceLevel];
+    const st = googleStatus(g.currentOpeningHours);
+    box.innerHTML = `<h3>On Google</h3>
+      <p style="margin:0">${g.rating ? `<span class="stars">★ ${g.rating.toFixed(1)}</span> <span class="summary">(${(g.userRatingCount || 0).toLocaleString()} reviews)</span>` : ""}${price ? ` · ${price}` : ""}</p>
+      ${st.state !== "unknown" ? `<div style="margin-top:8px">${pill(st)}</div>` : ""}
+      ${g.editorialSummary?.text ? `<p style="margin:10px 0 0">${esc(g.editorialSummary.text)}</p>` : ""}
+      ${g.googleMapsUri ? `<p class="credit"><a href="${esc(g.googleMapsUri)}" target="_blank" rel="noopener">Open in Google Maps</a> for photos and reviews</p>` : ""}`;
+  } catch { box?.remove(); }
+}
+
 // ---------- gas price notes ----------
 function gasPricePanel(p) {
   const sp = seenPrices()[p.id];
@@ -844,6 +963,7 @@ async function loadGrade(p) {
 }
 
 window.__server = () => S.server;
+updateGoogleBtn();
 route();
 if (urlLocation() && !location.hash) {
   const m = new URLSearchParams(location.search).get("mode");

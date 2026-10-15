@@ -97,3 +97,4 @@ def test_fuel_tiles_update_only_fetched_boxes(tmp_path, monkeypatch):
     assert json.loads((tmp_path / "34_-119.json").read_text())[0][2] == "Kept"
     index = json.loads((tmp_path / "index.json").read_text())
     assert index["tiles"] == ["34_-119", "40_-74"] and index["stations"] == 2
+    assert list(index["boxes"]) == ["39,-75,44,-70"]

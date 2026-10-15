@@ -39,18 +39,21 @@ def query(box) -> str:
     return f"{CSV}[timeout:180];nwr[\"amenity\"=\"fuel\"]({s},{w},{n},{e});out center;"
 
 
+BUDGET_MIN = 25   # keep the weekly job short; boxes not reached keep their tiles until next week
+
+
 def fetch_box(session, box) -> str | None:
     """CSV text for one box, trying each server in turn; None if all of them fail."""
-    for attempt in range(6):
+    for attempt in range(3):
         url = SERVERS[attempt % len(SERVERS)]
         try:
-            r = session.post(url, data={"data": query(box)}, timeout=240)
+            r = session.post(url, data={"data": query(box)}, timeout=120)
             if r.status_code == 200 and r.text.startswith("@type"):
                 return r.text
             print(f"  {box}: {url.split('/')[2]} HTTP {r.status_code}", file=sys.stderr)
         except Exception as exc:
             print(f"  {box}: {url.split('/')[2]} {type(exc).__name__}", file=sys.stderr)
-        time.sleep(8 * (attempt + 1))
+        time.sleep(5 * (attempt + 1))
     return None
 
 
@@ -83,6 +86,17 @@ def tiles_from_csv(text: str) -> dict:
     return tiles
 
 
+def box_id(box) -> str:
+    return ",".join(str(v) for v in box)
+
+
+def previous_boxes() -> dict:
+    try:
+        return json.loads((OUT / "index.json").read_text()).get("boxes", {})
+    except (OSError, ValueError):
+        return {}
+
+
 def write(tiles: dict, boxes) -> None:
     """Replace the tiles inside the boxes that were fetched; tiles of boxes that failed this time are kept."""
     OUT.mkdir(parents=True, exist_ok=True)
@@ -94,9 +108,10 @@ def write(tiles: dict, boxes) -> None:
         (OUT / f"{key}.json").write_text(json.dumps(rows, ensure_ascii=False, separators=(",", ":")))
     keys = sorted(f.stem for f in OUT.glob("*_*.json"))
     total = sum(len(json.loads((OUT / f"{k}.json").read_text())) for k in keys)
-    (OUT / "index.json").write_text(json.dumps({"built": time.strftime("%Y-%m-%d"), "tiles": keys, "stations": total},
-                                               separators=(",", ":")))
-    print(f"{total:,} stations in {len(keys)} tiles")
+    fetched = previous_boxes() | {box_id(b): time.strftime("%Y-%m-%d") for b in boxes}
+    (OUT / "index.json").write_text(json.dumps({"built": time.strftime("%Y-%m-%d"), "tiles": keys, "stations": total,
+                                                "boxes": fetched}, separators=(",", ":")))
+    print(f"{total:,} stations in {len(keys)} tiles; {len(fetched)} of {len(BOXES)} boxes fetched at least once")
 
 
 def main():
@@ -110,7 +125,14 @@ def main():
     session = requests.Session()
     session.headers["User-Agent"] = "pitstop-fuel-tiles/1.0 (github.com/madhubuddaraju/pitstop)"
     done, failed, tiles = [], [], {}
-    for i, box in enumerate(BOXES):
+    started = time.time()
+    # boxes never fetched or fetched longest ago go first, so boxes skipped in earlier runs get their turn
+    fetched = previous_boxes()
+    order = sorted(BOXES, key=lambda b: fetched.get(box_id(b), ""))
+    for i, box in enumerate(order):
+        if time.time() - started > BUDGET_MIN * 60:
+            failed.append(box)
+            continue
         text = fetch_box(session, box)
         if text is None:
             failed.append(box)
@@ -121,7 +143,7 @@ def main():
         print(f"box {i + 1}/{len(BOXES)} {box}: {sum(map(len, got.values())):,} stations")
         time.sleep(2)   # be gentle with the shared servers
     write(tiles, done)
-    print(f"Fetched {len(done)} of {len(BOXES)} boxes; kept the previous tiles for {len(failed)}: {failed}")
+    print(f"Fetched {len(done)} of {len(BOXES)} boxes this run; {len(failed)} kept their previous tiles")
     if not done:
         sys.exit("No boxes could be fetched")
 
