@@ -1,0 +1,10 @@
+Times Square, New York food: 286 open now · 308 without listed hours (40 shown in 1.5 s, map server None)
+  McDonald's: explained Cheeseburger, 3 steps, photo=True
+Times Square, New York gas: Average regular gas · New York City $4.31/gal; 160 stations nearby in 1.3 s
+  console: error Access to fetch at 'https://overpass-api.de/api/interpreter' from origin 'https://madhubuddaraju.github.io' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+  console: error Failed to load resource: net::ERR_FAILED
+  console: error Access to fetch at 'https://overpass.private.coffee/api/interpreter' from origin 'https://madhubuddaraju.github.io' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+  console: error Failed to load resource: net::ERR_FAILED
+Downtown Chicago food: 103 open now · 198 without listed hours (40 shown in 25.0 s, map server maps.mail.ru)
+  Panda Express: explained General Tso's chicken, 3 steps, photo=True
+Downtown Chicago gas: Average regular gas · Chicago $4.70/gal; 12 stations nearby in 1.3 s
