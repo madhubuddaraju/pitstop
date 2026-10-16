@@ -459,6 +459,19 @@ function drive(THREE) {
       g.fillStyle = "#FFC906"; g.fillRect(u(.02), -126, u(.62) - u(.02), 4);
       g.fillStyle = "rgba(255,255,255,.85)"; g.font = `400 26px ${FONT}`; g.fillText("PITSTOP", u(1.55), -40);     // small mark on the nose side
     });
+    g.fillStyle = "rgba(0,0,0,.45)";                                                     // panel seams
+    for (const x of [-1.95, -.55, 1.05, 2.3]) g.fillRect(u(x), 0, 3, h);
+    for (let y = 0; y < h; y++) { const sy = -Math.cos(2 * Math.PI * (1 - y / h)); if (Math.abs(sy - .32) < .006) g.fillRect(u(-2.1), y, u(-.6) - u(-2.1), 2); }
+    sides(g, w, h, g => {
+      for (let i = 0; i < 9; i++) {                                                         // cooling louvres on the engine cover
+        const x = u(-1.8 + i * .075); g.fillStyle = "rgba(0,0,0,.7)"; g.fillRect(x, -300, 12, 70); g.fillStyle = "rgba(255,255,255,.14)"; g.fillRect(x + 12, -300, 3, 70);
+      }
+      g.save(); g.translate(u(-.3), -210);                                                  // electrical safety marker by the roll hoop
+      g.fillStyle = "#FFC906"; g.beginPath(); g.moveTo(0, -26); g.lineTo(28, 22); g.lineTo(-28, 22); g.closePath(); g.fill();
+      g.fillStyle = INK; g.beginPath(); g.moveTo(3, -12); g.lineTo(-7, 6); g.lineTo(1, 6); g.lineTo(-3, 18); g.lineTo(8, -1); g.lineTo(0, -1); g.closePath(); g.fill(); g.restore();
+      g.fillStyle = "rgba(255,255,255,.75)"; g.font = `400 18px ${FONT}`; g.fillText("ID 07 · 798 KG", u(2.32), -18);
+      g.fillStyle = "#fff"; for (const x of [-2.2, 2.62]) { g.beginPath(); g.arc(u(x), -10, 7, 0, 7); g.fill(); }   // jacking-point markers
+    });
     g.save(); g.translate(u(2.05), h * .5); g.fillStyle = "#fff"; g.beginPath(); g.arc(0, 0, 46, 0, 7); g.fill();
     g.fillStyle = INK; g.font = `400 52px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("7", 0, 3); g.restore();
   });
@@ -466,6 +479,8 @@ function drive(THREE) {
     bands(g, w, h, -.12);
     const u = x => (x + 1.4) / 2.2 * w;
     g.fillStyle = INK; g.fillRect(u(.72), 0, w, h);                                      // inlet lip
+    for (let i = 0; i < 12; i++) { const x = u(-.75 + i * .045); g.fillStyle = "rgba(0,0,0,.75)"; g.fillRect(x, h * .4, 14, h * .2); g.fillStyle = "rgba(255,255,255,.12)"; g.fillRect(x + 14, h * .4, 3, h * .2); }
+    g.fillStyle = "rgba(0,0,0,.4)"; g.fillRect(u(-.95), 0, 3, h);
     sides(g, w, h, g => {
       g.fillStyle = "#fff"; g.font = `400 86px ${FONT}`; g.textBaseline = "middle";
       g.save(); g.scale(.86, 1); g.fillText("PITSTOP", u(-.62) / .86, -40); g.restore();
@@ -503,6 +518,12 @@ function drive(THREE) {
   }
   const wingEl = (chord, span, thick, camber, mat, pos, aoa) => add(foil(chord, span, thick, camber), mat, pos, [0, 0, aoa]);
   function plateShape(pts, depth) { const g = new THREE.ExtrudeGeometry(new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y))), { depth, bevelEnabled: true, bevelSize: .004, bevelThickness: .003, bevelSegments: 1 }); g.translate(0, 0, -depth / 2); return g; }
+  const arm = (a, b, wd = .045, th = .014, mat = carbon) => {
+    const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), dir = B.clone().sub(A), len = dir.length(); dir.normalize();
+    const up = new THREE.Vector3(0, 1, 0), z = up.clone().sub(dir.clone().multiplyScalar(dir.dot(up))).normalize(), x = new THREE.Vector3().crossVectors(dir, z);
+    const m = add(new THREE.CylinderGeometry(.5, .5, len, 14), mat); m.scale.set(wd, 1, th);
+    m.position.copy(A).add(B).multiplyScalar(.5); m.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, dir, z)); return m;
+  };
   // smooth bodywork lofted through cross-sections: [x, width, bottom, top, z centre]
   const cr = (a, b, c, d, t) => .5 * (2 * b + (c - a) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (3 * b - a - 3 * c + d) * t * t * t);
   function loft(st, pw = .45, n = 40, k = 8) {
@@ -526,7 +547,7 @@ function drive(THREE) {
   }
 
   // chassis, engine cover and nose
-  add(loft([[-2.45, .22, .22, .40], [-2.0, .34, .17, .50], [-1.5, .44, .13, .62], [-1.0, .52, .12, .78], [-.6, .5, .12, .95],
+  add(loft([[-2.45, .17, .23, .39], [-2.0, .28, .17, .50], [-1.5, .44, .13, .62], [-1.0, .52, .12, .78], [-.6, .5, .12, .95],
             [-.35, .42, .12, 1.0], [-.12, .5, .12, .92], [.05, .66, .12, .72], [.6, .68, .12, .68], [1.0, .58, .14, .63],
             [1.5, .44, .18, .55], [2.0, .30, .22, .45], [2.5, .2, .24, .36], [2.82, .08, .26, .3]]), paintBody);
   // sidepods, undercut toward the floor
@@ -548,6 +569,8 @@ function drive(THREE) {
   const halo = new THREE.CatmullRomCurve3([[-.02, .7, -.3], [.18, .85, -.29], [.48, .89, -.17], [.62, .89, 0], [.48, .89, .17], [.18, .85, .29], [-.02, .7, .3]].map(v => new THREE.Vector3(...v)));
   add(new THREE.TubeGeometry(halo, 80, .026, 10), carbon);
   rod([.62, .89, 0], [.8, .66, 0], .026);
+  wingEl(.13, .26, .14, 0, carbon, [.5, .915, 0], -.05);                                               // halo fairing
+  box(.05, .03, .06, black, [2.86, .27, 0]);                                                                // front jacking point
   for (const s of [1, -1]) {
     rod([.6, .67, .3 * s], [.62, .76, .44 * s], .012); box(.06, .075, .18, paint, [.62, .77, .47 * s]); box(.004, .055, .15, glass, [.588, .77, .47 * s]);
     for (const z of [.56, .66, .76]) box(.42, .09, .008, carbon, [.98, .15, z * s], [0, -.12 * s, 0]);          // floor fences
@@ -591,11 +614,26 @@ function drive(THREE) {
   wingEl(.2, .86, .1, .05, carbon, [-2.46, .43, 0], .18); wingEl(.16, .86, .1, .05, carbon, [-2.38, .48, 0], .35);   // beam wing
   const rain = box(.02, .05, .09, new THREE.MeshStandardMaterial({ color: 0x330000, emissive: 0xff1a0a, emissiveIntensity: 3 }), [-2.47, .33, 0]);
   // suspension
+  const leds = [];
   for (const s of [1, -1]) {
-    rod([1.55, .42, .25 * s], [1.8, .43, .66 * s], .016); rod([2.05, .44, .14 * s], [1.8, .43, .66 * s], .016);
-    rod([1.55, .22, .27 * s], [1.8, .28, .66 * s], .016); rod([2.05, .24, .16 * s], [1.8, .28, .66 * s], .016);
-    rod([-1.55, .42, .26 * s], [-1.8, .42, .58 * s], .016); rod([-2.05, .40, .2 * s], [-1.8, .42, .58 * s], .016);
-    rod([-1.55, .2, .28 * s], [-1.8, .26, .58 * s], .016); rod([-2.05, .22, .2 * s], [-1.8, .26, .58 * s], .016);
+    arm([1.55, .42, .25 * s], [1.8, .43, .66 * s]); arm([2.05, .44, .14 * s], [1.8, .43, .66 * s]);
+    arm([1.55, .22, .27 * s], [1.8, .28, .66 * s]); arm([2.05, .24, .16 * s], [1.8, .28, .66 * s]);
+    arm([1.95, .3, .15 * s], [1.86, .33, .66 * s], .03, .012);                                                  // steering arm
+    arm([-1.55, .42, .26 * s], [-1.8, .42, .58 * s]); arm([-2.05, .40, .2 * s], [-1.8, .42, .58 * s]);
+    arm([-1.55, .2, .28 * s], [-1.8, .26, .58 * s]); arm([-2.05, .22, .2 * s], [-1.8, .26, .58 * s]);
+    arm([-2.1, .3, .16 * s], [-1.9, .32, .58 * s], .03, .012);                                                 // toe link
+    // front wheel winglet over the tyre and a deflector on the brake duct
+    add(new THREE.CylinderGeometry(.43, .43, .12, 24, 1, true, Math.PI - .55, 1.1), carbon, [1.8, .36, .7 * s], [Math.PI / 2, 0, 0]);
+    box(.18, .1, .008, carbon, [1.8, .4, .58 * s], [0, 0, .2]);
+    // floor leading-edge vanes and the sidepod inlet's upper lip
+    for (const z of [.24, .32, .4]) box(.36, .12, .008, carbon, [1.2, .15, z * s], [0, -.12 * s, 0]);
+    box(.07, .022, .3, paint, [.81, .47, .47 * s]);
+    // LED strips on the rear wing endplates, camera pods under the nose, aerials
+    const led = new THREE.MeshStandardMaterial({ color: 0x330000, emissive: 0xff1a0a, emissiveIntensity: 2.5 }); leds.push(led);
+    box(.012, .24, .024, led, [-2.735, .56, .5 * s]);
+    add(new THREE.CapsuleGeometry(.018, .06, 4, 8), carbon, [2.25, .23, .09 * s], [0, 0, Math.PI / 2]);
+    rod([-.9, .78, .14 * s], [-.94, .9, .14 * s], .004, metal);
+    add(new THREE.CylinderGeometry(.018, .02, .1, 12, 1, true), metal, [-2.48, .57, .07 * s], [0, 0, Math.PI / 2]);   // wastegate pipes
   }
   // wheels: low-profile tyres, compound band, wheel covers
   const tyreMat = new THREE.MeshStandardMaterial({ roughness: .85, side: ds, map: tex(2048, 1024, (g, w, h) => {
@@ -624,7 +662,8 @@ function drive(THREE) {
     for (const s of [1, -1]) {
       add(new THREE.TorusGeometry(.228, .007, 8, 96), metal, [0, 0, s * (w * .46)], [0, 0, 0], g);
       add(new THREE.TorusGeometry(.17, .012, 8, 64), black, [0, 0, s * (w * .46 + .002)], [0, 0, 0], g);
-      add(new THREE.CylinderGeometry(.045, .045, .03, 20), black, [0, 0, s * (w * .46 + .01)], [Math.PI / 2, 0, 0], g);
+      add(new THREE.CylinderGeometry(.05, .05, .04, 6), rimMat, [0, 0, s * (w * .46 + .015)], [Math.PI / 2, 0, 0], g);
+      add(new THREE.CylinderGeometry(.018, .018, .05, 12), metal, [0, 0, s * (w * .46 + .02)], [Math.PI / 2, 0, 0], g);
       add(new THREE.BoxGeometry(.012, .09, .004), white, [0, .1, s * (w * .46 + .004)], [0, 0, 0], g);
       add(new THREE.BoxGeometry(.012, .09, .004), white, [0, -.1, s * (w * .46 + .004)], [0, 0, 0], g);
     }
@@ -715,6 +754,7 @@ function drive(THREE) {
     const shake = t >= T ? Math.exp(-14 * (t - T)) * .03 : 0;
     cam.position.set(camBase.x + (Math.random() - .5) * shake, camBase.y + (Math.random() - .5) * shake, camBase.z);
     rain.material.emissiveIntensity = 2 + Math.sin(now / 60) * 1.5 * (t > T1 && t < T + .6 ? 1 : 0);
+    leds.forEach(l => l.emissiveIntensity = rain.material.emissiveIntensity);
     renderer.render(scene, cam);
   }
   requestAnimationFrame(tick);
