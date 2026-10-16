@@ -5,6 +5,7 @@ against the live map, price and dish data. Run by the "Live check" workflow; not
 """
 
 import sys
+import time
 
 from playwright.sync_api import sync_playwright
 
@@ -21,6 +22,7 @@ def check(url: str) -> None:
         os.makedirs("screenshots", exist_ok=True)
         page.on("pageerror", lambda e: errors.append(str(e)))
         for name, at in PLACES.items():
+            t0 = time.time()
             page.goto(f"{url}?at={at}#food")
             try:
                 page.wait_for_selector(".item", timeout=60000)
@@ -28,7 +30,7 @@ def check(url: str) -> None:
                 page.screenshot(path=f"screenshots/{name.split(',')[0].replace(' ', '-')}-food.png")
             summary = page.text_content(".summary")
             items = page.locator(".item").count()
-            print(f"{name} food: {summary.strip()} ({items} shown, map server {page.evaluate('window.__server && window.__server()')})")
+            print(f"{name} food: {summary.strip()} ({items} shown in {time.time() - t0:.1f} s, map server {page.evaluate('window.__server && window.__server()')})")
             assert items > 0
             # open the first place that has dish suggestions and explain a dish
             for i in range(min(items, 15)):
@@ -44,13 +46,14 @@ def check(url: str) -> None:
                     break
                 page.go_back()
             page.wait_for_timeout(5000)   # be gentle with the public map servers
+            t0 = time.time()
             page.goto(f"{url}?at={at}#gas")
             try:
                 page.wait_for_selector(".price-card", timeout=60000)
             finally:
                 page.screenshot(path=f"screenshots/{name.split(',')[0].replace(' ', '-')}-gas.png")
             print(f"{name} gas: {page.text_content('.price-card .lbl')} {page.text_content('.price-big')}; "
-                  f"{page.text_content('.summary')}")
+                  f"{page.text_content('.summary')} in {time.time() - t0:.1f} s")
         browser.close()
         assert not errors, errors
 
