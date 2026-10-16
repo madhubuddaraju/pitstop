@@ -399,3 +399,18 @@ export function placesFromFoodTiles(rowLists, origin, m) {
   }
   return out.sort((a, b) => a.dist - b.dist);
 }
+
+/** Ids ("s,w,n,e") of the build boxes a search circle touches, matching how build_food_tiles.py names them. */
+export function foodBoxesFor(metro, lat, lon, m, box = 0.1) {
+  const [S0, W0, N0, E0] = metro.bounds;
+  const r3 = x => Math.round(x * 1000) / 1000;
+  const dLat = m / 111320, dLon = m / (111320 * Math.cos(lat * Math.PI / 180));
+  const ids = [];
+  const i0 = Math.max(0, Math.floor((lat - dLat - S0) / box + 1e-9)), i1 = Math.floor((Math.min(lat + dLat, N0 - 1e-9) - S0) / box + 1e-9);
+  const j0 = Math.max(0, Math.floor((lon - dLon - W0) / box + 1e-9)), j1 = Math.floor((Math.min(lon + dLon, E0 - 1e-9) - W0) / box + 1e-9);
+  for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
+    const s = r3(S0 + i * box), w = r3(W0 + j * box);
+    ids.push([s, w, r3(Math.min(s + box, N0)), r3(Math.min(w + box, E0))].join(","));
+  }
+  return ids;
+}

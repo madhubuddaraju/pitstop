@@ -55,12 +55,18 @@ def boxes(bounds):
     return out
 
 
+def box_id(box) -> str:
+    """'40.75,-74,40.85,-73.9': the same text the page builds for a box."""
+    return ",".join(f"{v:g}" for v in box)
+
+
 def query(box) -> str:
     s, w, n, e = box
     return f'[out:json][timeout:120];nwr["amenity"~"^({AMENITIES})$"]["name"]({s},{w},{n},{e});out center tags;'
 
 
-def rows_from_overpass(data: dict) -> list:
+def rows_from_overpass(data: dict, box=None) -> list:
+    """Rows for the places in data; with a box, only those strictly inside it (Overpass boxes include their edges)."""
     rows, seen = [], set()
     for el in data.get("elements", []):
         lat = el.get("lat", (el.get("center") or {}).get("lat"))
@@ -68,6 +74,8 @@ def rows_from_overpass(data: dict) -> list:
         tags = el.get("tags") or {}
         name = tags.get("name")
         if lat is None or lon is None or not name:
+            continue
+        if box and not (box[0] <= lat < box[2] and box[1] <= lon < box[3]):
             continue
         key = (name.lower(), round(lat, 4), round(lon, 4))
         if key in seen:                       # mapped as both a point and a building outline
@@ -130,9 +138,9 @@ def main(metros):
     for metro in metros:
         bounds = METROS[metro]
         got, failed = {}, 0
-        fetched = index["metros"].get(metro, {}).get("boxes", {})
+        fetched = {box_id(map(float, k.split(","))): v for k, v in index["metros"].get(metro, {}).get("boxes", {}).items()}
         # boxes never fetched (or fetched longest ago) first, so a run cut short by the time budget resumes next time
-        for box in sorted(boxes(bounds), key=lambda b: fetched.get(",".join(map(str, b)), "")):
+        for box in sorted(boxes(bounds), key=lambda b: fetched.get(box_id(b), "")):
             if time.time() - STARTED > BUDGET_MIN * 60:
                 failed += 1
                 continue
@@ -140,16 +148,17 @@ def main(metros):
             if data is None:
                 failed += 1
                 continue
-            got[box] = rows_from_overpass(data)
+            got[box] = rows_from_overpass(data, box)
             time.sleep(1)
         if not got:
             print(f"{metro}: nothing fetched", file=sys.stderr)
             continue
         index["metros"][metro] = write_metro(metro, got, bounds)
-        index["metros"][metro]["boxes"] = fetched | {",".join(map(str, b)): time.strftime("%Y-%m-%d") for b in got}
+        index["metros"][metro]["boxes"] = fetched | {box_id(b): time.strftime("%Y-%m-%d") for b in got}
         m = index["metros"][metro]
         print(f"{metro}: {m['places']:,} places in {len(m['tiles'])} tiles; {len(got)} boxes fetched, {failed} kept from before")
     index["grid"] = GRID
+    index["box"] = BOX
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "index.json").write_text(json.dumps(index, separators=(",", ":")))
 

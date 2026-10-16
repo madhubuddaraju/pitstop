@@ -278,7 +278,7 @@ a { color: inherit; }
 import {
   overpassQuery, parsePlaces, cuisineIndex, cuisinesFor, cuisineLabel, dishesFor, dietBadges, serviceBadges,
   hoursStatus, lateNight, weekHours, formatDistance, gasForLocation, inNYC, matchInspection, OVERPASS_URLS, distanceMeters,
-  fuelTileKeys, placesFromTiles, foodMetro, foodTileKeys, placesFromFoodTiles, GOOGLE_NEARBY, GOOGLE_TEXT, googleStatus, fromGoogle, sameGooglePlace,
+  fuelTileKeys, placesFromTiles, foodMetro, foodTileKeys, placesFromFoodTiles, foodBoxesFor, GOOGLE_NEARBY, GOOGLE_TEXT, googleStatus, fromGoogle, sameGooglePlace,
 } from "./core.js";
 
 const DATA_BASE = location.hostname.endsWith("github.io") || location.protocol === "file:"
@@ -578,10 +578,15 @@ async function foodFromTiles(loc, radii, enough) {
     S.foodIndex ??= await (await fetch(DATA_BASE + "food/index.json")).json();
     const metro = foodMetro(S.foodIndex, loc.lat, loc.lon);
     if (!metro) return null;
-    const have = new Set(S.foodIndex.metros[metro].tiles);
+    const info = S.foodIndex.metros[metro];
+    const have = new Set(info.tiles);
+    const norm = id => id.split(",").map(Number).join(",");
+    const built = new Set(Object.keys(info.boxes || {}).map(norm));
     S.foodTiles ??= {};
     let places = [];
     for (const r of radii) {
+      // only trust the tiles if every part of the map this search touches has been built
+      if (!foodBoxesFor(info, loc.lat, loc.lon, r, S.foodIndex.box || 0.1).every(id => built.has(id))) return places.length ? places : null;
       const keys = foodTileKeys(loc.lat, loc.lon, r, S.foodIndex.grid).filter(k => have.has(k));
       const rows = await Promise.all(keys.map(async k => {
         S.foodTiles[k] ??= fetch(DATA_BASE + `food/${metro}/${k}.json`).then(x => x.json());

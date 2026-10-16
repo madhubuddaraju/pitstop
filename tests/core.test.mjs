@@ -191,3 +191,11 @@ test("food tiles: metro lookup, tile keys and rows to places", async () => {
   assert.equal(p[0].tags.name, "Sushi Place");
   assert.equal(p[0].address, "1 Broadway");
 });
+
+test("food build boxes a search needs", async () => {
+  const { foodBoxesFor } = await import("../docs/core.js");
+  const nyc = { bounds: [40.45, -74.30, 41.05, -73.65] };
+  assert.deepEqual(foodBoxesFor(nyc, 40.758, -73.9855, 700), ["40.75,-74,40.85,-73.9"]);
+  assert.equal(foodBoxesFor(nyc, 40.749, -73.701, 700).length, 4);   // near a box corner
+  assert.equal(foodBoxesFor(nyc, 40.5, -74.25, 700)[0], "40.45,-74.3,40.55,-74.2");
+});

@@ -111,8 +111,11 @@ def test_food_tiles_rows_boxes_and_incremental_write(tmp_path, monkeypatch):
     ]}
     rows = build_food_tiles.rows_from_overpass(data)
     assert rows == [[40.7585, -73.9862, "Sushi Place", {"amenity": "restaurant", "cuisine": "sushi", "diet:vegan": "yes"}, "node/1"]]
+    assert build_food_tiles.rows_from_overpass(data, (40.7, -74.0, 40.75, -73.9)) == []     # outside the box
+    assert len(build_food_tiles.rows_from_overpass(data, (40.75, -74.0, 40.85, -73.9))) == 1
     bxs = build_food_tiles.boxes(build_food_tiles.METROS["nyc"])
     assert len(bxs) == 42 and bxs[0] == (40.45, -74.3, 40.55, -74.2)
+    assert build_food_tiles.box_id((40.75, -74.0, 40.85, -73.9)) == "40.75,-74,40.85,-73.9"   # same text as core.js
     assert build_food_tiles.tile_key(40.7585, -73.9862) == "1630_-2960"
     assert build_food_tiles.tile_in_box("1630_-2960", (40.7, -74.0, 40.8, -73.9))
     assert not build_food_tiles.tile_in_box("1634_-2960", (40.7, -74.0, 40.8, -73.9))
