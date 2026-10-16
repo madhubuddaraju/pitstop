@@ -117,6 +117,9 @@ body:has(#results:not(.hidden)) .home-bg::after { background: rgba(0, 0, 0, .62)
 .linkbtn:hover { text-decoration: underline; }
 .home-foot { margin-top: auto; padding-top: 40px; font-size: 13px; color: var(--ink-3); line-height: 1.5; max-width: 60ch; }
 .home-foot .linkbtn { font-size: 14px; }
+.home-foot .early { color: var(--ink-2); }
+.home-foot .early a { color: #0A84FF; text-decoration: none; }
+.home-foot .early a:hover { text-decoration: underline; }
 
 /* ---------- results ---------- */
 .bar {
@@ -801,7 +804,7 @@ function drive(THREE) {
       </span>
     </a>
   </div>
-  <p class="home-foot"><button class="linkbtn" id="googleBtn">Add a Google key for station prices</button><br><br>Places from OpenStreetMap. Gas prices from the U.S. Energy Information Administration. NYC health grades from NYC Open Data.</p>
+  <p class="home-foot"><span class="early">This is an early version of Pitstop. Faster lists in more cities, your own units and currency, search by dish, and offline use are coming next. <a href="https://github.com/subbarajubuddaraju/pitstop#whats-next">See what's planned</a></span><br><br><button class="linkbtn" id="googleBtn">Add a Google key for station prices</button><br><br>Places from OpenStreetMap. Gas prices from the U.S. Energy Information Administration. NYC health grades from NYC Open Data.</p>
 </main>
 
 <!-- results -->

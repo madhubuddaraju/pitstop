@@ -5,6 +5,9 @@
 
 **Open it on your phone: [subbarajubuddaraju.github.io/pitstop](https://subbarajubuddaraju.github.io/pitstop/)**
 
+> **Early version.** Pitstop works today for gas and food anywhere in the US, and it will keep improving. The list
+> below is what's planned next.
+
 ## The problem
 
 When you're new to a city, two everyday questions take too many steps: *where's the nearest gas station and what
@@ -106,6 +109,20 @@ flowchart LR
   within 150 m with a matching name.
 - **Inspection grades** are matched from NYC Open Data by name and distance (within 120 m), using the latest graded
   inspection.
+
+## What's next
+
+Pitstop is an early version. Planned improvements, roughly in order:
+
+- **Faster food lists in more cities.** Prebuilt restaurant tiles for the largest US metros, not only New York, so lists
+  load in about a second everywhere.
+- **Your units and currency.** Gas per litre and in your home currency, distances in kilometres.
+- **Search by dish.** Find where you can get a dish that's open right now.
+- **Works offline.** Keep the app and your last results on the phone for places with weak signal.
+- **More opening hours.** Live hours for every place you scroll past when Google data is on.
+- **Dish guide in more languages,** starting with Hindi and Telugu, and short local tips such as tipping.
+- **EV charging stations** alongside gas, and saved places.
+- **A lighter intro** on slower phones and connections.
 
 ## Running it
 
