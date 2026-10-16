@@ -1538,18 +1538,19 @@ function menuLink(p, direct) {
 }
 function menuPanel(p, direct) {
   const m = menuLink(p, direct);
-  return `<div class="panel" id="menuPanel"><h3>Menu</h3>
+  // must-try dishes from this place's reviews, then the menu itself, then what this kind of place usually serves
+  return (gkey() ? `<div class="panel" id="picks"><h3>Must-try here</h3><p class="summary" style="margin:0">Reading reviews…</p></div>` : "")
+    + `<div class="panel" id="menuPanel"><h3>Menu</h3>
     <a class="menu-card" href="${esc(m.href)}" target="_blank" rel="noopener">${I.menu}<span><b>${esc(m.label)}</b><small>${esc(m.note)}</small></span>${I.ext}</a>
-    ${gkey() ? `<div id="picks"><p class="summary" style="margin:14px 0 0">Reading reviews for dishes people order here…</p></div>` : ""}
-    ${usualHtml(p)}
-    ${gkey() ? "" : `<p class="credit" style="margin-top:10px"><button class="linkbtn" data-gsettings>Add Google data</button> to also see the dishes people say they order here.</p>`}
-  </div>`;
+    ${gkey() ? "" : `<p class="credit" style="margin-top:10px"><button class="linkbtn" data-gsettings>Add Google data</button> to see the must-try dishes people mention in reviews.</p>`}
+  </div>`
+    + `<div class="panel">${usualHtml(p)}</div>`;
 }
 function usualHtml(p) {
   const ids = dishesFor(p.cuisines, S.dishes.cuisines);
-  if (!ids.length) return `<p class="credit" style="margin-top:12px">This place hasn't listed its cuisine, so the menu link above is the best way to see what it serves.</p>`;
+  if (!ids.length) return `<h3>What to order</h3><p style="margin:0;color:var(--ink-2)">This place hasn't listed its cuisine, so the menu link above is the best way to see what it serves.</p>`;
   const label = S.dishes.cuisines[p.cuisines[0]].label;
-  return `<h4 class="sub-h" id="usualHead" data-also="Also usually on the menu at ${esc(label)} places">Usually on the menu at ${esc(label)} places</h4>
+  return `<h3>Usually on the menu at ${esc(label)} places</h3>
     ${ids.map(id => { const d = S.dishes.dishes[id]; return `<div class="dish">
       <h4>${esc(d.name)}</h4>
       <button class="explain" data-dish="${id}">Explain</button>
@@ -1650,12 +1651,11 @@ function showPicks(p, googleReviews, error) {
   if (!box) return;
   const R = S.reviews[p.id];
   if (!R || !R.picks.length) {
-    box.innerHTML = `<p class="credit" style="margin:12px 0 0">${!R ? (error ? `Reviews didn't load (${esc(error)}).` : "Google has no reviews for this place yet.")
-      : `The ${R.n} reviews Google shares don't name a dish, so below is what places like this usually serve.`}</p>`;
+    box.innerHTML = `<h3>Must-try here</h3><p style="margin:0;color:var(--ink-2)">${!R ? (error ? `Reviews didn't load (${esc(error)}).` : "Google has no reviews for this place yet.")
+      : `The ${R.n} reviews Google shares don't name a dish. See the menu and the usual dishes below.`}</p>`;
     return;
   }
-  const head = $("#usualHead"); if (head) head.textContent = head.dataset.also;
-  box.innerHTML = `<h4 class="sub-h">Ordered here, from reviews</h4>
+  box.innerHTML = `<h3>Must-try here</h3>
     ${R.picks.slice(0, 6).map((k, i) => `<div class="dish">
       <h4>${esc(k.name)}${k.mustTry ? ` <span class="cheapest" style="margin-left:4px">Must try</span>` : ""}</h4>
       <button class="explain" data-pick="${i}">Explain</button>

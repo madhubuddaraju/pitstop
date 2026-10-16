@@ -42,8 +42,8 @@ and lists the dishes reviewers recommend first, with a short quote: dishes from 
 named after phrases like "must try the…", "get the…", "recommend the…". Each has an Explain button: the dish guide
 for known dishes, Wikipedia for others, or a note that it's the restaurant's own creation.
 
-**Menu first.** A restaurant page opens with its menu: a link to the real one (the restaurant's own menu when it has
-listed one, otherwise Google Maps or a web search), then the dishes reviewers say they ordered there, then what places
+**Must-try first.** A restaurant page opens with the must-try dishes from its reviews, then its menu: a link to the real one (the restaurant's own menu when it has
+listed one, otherwise Google Maps or a web search), then what places
 of that cuisine usually serve, each with an Explain button.
 
 **Offers.** Restaurants don't publish promotions as open data, so each restaurant page links to its Uber Eats and
