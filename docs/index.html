@@ -418,6 +418,13 @@ function drive(THREE) {
   const black = new THREE.MeshStandardMaterial({ color: 0x030304, roughness: .55 });
   const glass = new THREE.MeshPhysicalMaterial({ color: 0x050507, metalness: .9, roughness: .05, clearcoat: 1 });
   const metal = new THREE.MeshStandardMaterial({ color: 0x9a9aa2, metalness: 1, roughness: .28 });
+  {
+    const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d");
+    for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) { const on = (x + y) % 2; const gr = g.createLinearGradient(x * 8, y * 8, x * 8 + (on ? 8 : 0), y * 8 + (on ? 0 : 8));
+      gr.addColorStop(0, "#1c1c22"); gr.addColorStop(.5, on ? "#2e2e36" : "#25252c"); gr.addColorStop(1, "#141418"); g.fillStyle = gr; g.fillRect(x * 8, y * 8, 8, 8); }
+    const weave = new THREE.CanvasTexture(c); weave.wrapS = weave.wrapT = THREE.RepeatWrapping; weave.repeat.set(6, 6); weave.colorSpace = THREE.SRGBColorSpace;
+    carbon.map = weave; carbon.color.set(0x8a8a90); carbon.needsUpdate = true;
+  }
   const FONT = "Michroma, Inter, sans-serif", RED = "#c00a04", INK = "#0b0b0d";
   function tex(w, h, draw) {
     const c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d"); draw(g, w, h);
@@ -448,6 +455,9 @@ function drive(THREE) {
     g.fillStyle = INK; g.fillRect(u(-.05), h * .44, u(.75) - u(-.05), h * .12);           // cockpit surround
     sides(g, w, h, g => {                                                                // race number on the engine cover
       g.fillStyle = "#fff"; g.font = `400 120px ${FONT}`; g.textBaseline = "middle"; g.fillText("07", u(-1.55), -150);
+      g.font = `400 30px ${FONT}`; g.fillText("M. BUDDARAJU", u(.02), -150);
+      g.fillStyle = "#FFC906"; g.fillRect(u(.02), -126, u(.62) - u(.02), 4);
+      g.fillStyle = "rgba(255,255,255,.85)"; g.font = `400 26px ${FONT}`; g.fillText("PITSTOP", u(1.55), -40);     // small mark on the nose side
     });
     g.save(); g.translate(u(2.05), h * .5); g.fillStyle = "#fff"; g.beginPath(); g.arc(0, 0, 46, 0, 7); g.fill();
     g.fillStyle = INK; g.font = `400 52px ${FONT}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("7", 0, 3); g.restore();
@@ -484,6 +494,15 @@ function drive(THREE) {
     const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), m = add(new THREE.CylinderGeometry(r, r, A.distanceTo(B), 8), mat);
     m.position.copy(A).add(B).multiplyScalar(.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.sub(A).normalize()); return m;
   };
+  function foil(chord, span, thick, camber) {
+    const top = [], bot = [], N = 18;
+    for (let i = 0; i <= N; i++) { const t = (1 - Math.cos(Math.PI * i / N)) / 2, x = chord * t, yc = -camber * chord * 4 * t * (1 - t);
+      const yt = 5 * thick * chord * (.2969 * Math.sqrt(t) - .126 * t - .3516 * t * t + .2843 * t ** 3 - .1036 * t ** 4); top.push([x, yc + yt]); bot.push([x, yc - yt]); }
+    const sh = new THREE.Shape([...top, ...bot.reverse()].map(([x, y]) => new THREE.Vector2(-x, y)));   // leading edge forward (+x)
+    const g = new THREE.ExtrudeGeometry(sh, { depth: span, bevelEnabled: false, curveSegments: 1 }); g.translate(chord / 2, 0, -span / 2); return g;
+  }
+  const wingEl = (chord, span, thick, camber, mat, pos, aoa) => add(foil(chord, span, thick, camber), mat, pos, [0, 0, aoa]);
+  function plateShape(pts, depth) { const g = new THREE.ExtrudeGeometry(new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y))), { depth, bevelEnabled: true, bevelSize: .004, bevelThickness: .003, bevelSegments: 1 }); g.translate(0, 0, -depth / 2); return g; }
   // smooth bodywork lofted through cross-sections: [x, width, bottom, top, z centre]
   const cr = (a, b, c, d, t) => .5 * (2 * b + (c - a) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (3 * b - a - 3 * c + d) * t * t * t);
   function loft(st, pw = .45, n = 40, k = 8) {
@@ -518,6 +537,10 @@ function drive(THREE) {
   // cockpit, driver, halo, mirrors, airbox
   add(new THREE.SphereGeometry(1, 32, 16), black, [.3, .69, 0]).scale.set(.4, .05, .25);
   add(new THREE.SphereGeometry(.125, 48, 32), helmet, [.2, .8, 0]);
+  add(new THREE.SphereGeometry(1, 20, 12), new THREE.MeshStandardMaterial({ color: 0x1a1a22, roughness: .7 }), [.14, .71, 0]).scale.set(.12, .05, .2);   // shoulders
+  for (const s of [1, -1]) add(new THREE.SphereGeometry(1, 16, 10), black, [.12, .74, .17 * s]).scale.set(.12, .05, .05);   // headrest pads
+  box(.03, .1, .24, black, [.42, .73, 0], [0, 0, .3]);                                                       // steering wheel
+  box(.004, .05, .08, new THREE.MeshStandardMaterial({ color: 0x001a10, emissive: 0x26ffa0, emissiveIntensity: .8 }), [.405, .745, 0], [0, 0, .3]);
   add(new THREE.SphereGeometry(1, 24, 16), glass, [.3, .82, 0]).scale.set(.035, .03, .085);
   box(.06, .03, .1, new THREE.MeshStandardMaterial({ color: 0xffc906, roughness: .4 }), [-.34, 1.02, 0]);   // onboard camera pod
   rod([2.82, .29, 0], [3.02, .3, 0], .006, metal);                                                       // pitot tube
@@ -536,7 +559,7 @@ function drive(THREE) {
   for (const z of [-.36, -.18, 0, .18, .36]) box(.46, .11, .008, carbon, [-2.34, .2, z], [0, 0, -.35]);       // diffuser strakes
   add(new THREE.CylinderGeometry(.045, .05, .16, 20, 1, true), metal, [-2.5, .5, 0], [0, 0, Math.PI / 2]);  // exhaust
   add(new THREE.CircleGeometry(.04, 20), new THREE.MeshStandardMaterial({ color: 0x220800, emissive: 0xff5a10, emissiveIntensity: 1.6 }), [-2.42, .5, 0], [0, -Math.PI / 2, 0]);
-  [[2.4, .28, .14, 1.62, .78, paint], [2.36, .32, .1, 1.5, .95, carbon]].forEach(([x, y, c, sp, r, m]) => box(c, .016, sp, m, [x, y, 0], [0, 0, r]));
+  [[2.42, .27, .12, 1.6, .9, carbon]].forEach(([x, y, c, sp, a, m]) => wingEl(c, sp, .08, .06, m, [x, y, 0], a));
   // floor, plank, diffuser
   const plan = new THREE.Shape([[1.3, -.5], [1.1, -.92], [-1.25, -.92], [-1.6, -.56], [-2.2, -.5], [-2.2, .5], [-1.6, .56], [-1.25, .92], [1.1, .92], [1.3, .5]].map(([x, z]) => new THREE.Vector2(x, z)));
   const floorG = new THREE.ExtrudeGeometry(plan, { depth: .025, bevelEnabled: false }); floorG.rotateX(Math.PI / 2);
@@ -544,18 +567,28 @@ function drive(THREE) {
   box(.5, .02, 1.0, carbon, [-2.35, .15, 0], [0, 0, -.35]);
   for (const s of [1, -1]) box(.5, .12, .015, carbon, [-2.35, .17, .5 * s], [0, 0, -.35]);
   // front wing
-  [[2.76, .085, .44, 1.94, .05, carbon], [2.64, .135, .32, 1.86, .25, paint], [2.54, .185, .24, 1.8, .45, carbon], [2.47, .235, .17, 1.7, .62, paint]]
-    .forEach(([x, y, c, sp, r, m]) => box(c, .018, sp, m, [x, y, 0], [0, 0, r]));
-  for (const s of [1, -1]) box(.62, .26, .02, carbon, [2.7, .17, .98 * s]);
+  wingEl(.46, 1.94, .07, .05, carbon, [2.77, .085, 0], .04);
+  [[2.64, .13, .3, 1.86, .3, paint], [2.55, .18, .23, 1.8, .52, carbon], [2.48, .225, .17, 1.72, .72, paint]]
+    .forEach(([x, y, c, sp, a, m]) => wingEl(c, sp, .08, .07, m, [x, y, 0], a));
+  const fwPlate = plateShape([[2.42, .05], [3.02, .05], [3.0, .14], [2.86, .2], [2.6, .3], [2.44, .3]], .016);
+  for (const s of [1, -1]) {
+    add(fwPlate, carbon, [0, 0, .98 * s]);
+    box(.5, .012, .016, paint, [2.7, .2, .98 * s], [0, 0, .32]);                                           // red edge on the endplate
+    box(.12, .006, .08, carbon, [2.95, .13, .93 * s], [0, 0, .25]);                                        // dive plane
+  }
+  const fwDecal = decal("PITSTOP", 512, 96, 56);
+  for (const s of [1, -1]) add(new THREE.PlaneGeometry(.36, .07), fwDecal, [2.78, .112, .58 * s], [-Math.PI / 2, 0, 0]).castShadow = false;
   for (const s of [1, -1]) rod([2.55, .26, .08 * s], [2.6, .1, .12 * s], .012);
   // rear wing, beam wing, rain light
-  for (const s of [1, -1]) box(.56, .64, .02, carbon, [-2.45, .66, .5 * s]);
+  const rwPlate = plateShape([[-2.74, .34], [-2.2, .34], [-2.14, .6], [-2.18, 1.0], [-2.62, 1.0], [-2.74, .9]], .018);
+  for (const s of [1, -1]) { add(rwPlate, carbon, [0, 0, .5 * s]); box(.46, .014, .02, paint, [-2.42, .995, .5 * s]); }
   const plate = decal("PITSTOP", 512, 128, 64);
   for (const s of [1, -1]) add(new THREE.PlaneGeometry(.46, .115), plate, [-2.45, .72, (.5 + .012) * s], [0, s > 0 ? 0 : Math.PI, 0]).castShadow = false;
-  box(.34, .03, 1.0, paint, [-2.44, .82, 0], [0, 0, .16]);
-  box(.22, .025, 1.0, paint, [-2.32, .94, 0], [0, 0, .5]);
-  box(.06, .42, .05, carbon, [-2.32, .6, 0], [0, 0, -.25]);
-  box(.24, .02, .9, carbon, [-2.42, .42, 0], [0, 0, .2]);
+  wingEl(.36, .98, .1, .07, paint, [-2.46, .8, 0], .14);
+  wingEl(.22, .98, .09, .06, paint, [-2.3, .93, 0], .5);
+  add(new THREE.CapsuleGeometry(.025, .12, 4, 10), carbon, [-2.32, .9, 0], [0, 0, Math.PI / 2]);           // DRS actuator pod
+  for (const s of [1, -1]) box(.05, .4, .025, carbon, [-2.36, .6, .06 * s], [0, 0, -.25]);                // swan-neck pylons
+  wingEl(.2, .86, .1, .05, carbon, [-2.46, .43, 0], .18); wingEl(.16, .86, .1, .05, carbon, [-2.38, .48, 0], .35);   // beam wing
   const rain = box(.02, .05, .09, new THREE.MeshStandardMaterial({ color: 0x330000, emissive: 0xff1a0a, emissiveIntensity: 3 }), [-2.47, .33, 0]);
   // suspension
   for (const s of [1, -1]) {
