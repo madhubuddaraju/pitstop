@@ -5,11 +5,15 @@ name: Refresh data
 on:
   schedule:
     - cron: "23 13 * * 2"
-    - cron: "41 4 * * *"     # stations only fill in a few boxes per night until every box is current
+    - cron: "41 4 * * *"     # station and restaurant tiles fill in a few boxes per night until all are current
   push:
     branches: [main]
     paths: ["data/**", "scripts/**"]
   workflow_dispatch:
+    inputs:
+      part:
+        description: "all, or food to build only restaurant tiles"
+        default: all
 
 permissions:
   contents: write
@@ -28,8 +32,10 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - name: Gas prices
+        if: github.event.inputs.part != 'food'
         run: python scripts/fetch_gas.py
       - name: Dishes
+        if: github.event.inputs.part != 'food'
         run: python scripts/build_dishes.py
       - name: Restaurants in covered metros (map tiles)
         continue-on-error: true
@@ -42,6 +48,7 @@ jobs:
           git pull --rebase -q origin main
           git push
       - name: US gas stations (map tiles)
+        if: github.event.inputs.part != 'food'
         continue-on-error: true
         run: python scripts/build_fuel_tiles.py 2>&1 | tee fuel-log.txt; exit ${PIPESTATUS[0]}
       - name: Commit if changed
