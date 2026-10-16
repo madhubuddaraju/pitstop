@@ -1,19 +1,20 @@
 name: Refresh data
 
-# Gas prices: EIA publishes on Monday afternoons; refresh Tuesday morning.
-# Dishes: rebuild descriptions and photos from Wikipedia whenever the dish files change, and monthly.
+# Nightly: restaurant tiles for covered metros (from Geofabrik's daily OpenStreetMap extracts).
+# Tuesday: also gas prices (EIA publishes on Monday afternoons), dishes and every US gas station (about 10 GB of extracts).
+# Dish or script changes rebuild what they affect.
 on:
   schedule:
     - cron: "23 13 * * 2"
-    - cron: "41 4 * * *"     # station and restaurant tiles fill in a few boxes per night until all are current
+    - cron: "41 4 * * *"
   push:
     branches: [main]
     paths: ["data/**", "scripts/**"]
   workflow_dispatch:
     inputs:
       part:
-        description: "all, or food to build only restaurant tiles"
-        default: all
+        description: "food (restaurant tiles), quick (prices, dishes, restaurants) or all (adds every US gas station)"
+        default: quick
 
 permissions:
   contents: write
@@ -25,45 +26,45 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    env:
+      WEEKLY: ${{ github.event.schedule == '23 13 * * 2' || github.event.inputs.part == 'all' }}
+      NIGHTLY_ONLY: ${{ github.event.schedule == '41 4 * * *' || github.event.inputs.part == 'food' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r requirements.txt
+      - run: sudo apt-get install -y -qq osmium-tool && pip install -r requirements.txt
       - name: Gas prices
-        if: github.event.inputs.part != 'food'
+        if: env.NIGHTLY_ONLY != 'true'
         run: python scripts/fetch_gas.py
       - name: Dishes
-        if: github.event.inputs.part != 'food'
+        if: env.NIGHTLY_ONLY != 'true'
         run: python scripts/build_dishes.py
       - name: Restaurants in covered metros (map tiles)
-        continue-on-error: true
         run: python scripts/build_food_tiles.py 2>&1 | tee food-log.txt; exit ${PIPESTATUS[0]}
-      - name: Commit restaurant tiles
+      - name: Commit
         run: |
           git add docs
           if git diff --cached --quiet; then echo "No changes."; exit 0; fi
-          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Refresh restaurant tiles $(date -u +%Y-%m-%d)"
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Refresh data $(date -u +%Y-%m-%d)"
           git pull --rebase -q origin main
           git push
       - name: US gas stations (map tiles)
-        if: github.event.inputs.part != 'food'
-        continue-on-error: true
+        if: env.WEEKLY == 'true'
         run: python scripts/build_fuel_tiles.py 2>&1 | tee fuel-log.txt; exit ${PIPESTATUS[0]}
-      - name: Commit if changed
+      - name: Commit gas stations
+        if: env.WEEKLY == 'true'
         run: |
           git add docs
           if git diff --cached --quiet; then echo "No changes."; exit 0; fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Refresh gas prices, stations and dishes $(date -u +%Y-%m-%d)"
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Refresh gas stations $(date -u +%Y-%m-%d)"
           git pull --rebase -q origin main
           git push
-      - name: Keep the station build log on the refresh-log branch
+      - name: Keep the build logs on the refresh-log branch
         if: always()
         run: |
-          mkdir -p /tmp/log && cp fuel-log.txt food-log.txt /tmp/log/ 2>/dev/null || echo "no log" > /tmp/log/fuel-log.txt
+          mkdir -p /tmp/log && cp food-log.txt fuel-log.txt /tmp/log/ 2>/dev/null; ls /tmp/log | grep -q . || echo "no log" > /tmp/log/none.txt
           cd /tmp/log && git init -q -b refresh-log && git add -A
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Refresh log $(date -u +%F)"
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" refresh-log

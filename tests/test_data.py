@@ -66,62 +66,66 @@ def test_area_names():
     assert fetch_gas.area_name("Weekly West Coast (PADD 5) Except California No 2 Diesel Retail Prices  (Dollars per Gallon)") == "West Coast except California"
 
 
-def test_fuel_tiles_from_overpass_csv():
-    text = ("@type\t@id\t@lat\t@lon\tname\tbrand\topening_hours\tfuel:diesel\taddr:housenumber\taddr:street\taddr:city\n"
-            "node\t1\t40.762\t-73.993\tShell\tShell\t24/7\tyes\t600\t11th Avenue\tNew York\n"
-            "way\t2\t40.76201\t-73.99301\tShell\tShell\t\t\t\t\t\n"          # same station as an outline
-            "node\t3\t34.05\t-118.24\t\tArco\t\tno\t\t\t\n"
-            "node\t4\t\t\tBroken\t\t\t\t\t\t\n")
-    tiles = build_fuel_tiles.tiles_from_csv(text)
+def make_pbf(path):
+    import osmium
+    w = osmium.SimpleWriter(str(path))
+    node = osmium.osm.mutable.Node
+    w.add_node(node(id=1, location=(-73.9862, 40.7585), version=1,
+                    tags={"amenity": "restaurant", "name": "Sushi Place", "cuisine": "sushi", "diet:vegan": "yes", "source": "x"}))
+    corners = [(-73.9850, 40.7570), (-73.9848, 40.7570), (-73.9848, 40.7572), (-73.9850, 40.7572)]
+    for i, loc in enumerate(corners, start=10):
+        w.add_node(node(id=i, location=loc, version=1))
+    w.add_way(osmium.osm.mutable.Way(id=5, nodes=[10, 11, 12, 13, 10], version=1,
+                                     tags={"amenity": "cafe", "name": "Corner Cafe", "building": "yes"}))
+    w.add_node(node(id=2, location=(-73.98, 40.76), version=1, tags={"amenity": "cafe"}))                    # no name
+    w.add_node(node(id=3, location=(-75.5, 40.76), version=1, tags={"amenity": "bar", "name": "Outside"}))   # outside NYC
+    w.add_node(node(id=4, location=(-73.993, 40.762), version=1,
+                    tags={"amenity": "fuel", "brand": "Shell", "fuel:diesel": "yes", "opening_hours": "24/7",
+                          "addr:housenumber": "600", "addr:street": "11th Avenue", "addr:city": "New York"}))
+    w.add_node(node(id=6, location=(-118.24, 34.05), version=1, tags={"amenity": "fuel"}))
+    w.close()
+
+
+def test_osm_objects_reduce_outlines_to_a_point(tmp_path):
+    import osm_extract
+    make_pbf(tmp_path / "t.osm.pbf")
+    objs = {o[0]: o for o in osm_extract.objects(tmp_path / "t.osm.pbf", "amenity")}
+    assert set(objs) == {"node/1", "way/5", "node/2", "node/3", "node/4", "node/6"}
+    _, lat, lon, tags = objs["way/5"]
+    assert abs(lat - 40.7571) < 1e-6 and abs(lon + 73.9849) < 1e-6 and tags["name"] == "Corner Cafe"
+
+
+def test_fuel_tiles_from_osm(tmp_path):
+    import osm_extract
+    make_pbf(tmp_path / "t.osm.pbf")
+    tiles = build_fuel_tiles.rows_by_tile(osm_extract.objects(tmp_path / "t.osm.pbf", "amenity"))
     assert sorted(tiles) == ["34_-119", "40_-74"]
-    assert tiles["40_-74"] == [[40.762, -73.993, "Shell", "24/7", 1, "600 11th Avenue, New York", "node/1"]]
-    assert tiles["34_-119"][0][2] == "Arco"
+    assert tiles["40_-74"] == [[40.762, -73.993, "Shell", "24/7", 1, "600 11th Avenue, New York", "node/4"]]
+    assert tiles["34_-119"][0][2] == "Gas station"
 
 
-def test_fuel_queries_cover_the_us_in_boxes():
-    q = build_fuel_tiles.query((40, -75, 45, -70))
-    assert '"fuel:diesel"' in q and "::lat" in q and 'nwr["amenity"="fuel"](40,-75,45,-70)' in q and "out center" in q
-    assert build_fuel_tiles.HEADER.startswith("@type\t@id\t@lat\t@lon\tname")
-    covered = lambda lat, lon: any(s <= lat < n and w <= lon < e for s, w, n, e in build_fuel_tiles.BOXES)
-    for lat, lon in [(40.76, -73.99), (25.76, -80.19), (47.61, -122.33), (61.2, -149.9), (21.3, -157.86), (18.4, -66.1)]:
-        assert covered(lat, lon), (lat, lon)
-
-
-def test_fuel_tiles_update_only_fetched_boxes(tmp_path, monkeypatch):
+def test_fuel_tiles_write(tmp_path, monkeypatch):
     import json
-    monkeypatch.setattr(build_fuel_tiles, "OUT", tmp_path)
-    (tmp_path / "40_-74.json").write_text('[[40.5, -73.5, "Old", "", 0, "", "node/9"]]')     # inside the fetched box
-    (tmp_path / "34_-119.json").write_text('[[34.0, -118.5, "Kept", "", 0, "", "node/8"]]')  # box failed: keep
-    new = {"40_-74": [[40.6, -73.6, "New", "", 0, "", "node/1"]]}
-    build_fuel_tiles.write(new, [(39, -75, 44, -70)])
-    assert json.loads((tmp_path / "40_-74.json").read_text())[0][2] == "New"
-    assert json.loads((tmp_path / "34_-119.json").read_text())[0][2] == "Kept"
-    index = json.loads((tmp_path / "index.json").read_text())
-    assert index["tiles"] == ["34_-119", "40_-74"] and index["stations"] == 2
-    assert list(index["boxes"]) == ["39,-75,44,-70"]
+    monkeypatch.setattr(build_fuel_tiles, "OUT", tmp_path / "fuel")
+    build_fuel_tiles.write({"40_-74": [[40.6, -73.6, "New", "", 0, "", "node/1"]]})
+    index = json.loads((tmp_path / "fuel" / "index.json").read_text())
+    assert index["tiles"] == ["40_-74"] and index["stations"] == 1
 
 
-def test_food_tiles_rows_boxes_and_incremental_write(tmp_path, monkeypatch):
+def test_food_tiles_from_osm(tmp_path, monkeypatch):
     import json
-    data = {"elements": [
-        {"type": "node", "id": 1, "lat": 40.7585, "lon": -73.9862,
-         "tags": {"name": "Sushi Place", "amenity": "restaurant", "cuisine": "sushi", "diet:vegan": "yes", "source": "survey"}},
-        {"type": "way", "id": 2, "center": {"lat": 40.75851, "lon": -73.98621}, "tags": {"name": "Sushi Place", "amenity": "restaurant"}},
-        {"type": "node", "id": 3, "lat": 40.76, "lon": -73.98, "tags": {"amenity": "cafe"}},
-    ]}
-    rows = build_food_tiles.rows_from_overpass(data)
-    assert rows == [[40.7585, -73.9862, "Sushi Place", {"amenity": "restaurant", "cuisine": "sushi", "diet:vegan": "yes"}, "node/1"]]
-    assert build_food_tiles.rows_from_overpass(data, (40.7, -74.0, 40.75, -73.9)) == []     # outside the box
-    assert len(build_food_tiles.rows_from_overpass(data, (40.75, -74.0, 40.85, -73.9))) == 1
-    bxs = build_food_tiles.boxes(build_food_tiles.METROS["nyc"])
+    import osm_extract
+    make_pbf(tmp_path / "t.osm.pbf")
+    bounds = build_food_tiles.METROS["nyc"]["bounds"]
+    rows = build_food_tiles.rows_from_objects(osm_extract.objects(tmp_path / "t.osm.pbf", "amenity"), bounds)
+    assert [r[2] for r in rows] == ["Sushi Place", "Corner Cafe"]        # unnamed, outside and fuel left out
+    assert rows[0][3] == {"amenity": "restaurant", "cuisine": "sushi", "diet:vegan": "yes"}
+    bxs = build_food_tiles.boxes(bounds)
     assert len(bxs) == 42 and bxs[0] == (40.45, -74.3, 40.55, -74.2)
     assert build_food_tiles.box_id((40.75, -74.0, 40.85, -73.9)) == "40.75,-74,40.85,-73.9"   # same text as core.js
     assert build_food_tiles.tile_key(40.7585, -73.9862) == "1630_-2960"
-    assert build_food_tiles.tile_in_box("1630_-2960", (40.7, -74.0, 40.8, -73.9))
-    assert not build_food_tiles.tile_in_box("1634_-2960", (40.7, -74.0, 40.8, -73.9))
-    monkeypatch.setattr(build_food_tiles, "OUT", tmp_path)
-    (tmp_path / "nyc").mkdir()
-    (tmp_path / "nyc" / "1700_-2950.json").write_text('[[42.5, -73.7, "Kept", {}, "node/9"]]')
-    m = build_food_tiles.write_metro("nyc", {(40.7, -74.0, 40.8, -73.9): rows}, build_food_tiles.METROS["nyc"])
-    assert m["tiles"] == ["1630_-2960", "1700_-2950"] and m["places"] == 2
-    assert json.loads((tmp_path / "nyc" / "1630_-2960.json").read_text())[0][2] == "Sushi Place"
+    monkeypatch.setattr(build_food_tiles, "OUT", tmp_path / "food")
+    m = build_food_tiles.write_metro("nyc", rows, bounds)
+    assert m["tiles"] == ["1630_-2960"] and m["places"] == 2 and len(m["boxes"]) == 42
+    assert "40.75,-74,40.85,-73.9" in m["boxes"]
+    assert json.loads((tmp_path / "food" / "nyc" / "1630_-2960.json").read_text())[0][2] in ("Sushi Place", "Corner Cafe")

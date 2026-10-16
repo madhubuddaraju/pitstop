@@ -52,18 +52,19 @@ flowchart LR
       Y[dishes.yaml + cuisines.yaml] --> B[build_dishes.py]
       WP[Wikipedia summaries] --> B
       B --> DJ[dishes.json]
-      OV[OpenStreetMap: every US gas station] --> F[build_fuel_tiles.py] --> FT[1-degree station tiles]
+      OV[Geofabrik OSM extracts] --> F[build_fuel_tiles.py<br/>build_food_tiles.py] --> FT[station and restaurant tiles]
     end
     GJ & DJ & FT --> APP
 ```
 
-- **Places** come live from OpenStreetMap. The search starts within ~700 m and widens until there are enough places
-  to choose from (gas starts at 3 km). Three public Overpass servers are asked at once and the first answer is used. Results are cached for 15 minutes.
-- **Gas stations** in the US are extracted from OpenStreetMap once a week (in 75 boxes of 5 degrees) and split into
-  1-degree tiles, so the page loads the one or two tiles around you from GitHub's CDN instead of querying a map
-  server from every phone. Outside the US it falls back to a live query.
-- **Restaurants** in covered metro areas (New York City and around, for now) are prebuilt the same way into
-  2.5 km tiles (about 40,000 places), so the food list appears in about a second. Elsewhere the page queries
+- **Places** come from prebuilt tiles where they exist (below) and otherwise live from OpenStreetMap: three public
+  Overpass servers are asked at once and the first answer is used. Either way the search starts within ~700 m and
+  widens until there are enough places to choose from (gas starts at 3 km).
+- **Gas stations** in the US are rebuilt every week from Geofabrik's daily OpenStreetMap extracts (the six US
+  regional files, cut down to fuel stations with osmium) and split into 1-degree tiles, so the page loads the one or
+  two tiles around you from GitHub's CDN instead of querying a map server from every phone.
+- **Restaurants** in covered metro areas (New York City and around, for now) are rebuilt nightly the same way into
+  2.5 km tiles, so the food list appears in about a second. Elsewhere the page queries
   OpenStreetMap live, and the other list (gas or food) is loaded in the background while you look at the first.
 - **Opening hours** are OSM `opening_hours` strings (`Mo-Th 11:00-22:00; Fr-Sa 11:00-02:00; PH off`), evaluated with
   the opening_hours.js library against your local time and public holidays. Places with missing or unparseable hours are
@@ -112,7 +113,7 @@ tests/              Node tests for core.js, pytest for the data scripts
 
 ## Data and credits
 
-Places © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors (ODbL), via the Overpass API and
+Places © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors (ODbL), via Geofabrik extracts, the Overpass API and
 Nominatim. Gas prices: [U.S. Energy Information Administration](https://www.eia.gov/petroleum/gasdiesel/).
 Inspection grades: [NYC Open Data](https://data.cityofnewyork.us/Health/DOHMH-New-York-City-Restaurant-Inspection-Results/43nn-pn8j).
 Dish descriptions and photos: Wikipedia (CC BY-SA). Opening hours are only as current as the map, so call ahead late
