@@ -288,9 +288,94 @@ a { color: inherit; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .track::after { display: none; }
 }
+
+/* ---------- intro: the car comes into the box, stops, and the garage doors open ---------- */
+.splash { position: fixed; inset: 0; z-index: 100; overflow: hidden; pointer-events: auto; }
+.door { position: absolute; top: 0; bottom: 0; width: 50.5%; background: var(--bg); z-index: 0; transition: transform .75s cubic-bezier(.7, 0, .2, 1); }
+.door-l { left: 0; } .door-r { right: 0; }
+.splash.open .door-l { box-shadow: 1px 0 0 #2a2a30; } .splash.open .door-r { box-shadow: -1px 0 0 #2a2a30; }
+.splash { --lane: calc(50% - 6px + min(86vw, 520px) * .1167 + 2px); --top: calc(50% - 6px - min(86vw, 520px) * .08); }
+.splash.open .door-l { transform: translateX(-101%); } .splash.open .door-r { transform: translateX(101%); }
+.i-stage { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; transition: opacity .3s ease, transform .5s var(--ease); }
+.splash.open .i-stage { opacity: 0; transform: scale(.97); }
+.i-lane { position: absolute; left: 0; right: 0; top: var(--lane); height: 2px; background: #1f1f25; overflow: hidden; }
+.i-dash { position: absolute; inset: 0 -1000px 0 0; background: repeating-linear-gradient(90deg, #3a3a42 0 34px, transparent 34px 70px); animation: lane 1.3s cubic-bezier(.15, .85, .3, 1) both; }
+@keyframes lane { from { transform: translateX(0); } to { transform: translateX(-980px); } }
+.i-box { position: absolute; top: calc(var(--lane) + 8px); left: 50%; width: min(70vw, 400px); transform: translateX(-50%); height: 22px; border: 1.5px solid #3a3a42; border-top: 0; border-radius: 0 0 6px 6px; display: grid; place-items: center; opacity: 0; animation: fadeIn .4s ease both 1.05s; }
+.i-box span { font: 400 9px var(--display); letter-spacing: .4em; color: #6a6a72; margin-right: -.4em; }
+.i-carwrap { position: relative; width: min(86vw, 520px); transform: translateY(-6px); animation: drive 1.3s cubic-bezier(.15, .85, .3, 1) both .15s; }
+.i-car { display: block; width: 100%; height: auto; overflow: visible; animation: settle .5s ease-out both 1.42s; transform-origin: 70% 90%; }
+.i-wheel { animation: spinStop 1.3s cubic-bezier(.15, .85, .3, 1) both .15s; }
+@keyframes drive { from { transform: translate(-130vw, -6px); } to { transform: translate(0, -6px); } }
+@keyframes spinStop { from { transform: rotate(0); } to { transform: rotate(2520deg); } }
+@keyframes settle { 0% { transform: rotate(0); } 35% { transform: rotate(1.6deg) translateY(2px); } 70% { transform: rotate(-.5deg); } 100% { transform: none; } }
+.i-streaks { position: absolute; right: 100%; top: 32%; width: 60vw; height: 40%; display: grid; align-content: space-between; animation: streaks 1.35s ease-out both .15s; }
+.i-streaks i { display: block; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.55)); }
+.i-streaks i:nth-child(2) { margin-left: 20%; background: linear-gradient(90deg, transparent, rgba(225,6,0,.8)); }
+.i-streaks i:nth-child(3) { margin-left: 40%; }
+@keyframes streaks { 0% { opacity: 1; } 70% { opacity: .9; } 100% { opacity: 0; transform: scaleX(.2); transform-origin: right; } }
+.i-lights { position: absolute; top: calc(var(--lane) + 52px); left: 50%; transform: translateX(-50%); display: flex; gap: 14px; }
+.i-lights i { width: 14px; height: 14px; border-radius: 50%; background: #1f1f25; animation: lamp .25s steps(1) both; }
+.i-lights i:nth-child(1) { --c: var(--red); animation-delay: 1.5s; }
+.i-lights i:nth-child(2) { --c: var(--yel); animation-delay: 1.68s; }
+.i-lights i:nth-child(3) { --c: #fff; animation-delay: 1.86s; }
+@keyframes lamp { to { background: var(--c); box-shadow: 0 0 16px color-mix(in srgb, var(--c) 70%, transparent); } }
+.i-word { position: absolute; top: calc(var(--top) - 56px); left: 0; right: 0; text-align: center; text-indent: .5em; font: 400 18px var(--display); letter-spacing: .5em; color: var(--ink); white-space: nowrap; animation: wordIn .6s var(--ease) both 1.95s; }
+.i-skip { position: absolute; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom)); background: none; border: 1px solid #2a2a30; color: #8c8c94; border-radius: 10px; padding: 8px 14px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; animation: fadeIn .4s ease both .6s; }
+.i-skip:hover { color: var(--ink); border-color: #44444c; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+body.intro-playing { overflow: hidden; }
+@media (prefers-reduced-motion: reduce) { .splash { display: none; } }
+body.intro-playing #home, body.intro-playing #home * { animation-play-state: paused !important; }
 </style>
 </head>
 <body>
+
+<div id="intro" class="splash" aria-hidden="true">
+  <div class="door door-l"></div><div class="door door-r"></div>
+  <div class="i-stage">
+    <div class="i-lane"><span class="i-dash"></span></div>
+    <div class="i-box"><span>BOX</span></div>
+    <div class="i-carwrap"><div class="i-streaks"><i></i><i></i><i></i></div><svg class="i-car" viewBox="0 0 600 160" aria-hidden="true">
+  <path d="M24 32 L96 32 L92 46 L28 46 Z" fill="#151518"/><path d="M24 32 L96 32 L94 37 L26 37 Z" fill="#E10600"/>
+  <path d="M28 46 L50 46 L56 112 L34 112 Z" fill="#151518"/>
+  <path d="M44 126 L44 112 Q46 104 58 102 L74 98 L86 72 Q90 66 98 66 L200 54 Q212 44 226 44 Q236 44 238 52 L244 70 Q256 74 286 76 L360 84 Q420 92 470 100 L548 112 Q562 116 556 122 L520 124 L440 124 Q410 126 380 126 L330 128 Z" fill="#E10600"/>
+  <path d="M140 112 Q150 98 176 96 L320 96 Q340 98 346 112 L346 126 L140 126 Z" fill="#A80400"/>
+  <path d="M150 99 L340 99" stroke="#FFC906" stroke-width="2.4"/>
+  <path d="M60 130 L420 130 L426 136 L54 136 Z" fill="#151518"/>
+  <path d="M236 64 Q262 40 300 74" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="256" cy="62" r="10" fill="#FFC906"/><path d="M252 60.5 h13" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+  <path d="M468 128 L590 128 L586 138 L466 138 Z" fill="#151518"/><path d="M578 106 L592 106 L592 138 L578 138 Z" fill="#E10600"/>
+  <g class="i-wheel" style="transform-origin:112px 118px"><circle cx="112" cy="118" r="32" fill="#0E0E10" stroke="#2A2A30" stroke-width="2"/><circle cx="112" cy="118" r="23.0" fill="none" stroke="#FFC906" stroke-width="2.4" stroke-dasharray="38 16"/><g stroke="#3A3A42" stroke-width="3" stroke-linecap="round"><line x1="112" y1="101.4" x2="112" y2="134.6" transform="rotate(0 112 118)"/><line x1="112" y1="101.4" x2="112" y2="134.6" transform="rotate(60 112 118)"/><line x1="112" y1="101.4" x2="112" y2="134.6" transform="rotate(120 112 118)"/></g><circle cx="112" cy="118" r="5.1" fill="#9A9AA2"/></g><g class="i-wheel" style="transform-origin:470px 120px"><circle cx="470" cy="120" r="30" fill="#0E0E10" stroke="#2A2A30" stroke-width="2"/><circle cx="470" cy="120" r="21.6" fill="none" stroke="#FFC906" stroke-width="2.4" stroke-dasharray="36 15"/><g stroke="#3A3A42" stroke-width="3" stroke-linecap="round"><line x1="470" y1="104.4" x2="470" y2="135.6" transform="rotate(0 470 120)"/><line x1="470" y1="104.4" x2="470" y2="135.6" transform="rotate(60 470 120)"/><line x1="470" y1="104.4" x2="470" y2="135.6" transform="rotate(120 470 120)"/></g><circle cx="470" cy="120" r="4.8" fill="#9A9AA2"/></g>
+</svg></div>
+    <div class="i-lights"><i></i><i></i><i></i></div>
+    <div class="i-word">PITSTOP</div>
+    <button class="i-skip" type="button">Skip</button>
+  </div>
+</div>
+<script>
+// ---------- intro: shown once per visit, skipped with a tap, never for "reduce motion" or deep links ----------
+(function intro() {
+  const el = document.getElementById("intro");
+  if (!el) return;
+  let seen = false;
+  try { seen = sessionStorage.getItem("pitstop:intro") === "1"; } catch {}
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (seen || reduce || location.hash.length > 1 || /[?&]at=/.test(location.search)) { el.remove(); return; }
+  document.body.classList.add("intro-playing");
+  try { sessionStorage.setItem("pitstop:intro", "1"); } catch {}
+  let done = false;
+  const open = () => {
+    if (done) return; done = true;
+    el.classList.add("open");
+    setTimeout(() => document.body.classList.remove("intro-playing"), 250);
+    setTimeout(() => el.remove(), 900);
+  };
+  const timer = setTimeout(open, 2700);
+  el.querySelector(".i-skip").addEventListener("click", () => { clearTimeout(timer); open(); });
+  el.addEventListener("click", e => { if (!e.target.closest(".i-skip")) { clearTimeout(timer); open(); } });
+})();
+</script>
 
 <!-- start: what do you need? -->
 <main id="home" class="wrap">
@@ -1306,6 +1391,7 @@ function countUp(el) {
 
 window.__server = () => S.server;
 updateGoogleBtn();
+
 route();
 if (urlLocation() && !location.hash) {
   const m = new URLSearchParams(location.search).get("mode");

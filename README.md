@@ -55,7 +55,8 @@ also a signal: stop, get ready, go. The same three points run the interface. A w
 closing soon, red means closed, and while places load the points light up one by one like start lights.
 
 The interface is dark, with a wide display face for labels and numbers and lists laid out like a timing tower (P1, P2…).
-Motion is short and purposeful: the logo's lights come on at launch, rows arrive in sequence, the Gas/Food switch slides,
+On the first visit of a session a car drives into its pit box, stops on its mark, the three lights come on and the
+garage doors open onto the app (tap to skip; links that open a place or a location go straight in). Motion is short and purposeful: the logo's lights come on at launch, rows arrive in sequence, the Gas/Food switch slides,
 prices count up, and detail pages rise into place. All of it is turned off for people who set "reduce motion".
 
 ## How it works
