@@ -176,3 +176,18 @@ test("Google fuel prices, opening status and place matching", async () => {
   assert.ok(sameGooglePlace({ name: "Joe's Pizza", lat: 40.7548, lon: -73.9876 }, results));
   assert.equal(sameGooglePlace({ name: "Sushi Bar", lat: 40.7548, lon: -73.9876 }, results), null);
 });
+
+test("food tiles: metro lookup, tile keys and rows to places", async () => {
+  const { foodMetro, foodTileKeys, placesFromFoodTiles } = await import("../docs/core.js");
+  const index = { metros: { nyc: { bounds: [40.45, -74.30, 41.05, -73.65] } } };
+  assert.equal(foodMetro(index, 40.758, -73.9855), "nyc");
+  assert.equal(foodMetro(index, 41.88, -87.63), null);
+  assert.deepEqual(foodTileKeys(40.7625, -73.9875, 500), ["1630_-2960"]);
+  assert.equal(foodTileKeys(40.758, -73.9855, 1600).length, 6);   // 2 rows x 3 columns of 2.5 km tiles
+  const rows = [[40.7585, -73.9862, "Sushi Place", { amenity: "restaurant", cuisine: "sushi", "addr:housenumber": "1", "addr:street": "Broadway" }, "node/1"],
+                [40.80, -73.95, "Far", { amenity: "cafe" }, "node/2"]];
+  const p = placesFromFoodTiles([rows], { lat: 40.758, lon: -73.9855 }, 700);
+  assert.equal(p.length, 1);
+  assert.equal(p[0].tags.name, "Sushi Place");
+  assert.equal(p[0].address, "1 Broadway");
+});

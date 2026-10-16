@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import build_dishes  # noqa: E402
+import build_food_tiles  # noqa: E402
 import build_fuel_tiles  # noqa: E402
 import fetch_gas  # noqa: E402
 
@@ -98,3 +99,26 @@ def test_fuel_tiles_update_only_fetched_boxes(tmp_path, monkeypatch):
     index = json.loads((tmp_path / "index.json").read_text())
     assert index["tiles"] == ["34_-119", "40_-74"] and index["stations"] == 2
     assert list(index["boxes"]) == ["39,-75,44,-70"]
+
+
+def test_food_tiles_rows_boxes_and_incremental_write(tmp_path, monkeypatch):
+    import json
+    data = {"elements": [
+        {"type": "node", "id": 1, "lat": 40.7585, "lon": -73.9862,
+         "tags": {"name": "Sushi Place", "amenity": "restaurant", "cuisine": "sushi", "diet:vegan": "yes", "source": "survey"}},
+        {"type": "way", "id": 2, "center": {"lat": 40.75851, "lon": -73.98621}, "tags": {"name": "Sushi Place", "amenity": "restaurant"}},
+        {"type": "node", "id": 3, "lat": 40.76, "lon": -73.98, "tags": {"amenity": "cafe"}},
+    ]}
+    rows = build_food_tiles.rows_from_overpass(data)
+    assert rows == [[40.7585, -73.9862, "Sushi Place", {"amenity": "restaurant", "cuisine": "sushi", "diet:vegan": "yes"}, "node/1"]]
+    bxs = build_food_tiles.boxes(build_food_tiles.METROS["nyc"])
+    assert len(bxs) == 42 and bxs[0] == (40.45, -74.3, 40.55, -74.2)
+    assert build_food_tiles.tile_key(40.7585, -73.9862) == "1630_-2960"
+    assert build_food_tiles.tile_in_box("1630_-2960", (40.7, -74.0, 40.8, -73.9))
+    assert not build_food_tiles.tile_in_box("1634_-2960", (40.7, -74.0, 40.8, -73.9))
+    monkeypatch.setattr(build_food_tiles, "OUT", tmp_path)
+    (tmp_path / "nyc").mkdir()
+    (tmp_path / "nyc" / "1700_-2950.json").write_text('[[42.5, -73.7, "Kept", {}, "node/9"]]')
+    m = build_food_tiles.write_metro("nyc", {(40.7, -74.0, 40.8, -73.9): rows}, build_food_tiles.METROS["nyc"])
+    assert m["tiles"] == ["1630_-2960", "1700_-2950"] and m["places"] == 2
+    assert json.loads((tmp_path / "nyc" / "1630_-2960.json").read_text())[0][2] == "Sushi Place"

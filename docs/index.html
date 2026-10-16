@@ -278,7 +278,7 @@ a { color: inherit; }
 import {
   overpassQuery, parsePlaces, cuisineIndex, cuisinesFor, cuisineLabel, dishesFor, dietBadges, serviceBadges,
   hoursStatus, lateNight, weekHours, formatDistance, gasForLocation, inNYC, matchInspection, OVERPASS_URLS, distanceMeters,
-  fuelTileKeys, placesFromTiles, GOOGLE_NEARBY, GOOGLE_TEXT, googleStatus, fromGoogle, sameGooglePlace,
+  fuelTileKeys, placesFromTiles, foodMetro, foodTileKeys, placesFromFoodTiles, GOOGLE_NEARBY, GOOGLE_TEXT, googleStatus, fromGoogle, sameGooglePlace,
 } from "./core.js";
 
 const DATA_BASE = location.hostname.endsWith("github.io") || location.protocol === "file:"
@@ -543,7 +543,7 @@ async function findPlaces(kind) {
     try { places = await googleStations(loc); if (places.length) return places; }
     catch (e) { S.googleError = e.message; }
   }
-  places = kind === "gas" ? await stationsFromTiles(loc, radii, enough) : null;
+  places = kind === "gas" ? await stationsFromTiles(loc, radii, enough) : await foodFromTiles(loc, radii, enough);
   if (places) return places;
   places = [];
   for (const r of radii) {
@@ -570,6 +570,35 @@ async function stationsFromTiles(loc, radii, enough) {
     for (const r of radii) { places = placesFromTiles(rows, loc, r); if (places.length >= enough) break; }
     return places.length ? places : null;
   } catch { return null; }
+}
+
+// Food in covered metro areas (New York so far) is prebuilt into small tiles; elsewhere the live map servers are used.
+async function foodFromTiles(loc, radii, enough) {
+  try {
+    S.foodIndex ??= await (await fetch(DATA_BASE + "food/index.json")).json();
+    const metro = foodMetro(S.foodIndex, loc.lat, loc.lon);
+    if (!metro) return null;
+    const have = new Set(S.foodIndex.metros[metro].tiles);
+    S.foodTiles ??= {};
+    let places = [];
+    for (const r of radii) {
+      const keys = foodTileKeys(loc.lat, loc.lon, r, S.foodIndex.grid).filter(k => have.has(k));
+      const rows = await Promise.all(keys.map(async k => {
+        S.foodTiles[k] ??= fetch(DATA_BASE + `food/${metro}/${k}.json`).then(x => x.json());
+        return S.foodTiles[k];
+      }));
+      places = placesFromFoodTiles(rows, loc, r);
+      if (places.length >= enough) break;
+    }
+    return places.length ? places : null;
+  } catch { return null; }
+}
+
+// Once the location is known, load the other list in the background so switching between Gas and Food is instant.
+const pending = {};
+function prefetch(kind) {
+  if (S.places[kind] || pending[kind] || !S.loc) return;
+  pending[kind] = findPlaces(kind).then(p => { S.places[kind] = p; }).catch(() => {}).finally(() => { delete pending[kind]; });
 }
 
 // ---------- results ----------
@@ -599,10 +628,17 @@ async function reload() {
       $("#setLoc").onclick = openLocationSheet;
       return;
     }
+    const slow = setTimeout(() => {
+      if (S.mode === mode && !S.places[mode]) content.insertAdjacentHTML("afterbegin", `<p class="summary" id="slowNote">Still searching. The free map service is busy, which can take up to half a minute…</p>`);
+    }, 6000);
     try {
-      const [places] = await Promise.all([findPlaces(mode), loadOH(), mode === "food" ? loadDishes() : loadGas()]);
+      const [places] = await Promise.all([pending[mode] ? pending[mode].then(() => S.places[mode] || findPlaces(mode)) : findPlaces(mode),
+        loadOH(), loadDishes(), loadGas()]);
       S.places[mode] = places;
+      clearTimeout(slow);
+      setTimeout(() => prefetch(mode === "food" ? "gas" : "food"), 300);
     } catch (e) {
+      clearTimeout(slow);
       content.innerHTML = `<div class="state"><h3>Couldn't load places</h3><p>The map service is busy or you're offline.</p><button class="btn" id="retry">Try again</button></div>`;
       $("#retry").onclick = reload;
       return;

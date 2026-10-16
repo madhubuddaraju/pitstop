@@ -62,6 +62,9 @@ flowchart LR
 - **Gas stations** in the US are extracted from OpenStreetMap once a week (in 75 boxes of 5 degrees) and split into
   1-degree tiles, so the page loads the one or two tiles around you from GitHub's CDN instead of querying a map
   server from every phone. Outside the US it falls back to a live query.
+- **Restaurants** in covered metro areas (New York City and around, for now) are prebuilt the same way into
+  2.5 km tiles (about 40,000 places), so the food list appears in about a second. Elsewhere the page queries
+  OpenStreetMap live, and the other list (gas or food) is loaded in the background while you look at the first.
 - **Opening hours** are OSM `opening_hours` strings (`Mo-Th 11:00-22:00; Fr-Sa 11:00-02:00; PH off`), evaluated with
   the opening_hours.js library against your local time and public holidays. Places with missing or unparseable hours are
   shown separately as "hours not listed", not as closed.
@@ -87,6 +90,7 @@ python -m pytest -q tests                        # data tests (EIA parsing, dish
 python scripts/fetch_gas.py                      # refresh docs/gas.json
 python scripts/build_dishes.py                   # rebuild docs/dishes.json with Wikipedia text and photos
 python scripts/build_fuel_tiles.py               # every US gas station into docs/fuel/ tiles
+python scripts/build_food_tiles.py               # restaurants in covered metros into docs/food/ tiles
 python -m http.server -d docs 8000               # open http://localhost:8000
 ```
 
@@ -100,6 +104,7 @@ docs/core.js        logic: distances, OSM queries, opening hours, cuisines, gas 
 docs/dishes.json    built dish guide
 docs/gas.json       weekly prices by area
 docs/fuel/          US gas stations in 1-degree tiles
+docs/food/          restaurants in covered metros in 2.5 km tiles
 data/               dishes.yaml and cuisines.yaml, written by hand
 scripts/            fetch_gas.py, build_dishes.py, build_fuel_tiles.py
 tests/              Node tests for core.js, pytest for the data scripts

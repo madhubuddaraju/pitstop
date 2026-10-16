@@ -368,3 +368,34 @@ export function sameGooglePlace(place, results) {
     return d < 150 && name && (name.includes(target) || target.includes(name));
   }) || null;
 }
+
+// ---------- prebuilt food tiles (selected metro areas) ----------
+
+/** The metro whose prebuilt tiles cover this point (with the search radius inside its bounds), or null. */
+export function foodMetro(index, lat, lon) {
+  for (const [name, m] of Object.entries(index?.metros || {})) {
+    const [s, w, n, e] = m.bounds;
+    if (lat > s + 0.01 && lat < n - 0.01 && lon > w + 0.01 && lon < e - 0.01) return name;
+  }
+  return null;
+}
+
+export function foodTileKeys(lat, lon, m, grid = 40) {
+  const dLat = m / 111320, dLon = m / (111320 * Math.cos(lat * Math.PI / 180));
+  const keys = [];
+  for (let i = Math.floor((lat - dLat) * grid); i <= Math.floor((lat + dLat) * grid); i++)
+    for (let j = Math.floor((lon - dLon) * grid); j <= Math.floor((lon + dLon) * grid); j++) keys.push(`${i}_${j}`);
+  return keys;
+}
+
+/** Tile rows [lat, lon, name, tags, id] -> places within m, nearest first (same shape as parsePlaces). */
+export function placesFromFoodTiles(rowLists, origin, m) {
+  const out = [];
+  for (const rows of rowLists) for (const [lat, lon, name, tags, id] of rows) {
+    const dist = distanceMeters(origin.lat, origin.lon, lat, lon);
+    if (dist > m) continue;
+    const t = { ...tags, name };
+    out.push({ id, name, lat, lon, tags: t, dist, address: formatAddress(t) });
+  }
+  return out.sort((a, b) => a.dist - b.dist);
+}
