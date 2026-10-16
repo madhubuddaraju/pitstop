@@ -199,3 +199,27 @@ test("food build boxes a search needs", async () => {
   assert.equal(foodBoxesFor(nyc, 40.749, -73.701, 700).length, 4);   // near a box corner
   assert.equal(foodBoxesFor(nyc, 40.5, -74.25, 700)[0], "40.45,-74.3,40.55,-74.2");
 });
+
+test("Google live results merge into the food list", async () => {
+  const { mergeGoogleFood, googleCuisine } = await import("../docs/core.js");
+  assert.equal(googleCuisine("thai_restaurant"), "thai");
+  assert.equal(googleCuisine("hamburger_restaurant"), "burger");
+  assert.equal(googleCuisine("coffee_shop"), "coffee_shop");
+  assert.equal(googleCuisine(undefined), "");
+  const origin = { lat: 40.758, lon: -73.9855 };
+  const places = [{ id: "node/1", name: "Bangkok Garden", lat: 40.7579, lon: -73.9841, dist: 120, tags: { cuisine: "thai" } }];
+  const g = [
+    { id: "a", displayName: { text: "Bangkok Garden" }, location: { latitude: 40.75792, longitude: -73.98412 }, rating: 4.4,
+      userRatingCount: 1287, priceLevel: "PRICE_LEVEL_MODERATE", currentOpeningHours: { openNow: true } },
+    { id: "b", displayName: { text: "New Ramen Bar" }, location: { latitude: 40.7582, longitude: -73.9858 }, primaryType: "ramen_restaurant",
+      formattedAddress: "1 W 45th St, New York, NY 10036, USA", rating: 4.7, currentOpeningHours: { openNow: false } },
+  ];
+  const out = mergeGoogleFood(places, g, origin);
+  assert.equal(out.length, 2);
+  assert.equal(out[0].name, "New Ramen Bar");                  // nearest first
+  assert.equal(out[0].tags.cuisine, "ramen");
+  assert.equal(out[0].address, "1 W 45th St, New York, NY 10036");
+  assert.equal(out[1].live.rating, 4.4);
+  assert.equal(out[1].live.price, "$$");
+  assert.equal(places[0].live, undefined);                      // input list untouched
+});
