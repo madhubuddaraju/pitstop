@@ -28,7 +28,7 @@ def check(url: str) -> None:
                 page.wait_for_selector(".item", timeout=60000)
             finally:
                 page.screenshot(path=f"screenshots/{name.split(',')[0].replace(' ', '-')}-food.png")
-            summary = page.text_content(".summary")
+            summary = page.locator(".summary").last.text_content()
             items = page.locator(".item").count()
             print(f"{name} food: {summary.strip()} ({items} shown in {time.time() - t0:.1f} s, map server {page.evaluate('window.__server && window.__server()')})")
             assert items > 0
@@ -52,6 +52,7 @@ def check(url: str) -> None:
                 page.wait_for_selector(".price-card", timeout=60000)
             finally:
                 page.screenshot(path=f"screenshots/{name.split(',')[0].replace(' ', '-')}-gas.png")
+            page.wait_for_timeout(1200)   # the price counts up when it first appears
             print(f"{name} gas: {page.text_content('.price-card .lbl')} {page.text_content('.price-big')}; "
                   f"{page.text_content('.summary')} in {time.time() - t0:.1f} s")
         browser.close()
