@@ -248,3 +248,18 @@ test("dishes reviewers recommend are pulled out of reviews", async () => {
   assert.ok(!pt.mustTry);
   assert.ok(picks.indexOf(pt) > picks.indexOf(picks.find(p => p.name === "Mango sticky rice")));
 });
+
+test("only food is ever listed as a must-try", async () => {
+  const { dishLexicon, reviewPicks } = await import("../docs/core.js");
+  const lex = dishLexicon(dishes.dishes);
+  const picks = reviewPicks([
+    { author: "A", text: "Food was cold so I had to get a refund. Must try asking for a manager." },
+    { author: "B", text: "The waiter was a jerk. Highly recommend the patio. I'd get the check quickly." },
+    { author: "C", text: "Must try the spicy vodka rigatoni! Also order the lamb shank." },
+    { author: "D", text: "Get the slice of pizza and a cold brew." },
+  ], lex).map(p => p.name);
+  assert.ok(!picks.some(n => /refund|manager|jerk|patio|check/i.test(n)), picks.join(", "));
+  assert.ok(picks.includes("Spicy Vodka Rigatoni"));
+  assert.ok(picks.includes("Lamb Shank"));
+  assert.ok(picks.includes("New York slice") && picks.includes("Cold brew"));
+});

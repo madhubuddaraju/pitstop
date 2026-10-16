@@ -464,15 +464,15 @@ const fold = s => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase
 // other ways reviews name dishes from the guide
 const ALIASES = {
   "tikka-masala": ["tikka masala", "chicken tikka"], "butter-chicken": ["murgh makhani"], "dumplings": ["dumpling", "soup dumplings", "xiao long bao", "xlb", "potstickers"],
-  "ny-slice": ["slice", "cheese slice", "pepperoni slice", "pizza slice"], "margherita-pizza": ["margherita"], "bacon-egg-cheese": ["bacon egg and cheese", "bacon, egg and cheese", "bec"],
+  "ny-slice": ["cheese slice", "pepperoni slice", "pizza slice", "slice of pizza"], "margherita-pizza": ["margherita"], "bacon-egg-cheese": ["bacon egg and cheese", "bacon, egg and cheese"],
   "tacos-al-pastor": ["al pastor", "pastor tacos"], "banh-mi": ["banh mi"], "creme-brulee": ["creme brulee"], "pho": ["pho"],
   "chicken-over-rice": ["chicken and rice", "chicken over rice", "combo over rice"], "general-tso": ["general tso", "general tsos", "general tso's"],
   "chicken-parm": ["chicken parm", "chicken parmigiana", "chicken parmesan"], "carbonara": ["carbonara"], "pastrami-on-rye": ["pastrami"],
-  "bagel-lox": ["lox", "nova"], "korean-fried-chicken": ["kfc", "korean fried chicken"], "fried-chicken": ["fried chicken"], "buffalo-wings": ["wings", "buffalo wings"],
-  "french-fries": ["fries"], "cheeseburger": ["burger", "cheeseburger", "smashburger", "smash burger"], "massaman-curry": ["massaman"], "green-curry": ["green curry"],
+  "bagel-lox": ["lox", "lox bagel"], "korean-fried-chicken": ["korean fried chicken"], "fried-chicken": ["fried chicken"], "buffalo-wings": ["wings", "buffalo wings"],
+  "french-fries": ["fries"], "cheeseburger": ["burger", "burgers", "cheeseburger", "smashburger", "smash burger"], "massaman-curry": ["massaman"], "green-curry": ["green curry"],
   "tom-yum": ["tom yum", "tom yam"], "pad-see-ew": ["pad see ew", "pad see eew"], "mango-sticky-rice": ["mango sticky rice"], "kimchi-jjigae": ["kimchi stew", "kimchi jjigae"],
-  "tteokbokki": ["tteokbokki", "topokki", "ddeokbokki"], "spring-rolls": ["summer rolls", "fresh rolls"], "jamaican-patty": ["beef patty", "patty"], "oxtail": ["oxtail", "oxtails"],
-  "jerk-chicken": ["jerk chicken", "jerk"], "pollo-a-la-brasa": ["rotisserie chicken", "pollo a la brasa"], "cuban-sandwich": ["cuban sandwich", "cubano"],
+  "tteokbokki": ["tteokbokki", "topokki", "ddeokbokki"], "spring-rolls": ["summer rolls", "fresh rolls"], "jamaican-patty": ["beef patty", "jamaican patty"], "oxtail": ["oxtail", "oxtails"],
+  "jerk-chicken": ["jerk chicken", "jerk pork"], "pollo-a-la-brasa": ["rotisserie chicken", "pollo a la brasa"], "cuban-sandwich": ["cuban sandwich", "cubano"],
   "doner-kebab": ["doner", "döner"], "gyro": ["gyro", "gyros"], "falafel": ["falafel"], "hummus": ["hummus"], "pancakes": ["pancakes", "pancake"],
   "lobster-roll": ["lobster roll"], "clam-chowder": ["clam chowder", "chowder"], "fish-and-chips": ["fish and chips", "fish & chips"], "cheesecake": ["cheesecake"],
   "cold-brew": ["cold brew"], "latte": ["latte"], "matcha-latte": ["matcha"], "bubble-tea": ["boba", "bubble tea"], "croissant": ["croissant"],
@@ -482,6 +482,29 @@ const RECOMMEND = /\b(must[- ]?(try|have|order|get)|highly recommend|recommend(e
 const NOT_DISHES = new Set(["place", "service", "staff", "food", "atmosphere", "vibe", "vibes", "ambiance", "ambience", "experience", "spot", "restaurant",
   "price", "prices", "portion", "portions", "menu", "waiter", "waitress", "server", "owner", "location", "music", "decor", "view", "drinks", "meal",
   "dinner", "lunch", "breakfast", "brunch", "everything", "anything", "something", "time", "people", "line", "wait", "way", "one", "ones", "dish", "dishes"]);
+
+// An item the dish guide doesn't know counts only if it contains one of these food or drink words,
+// so "get a refund" or "try the patio" are never listed as dishes.
+const FOOD_WORDS = new Set(("chicken beef pork lamb goat duck turkey veal shrimp prawn prawns crab lobster fish salmon tuna cod octopus calamari squid "
+  + "scallops scallop clams mussels oysters oyster tofu egg eggs bacon ham sausage chorizo brisket ribs rib steak wagyu meatball meatballs "
+  + "noodle noodles ramen udon soba pho rice risotto paella biryani pasta spaghetti rigatoni penne linguine fettuccine gnocchi lasagna ravioli "
+  + "tortellini mac pizza pie calzone sandwich sub hero wrap burrito taco tacos quesadilla nachos enchilada enchiladas tamale tamales empanada "
+  + "empanadas arepa arepas burger burgers sliders hotdog dog wings fries tots salad soup stew chili curry masala korma vindaloo dal daal "
+  + "naan roti paratha dosa samosa kebab kabob shawarma gyro falafel hummus pita dumpling dumplings bao buns bun gyoza wontons wonton "
+  + "spring roll rolls sushi sashimi nigiri maki poke bowl bibimbap bulgogi kimchi tteokbokki bread toast bagel croissant pastry "
+  + "pancakes pancake waffle waffles crepe crepes omelette omelet benedict hash grits biscuit biscuits cornbread brownie cookie cookies cake "
+  + "cheesecake tiramisu cannoli tart pudding flan churros donut donuts doughnut gelato ice cream sorbet milkshake shake smoothie coffee latte "
+  + "cappuccino espresso cortado macchiato mocha matcha tea chai boba cocktail cocktails margarita mojito sangria wine beer ale lager "
+  + "sauce cheese mozzarella burrata parmesan feta queso guacamole salsa fondue chop chops cutlet schnitzel katsu tempura teriyaki satay "
+  + "laksa larb khao soi congee jook porridge oatmeal granola yogurt fruit mango avocado mushroom mushrooms eggplant cauliflower brussels "
+  + "sprouts potatoes potato plantains plantain tostones mofongo pernil oxtail jerk patty patties roti curry goat").split(" "));
+
+const NOT_FOOD = /\b(refund|money|cash|card|tip|tips|bill|check|reservation|table|seat|seats|booth|bathroom|restroom|parking|delivery|order number|manager|staff|waiter|waitress|server|host|hostess|owner|chef|cook|service|music|patio|bar area|vibe|atmosphere|wifi|line|wait|price|deal|discount|coupon|app|website|phone|call|ride|uber|cab|train|subway|bus)\b/;
+
+function looksLikeFood(phrase) {
+  if (NOT_FOOD.test(phrase)) return false;
+  return phrase.split(/[\s-]+/).some(w => FOOD_WORDS.has(w) || FOOD_WORDS.has(w.replace(/e?s$/, "")));
+}
 
 /** Searchable names for the dish guide: [{id, name, re}] longest first, so "chicken tikka masala" wins over "chicken". */
 export function dishLexicon(dishes) {
@@ -535,7 +558,7 @@ export function reviewPicks(reviews, lexicon) {
       if (m) {
         const phrase = m[1].trim().replace(/\s+/g, " ");
         const words = phrase.split(" ");
-        if (words.length <= 5 && !NOT_DISHES.has(words[words.length - 1]) && !taken.some(t => phrase.includes(t) || t.includes(phrase))
+        if (words.length <= 5 && !NOT_DISHES.has(words[words.length - 1]) && looksLikeFood(phrase) && !taken.some(t => phrase.includes(t) || t.includes(phrase))
             && !/^(it|this|that|them|here|there|again|back|everything|some|more|one|my|our|your)\b/.test(phrase)) {
           const name = phrase.replace(/\b[a-z]/g, c => c.toUpperCase());
           const key = "x:" + phrase;
