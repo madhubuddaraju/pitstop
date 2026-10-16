@@ -42,6 +42,10 @@ and lists the dishes reviewers recommend first, with a short quote: dishes from 
 named after phrases like "must try the…", "get the…", "recommend the…". Each has an Explain button: the dish guide
 for known dishes, Wikipedia for others, or a note that it's the restaurant's own creation.
 
+**Menu first.** A restaurant page opens with its menu: a link to the real one (the restaurant's own menu when it has
+listed one, otherwise Google Maps or a web search), then the dishes reviewers say they ordered there, then what places
+of that cuisine usually serve, each with an Explain button.
+
 **Offers.** Restaurants don't publish promotions as open data, so each restaurant page links to its Uber Eats and
 DoorDash listings, where current promotions show, and lets you save a deal you saw (kept on your phone). Happy hours
 are shown where OpenStreetMap lists them.
@@ -55,8 +59,7 @@ also a signal: stop, get ready, go. The same three points mark status in the lis
 opening within 45 minutes, and open is shown in green with the logo's ring.
 
 The app itself is meant to feel like something on your phone rather than a web page: the system typeface, grouped
-lists with inset dividers, a segmented Gas/Food switch, and a light theme by day and a dark one at night (it follows the
-phone). The start screen shows a station-style price sign with this week's regular and diesel averages, the third
+lists with inset dividers and a segmented Gas/Food switch, all on frosted glass over a dark wallpaper. The start screen shows a station-style price sign with this week's regular and diesel averages, the third
 decimal set small as on a real pylon. The one piece of theatre is the intro, where a car comes in, stops on its mark and
 the title flies up into the logo. The frame where the car parked becomes the start screen's wallpaper, seen through
 frosted-glass panels (CSS `backdrop-filter`, no library); everything after that stays quiet. Motion is off for people who set "reduce motion".

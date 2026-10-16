@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pitstop · gas and food near you</title>
 <meta name="description" content="Gas stations and restaurants open near you, with closing times and what to order.">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Pitstop">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22#0B0B0C%22/%3E%3Ccircle cx=%2215%22 cy=%2232%22 r=%227.5%22 fill=%22#E10600%22/%3E%3Ccircle cx=%2232%22 cy=%2232%22 r=%227.5%22 fill=%22#FFC906%22/%3E%3Ccircle cx=%2249%22 cy=%2232%22 r=%226%22 fill=%22none%22 stroke=%22#fff%22 stroke-width=%223%22/%3E%3C/svg%3E">
@@ -20,22 +19,16 @@
 <style>
 :root {
   /* follows the phone: dark at night, light in daylight */
-  --bg: #000; --cell: #1C1C1E; --cell-2: #2C2C2E; --sep: #38383A; --field: #1C1C1E;
-  --ink: #F5F5F7; --ink-2: #A1A1A6; --ink-3: #636366; --page-ink: #F5F5F7;
+  --bg: #000; --cell: #1C1C1E; --cell-2: rgba(255, 255, 255, .1); --sep: rgba(255, 255, 255, .12); --field: rgba(255, 255, 255, .08);
+  --ink: #F5F5F7; --ink-2: rgba(235, 235, 245, .68); --ink-3: rgba(235, 235, 245, .42); --page-ink: #F5F5F7;
+  --glass: rgba(30, 30, 34, .5); --glass-hover: rgba(52, 52, 58, .55);
+  --rim: inset 0 1px 0 rgba(255, 255, 255, .14), inset 0 0 0 1px rgba(255, 255, 255, .07);
   --red: #E10600; --red-text: #FF453A; --yel: #FFC906; --yel-text: #FFC906; --green: #30D158; --ring: #FFFFFF; --white: #FFFFFF;
   --muted: var(--ink-2); --dim: var(--ink-3); --line: var(--sep); --card: var(--cell); --raise: var(--cell-2); --surface: var(--cell);
   --ease: cubic-bezier(.2, .8, .2, 1);
   --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --display: Michroma, var(--sans);
   color-scheme: dark;
-}
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #F2F2F7; --cell: #FFFFFF; --cell-2: #E9E9EE; --sep: #D8D8DD; --field: #E9E9EE;
-    --ink: #1C1C1E; --ink-2: #6C6C70; --ink-3: #A1A1A6; --page-ink: #1C1C1E;
-    --red-text: #D70015; --yel-text: #9A5B00; --green: #1F8A3B; --ring: #1C1C1E;
-    color-scheme: light;
-  }
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -75,9 +68,10 @@ a { color: inherit; }
 }
 .home-bg { position: fixed; inset: 0; z-index: -1; background: #000; }
 .home-bg::before { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 60% at 75% -12%, #6a0400 0%, #240100 40%, #000 72%); }
-.home-bg.photo::before { background: var(--shot) center / cover no-repeat; transform: scale(1.02); }
+
 .home-bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, .45) 0%, rgba(0, 0, 0, .05) 35%, rgba(0, 0, 0, .1) 60%, rgba(0, 0, 0, .7) 100%); }
-body:has(#home:not(.hidden)) { background: #000; }
+body:has(#results:not(.hidden)) .home-bg::after { background: rgba(0, 0, 0, .62); }
+.home-bg.photo::before { background: var(--wall) center / cover no-repeat; }
 #home { max-width: 940px; min-height: 100dvh; display: flex; flex-direction: column; padding-top: calc(20px + env(safe-area-inset-top)); }
 .topbar { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
 .home-loc { display: flex; align-items: center; gap: 8px; margin: 18px 0 16px; font-size: 15px; color: var(--ink-2); min-width: 0; }
@@ -126,7 +120,7 @@ body:has(#home:not(.hidden)) { background: #000; }
 
 /* ---------- results ---------- */
 .bar {
-  position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 66%, transparent);
+  position: sticky; top: 0; z-index: 5; background: rgba(0, 0, 0, .32);
   backdrop-filter: blur(24px) saturate(190%); -webkit-backdrop-filter: blur(24px) saturate(190%);
   padding: calc(8px + env(safe-area-inset-top)) 16px 10px; margin: 0 -16px; border-bottom: .5px solid transparent;
 }
@@ -139,7 +133,7 @@ body:has(#home:not(.hidden)) { background: #000; }
 .switch { position: relative; display: inline-flex; background: color-mix(in srgb, var(--ink) 12%, transparent); border-radius: 9px; padding: 2px; }
 .switch button { position: relative; z-index: 1; border: 0; background: none; padding: 6px 0; border-radius: 7px; font-weight: 600; font-size: 13px; width: 64px; color: var(--ink); }
 .switch .ind { position: absolute; z-index: 0; top: 2px; bottom: 2px; left: 2px; width: 64px; border-radius: 7px; background: var(--cell); box-shadow: 0 1px 3px rgba(0, 0, 0, .2); transition: transform .25s var(--ease); }
-@media (prefers-color-scheme: dark) { .switch .ind { background: #636366; } }
+.switch .ind { background: rgba(255, 255, 255, .24); }
 .switch[data-mode="food"] .ind { transform: translateX(64px); }
 .loc { margin-top: 4px; font-size: 14px; color: var(--ink-2); display: flex; gap: 6px; align-items: center; min-width: 0; }
 .loc span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -275,6 +269,27 @@ body:has(#home:not(.hidden)) { background: #000; }
 .stars { color: var(--yel-text); font-weight: 600; }
 .cheapest { background: var(--yel); color: #1C1C1E; font-weight: 600; font-size: 12px; border-radius: 5px; padding: 2px 7px; }
 .lead + .wiki { margin-top: 8px; }
+
+/* ---------- glass ---------- */
+.list, .panel, .price-card, .note, .chip, .iconbtn, .switch, .search input, .action, .more, .menu-card {
+  background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(170%); backdrop-filter: blur(28px) saturate(170%); box-shadow: var(--rim);
+}
+.list, .panel, .price-card { border-radius: 18px; }
+.chip:hover, .iconbtn:hover, .action:hover, .more:hover, .menu-card:hover { background: var(--glass-hover); }
+.chip[aria-pressed="true"] { background: #F5F5F7; color: #000; box-shadow: none; }
+.action.primary { background: #0A84FF; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25); }
+.action.primary:hover { background: #0071E3; }
+.sheet { background: #000; }
+.sheet::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(rgba(0, 0, 0, .6), rgba(0, 0, 0, .78)), var(--wall, radial-gradient(120% 60% at 75% -12%, #6a0400 0%, #240100 40%, #000 72%)) center / cover no-repeat; }
+.sheet-top { background: rgba(0, 0, 0, .3); }
+/* menu */
+.menu-card { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-radius: 14px; text-decoration: none; color: var(--ink); margin-top: 2px; }
+.menu-card > svg:first-child { width: 24px; height: 24px; color: #0A84FF; flex: none; }
+.menu-card > svg:last-child { width: 16px; height: 16px; color: var(--ink-3); flex: none; margin-left: auto; }
+.menu-card b { display: block; font-size: 16px; font-weight: 600; }
+.menu-card small { display: block; font-size: 13px; color: var(--ink-2); margin-top: 1px; }
+.sub-h { font-size: 13px; font-weight: 600; color: var(--ink-2); margin: 18px 0 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
@@ -763,8 +778,8 @@ function drive(THREE) {
 </script>
 
 <!-- start: what do you need? -->
+<div class="home-bg" id="homeBg" aria-hidden="true"></div>
 <main id="home" class="wrap">
-  <div class="home-bg" id="homeBg" aria-hidden="true"></div>
   <header class="topbar">
     <h1 class="logo intro" aria-label="Pitstop"><span class="wordmark">PITSTOP</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></h1>
   </header>
@@ -850,6 +865,7 @@ const I = {
   web: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
   menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3h12v18H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',
   close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  ext: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>',
   back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m15 6-6 6 6 6"/></svg>',
 };
 const DIET = { meat: "Has meat", fish: "Seafood", veg: "Vegetarian", vegan: "Vegan" };
@@ -883,7 +899,7 @@ $("#changeLoc").onclick = () => openLocationSheet();
 
 // ---------- start screen ----------
 window.__setWallpaper = (url, save) => {
-  const bg = $("#homeBg"); bg.style.setProperty("--shot", `url("${url}")`); bg.classList.add("photo");
+  document.documentElement.style.setProperty("--wall", `url("${url}")`); $("#homeBg").classList.add("photo");
   if (save) store.set("wall", url);
 };
 { const w = store.get("wall", null); if (w) window.__setWallpaper(w, false); }
@@ -1480,9 +1496,9 @@ function openPlace(id) {
       <a class="action primary" href="${directionsUrl(p)}" target="_blank" rel="noopener">${I.nav}Directions</a>
       ${phone ? `<a class="action" href="tel:${esc(phone.split(";")[0].replace(/[^\d+]/g, ""))}">${I.phone}Call</a>` : ""}
       ${web ? `<a class="action" href="${esc(web)}" target="_blank" rel="noopener">${I.web}Website</a>` : ""}
-      ${menu ? `<a class="action" href="${esc(menu)}" target="_blank" rel="noopener">${I.menu}Menu</a>` : ""}
     </div>`;
   if (badges.length || fuels.length) html += `<div class="badges">${[...fuels, ...badges].map(b => `<span class="tag">${esc(b)}</span>`).join("")}</div>`;
+  if (kind === "food") html += menuPanel(p, menu);
   if (kind === "food" && inNYC(p.lat, p.lon)) html += `<div class="panel" id="grade"><h3>NYC health inspection</h3><p class="summary" style="margin:0">Checking…</p></div>`;
   if (kind === "gas" && p.fuel && Object.keys(p.fuel).some(k => k !== "updated")) html += googleFuelPanel(p);
   else if (kind === "gas") html += gasPricePanel(p);
@@ -1493,8 +1509,6 @@ function openPlace(id) {
   } else if (kind === "food" && !p.live) {
     html += `<div class="panel"><h3>Hours</h3><p style="margin:0;color:var(--muted)">This place hasn't listed its hours${phone ? ", so call to check" : ""}.</p></div>`;
   }
-  if (kind === "food") html += picksPanel(p);
-  if (kind === "food") html += dishesPanel(p);
   if (kind === "food") html += offersPanel(p);
   html += p.google ? `</div>` : `<p class="credit">Details © OpenStreetMap contributors · <a href="https://www.openstreetmap.org/${esc(p.id)}" target="_blank" rel="noopener">fix something wrong</a></p></div>`;
 
@@ -1515,21 +1529,34 @@ function openPlace(id) {
   if (kind === "food" && inNYC(p.lat, p.lon)) loadGrade(p);
 }
 
-function dishesPanel(p) {
+// The menu: a link to the real one, then dishes reviewers say they ordered here, then what places like this usually serve.
+function menuLink(p, direct) {
+  if (direct) return { href: direct, label: "Open the menu", note: "The restaurant's own menu" };
+  if (p.live?.mapsUri) return { href: p.live.mapsUri, label: "See the menu on Google Maps", note: "Menu photos and prices, where the restaurant has added them" };
+  return { href: `https://www.google.com/search?q=${encodeURIComponent([p.name, p.address || p.tags["addr:city"] || "", "menu"].filter(Boolean).join(" "))}`,
+    label: "Find the menu", note: "This place hasn't linked a menu, so this searches the web for it" };
+}
+function menuPanel(p, direct) {
+  const m = menuLink(p, direct);
+  return `<div class="panel" id="menuPanel"><h3>Menu</h3>
+    <a class="menu-card" href="${esc(m.href)}" target="_blank" rel="noopener">${I.menu}<span><b>${esc(m.label)}</b><small>${esc(m.note)}</small></span>${I.ext}</a>
+    ${gkey() ? `<div id="picks"><p class="summary" style="margin:14px 0 0">Reading reviews for dishes people order here…</p></div>` : ""}
+    ${usualHtml(p)}
+    ${gkey() ? "" : `<p class="credit" style="margin-top:10px"><button class="linkbtn" data-gsettings>Add Google data</button> to also see the dishes people say they order here.</p>`}
+  </div>`;
+}
+function usualHtml(p) {
   const ids = dishesFor(p.cuisines, S.dishes.cuisines);
-  if (!ids.length) {
-    return `<div class="panel"><h3>What to order</h3><p style="margin:0;color:var(--muted)">This place hasn't listed its cuisine, so there are no dish suggestions.${p.tags["website:menu"] || p.tags.website ? " Check their menu or website above." : ""}</p></div>`;
-  }
+  if (!ids.length) return `<p class="credit" style="margin-top:12px">This place hasn't listed its cuisine, so the menu link above is the best way to see what it serves.</p>`;
   const label = S.dishes.cuisines[p.cuisines[0]].label;
-  return `<div class="panel"><h3>Popular at ${esc(label)} places</h3>
+  return `<h4 class="sub-h" id="usualHead" data-also="Also usually on the menu at ${esc(label)} places">Usually on the menu at ${esc(label)} places</h4>
     ${ids.map(id => { const d = S.dishes.dishes[id]; return `<div class="dish">
       <h4>${esc(d.name)}</h4>
       <button class="explain" data-dish="${id}">Explain</button>
       <p>${esc(d.about)}</p>
       <div class="marks"><span>${DIET[d.diet]}</span>${d.spicy ? `<span>${spice(d.spicy)}</span>` : ""}</div>
     </div>`; }).join("")}
-    <p class="credit" style="margin-top:6px">Typical dishes for this kind of restaurant. Check the menu for what they serve.</p>
-  </div>`;
+    <p class="credit" style="margin-top:6px">Typical dishes for this kind of restaurant; check the menu for what this one serves.</p>`;
 }
 
 // ---------- dish sheet ----------
@@ -1604,11 +1631,6 @@ async function loadGoogleDetails(p) {
 }
 
 // ---------- what reviewers recommend (needs Google data; Google returns a place's most relevant reviews) ----------
-function picksPanel(p) {
-  if (!gkey()) return `<div class="panel"><h3>Must-try, from reviews</h3><p style="margin:0;color:var(--muted)">Pitstop can read this restaurant's reviews and list the dishes people recommend. <button class="linkbtn" data-gsettings>Add Google data</button> to turn it on.</p></div>`;
-  return `<div class="panel" id="picks"><h3>Must-try, from reviews</h3><p class="summary" style="margin:0">Reading reviews…</p></div>`;
-}
-
 async function loadReviews(p) {
   if (S.reviews[p.id]) return;
   try {
@@ -1627,15 +1649,13 @@ function showPicks(p, googleReviews, error) {
   const box = $("#picks");
   if (!box) return;
   const R = S.reviews[p.id];
-  if (!R) {
-    box.innerHTML = `<h3>Must-try, from reviews</h3><p style="margin:0;color:var(--muted)">${error ? `Reviews didn't load (${esc(error)}).` : "Google has no reviews for this place."}</p>`;
+  if (!R || !R.picks.length) {
+    box.innerHTML = `<p class="credit" style="margin:12px 0 0">${!R ? (error ? `Reviews didn't load (${esc(error)}).` : "Google has no reviews for this place yet.")
+      : `The ${R.n} reviews Google shares don't name a dish, so below is what places like this usually serve.`}</p>`;
     return;
   }
-  if (!R.picks.length) {
-    box.innerHTML = `<h3>Must-try, from reviews</h3><p style="margin:0;color:var(--muted)">The ${R.n} reviews Google shares don't name a particular dish.</p>`;
-    return;
-  }
-  box.innerHTML = `<h3>Must-try, from reviews</h3>
+  const head = $("#usualHead"); if (head) head.textContent = head.dataset.also;
+  box.innerHTML = `<h4 class="sub-h">Ordered here, from reviews</h4>
     ${R.picks.slice(0, 6).map((k, i) => `<div class="dish">
       <h4>${esc(k.name)}${k.mustTry ? ` <span class="cheapest" style="margin-left:4px">Must try</span>` : ""}</h4>
       <button class="explain" data-pick="${i}">Explain</button>
