@@ -305,8 +305,9 @@ a { color: inherit; }
 .splash.go .i-lights i:nth-child(2) { --c: var(--yel); animation-delay: 2.03s; }
 .splash.go .i-lights i:nth-child(3) { --c: #fff; animation-delay: 2.21s; }
 @keyframes lamp { to { background: var(--c); box-shadow: 0 0 16px color-mix(in srgb, var(--c) 70%, transparent); } }
-.i-word { position: absolute; top: clamp(40px, 7vh, 80px); left: 0; right: 0; text-align: center; text-indent: .12em; font: 400 clamp(40px, 12vw, 112px)/1 var(--display); letter-spacing: .12em; color: var(--ink); white-space: nowrap; opacity: 0; text-shadow: 0 0 40px rgba(225, 6, 0, .45), 0 2px 0 rgba(0, 0, 0, .6); }
-.i-word::after { content: ""; display: block; width: 0; height: 3px; margin: .22em auto 0; background: var(--red); box-shadow: 0 0 14px var(--red); }
+.i-word { position: absolute; top: clamp(40px, 7vh, 80px); left: 0; right: 0; text-align: center; font: 400 clamp(32px, 9.6vw, 104px)/1 var(--display); letter-spacing: .32em; color: var(--ink); white-space: nowrap; opacity: 0; text-shadow: 0 0 40px rgba(225, 6, 0, .45), 0 2px 0 rgba(0, 0, 0, .6); }
+.i-word span { display: inline-block; margin-right: -.32em; transform-origin: 0 0; }
+.i-word::after { content: ""; display: block; width: 0; height: 3px; margin: .22em auto 0; transition: opacity .2s ease; background: var(--red); box-shadow: 0 0 14px var(--red); }
 .splash.go .i-word::after { animation: rule .7s var(--ease) both 2.2s; }
 @keyframes rule { to { width: min(60vw, 520px); } }
 .splash.go .i-word { animation: wordIn .7s var(--ease) both 1.75s; }
@@ -314,6 +315,14 @@ a { color: inherit; }
 .i-skip:hover { color: var(--ink); border-color: #44444c; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 body.intro-playing { overflow: hidden; }
+/* the title and the lights fly up and become the logo on the start screen */
+.i-word, .i-lights { z-index: 2; }
+.splash.fly .i-word { animation: none; opacity: 1; clip-path: none; transform: none; }
+.splash.fly .i-word::after { opacity: 0; }
+.splash.fly .i-word span, .splash.fly .i-lights i { transition: transform .8s cubic-bezier(.65, 0, .2, 1), text-shadow .8s ease; }
+.splash.fly .i-word span { text-shadow: none; }
+body.intro-seen .logo.intro .wordmark, body.intro-seen .logo.intro .dots i { animation: none; }
+body.intro-flying #home .logo { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) { .splash { display: none; } }
 body.intro-playing #home, body.intro-playing #home * { animation-play-state: paused !important; }
 </style>
@@ -322,9 +331,9 @@ body.intro-playing #home, body.intro-playing #home * { animation-play-state: pau
 
 <div id="intro" class="splash" aria-hidden="true">
   <div class="door door-l"></div><div class="door door-r"></div>
+  <div class="i-word"><span>PITSTOP</span></div>
+  <div class="i-lights"><i></i><i></i><i></i></div>
   <div class="i-stage">
-    <div class="i-word">PITSTOP</div>
-    <div class="i-lights"><i></i><i></i><i></i></div>
     <button class="i-skip" type="button">Skip</button>
   </div>
 </div>
@@ -340,11 +349,26 @@ body.intro-playing #home, body.intro-playing #home * { animation-play-state: pau
   document.body.classList.add("intro-playing");
   try { sessionStorage.setItem("pitstop:intro", "1"); } catch {}
   let done = false, timer;
+  const fly = () => {
+    const word = el.querySelector(".i-word span"), tw = document.querySelector("#home .wordmark");
+    if (!el.classList.contains("go") || !tw || !tw.getClientRects().length) return false;
+    el.classList.add("fly"); document.body.classList.add("intro-seen", "intro-flying");
+    const sr = word.getBoundingClientRect(), tr = tw.getBoundingClientRect();
+    const k = parseFloat(getComputedStyle(tw).fontSize) / parseFloat(getComputedStyle(word).fontSize);
+    word.style.transform = `translate(${tr.left - sr.left}px, ${tr.top + tr.height / 2 - (sr.top + sr.height * k / 2)}px) scale(${k})`;
+    const dots = document.querySelectorAll("#home .dots i");
+    el.querySelectorAll(".i-lights i").forEach((l, i) => {
+      const a = l.getBoundingClientRect(), d = dots[i] && dots[i].getBoundingClientRect();
+      if (d) l.style.transform = `translate(${d.left + d.width / 2 - (a.left + a.width / 2)}px, ${d.top + d.height / 2 - (a.top + a.height / 2)}px) scale(${d.width / a.width})`;
+    });
+    return true;
+  };
   const open = () => {
     if (done) return; done = true; clearTimeout(timer);
+    const flew = fly();
     el.classList.add("open");
     setTimeout(() => document.body.classList.remove("intro-playing"), 250);
-    setTimeout(() => el.remove(), 900);
+    setTimeout(() => { document.body.classList.remove("intro-flying"); el.remove(); }, flew ? 950 : 900);
   };
   timer = setTimeout(open, 3500);            // the car never showed up (slow network, no WebGL)
   window.__introOpen = open;
