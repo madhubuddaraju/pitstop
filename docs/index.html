@@ -289,38 +289,24 @@ a { color: inherit; }
   .track::after { display: none; }
 }
 
-/* ---------- intro: the car comes into the box, stops, and the garage doors open ---------- */
-.splash { position: fixed; inset: 0; z-index: 100; overflow: hidden; pointer-events: auto; }
+/* ---------- intro: a car comes in hot, brakes to its mark, and the garage doors open ---------- */
+.splash { position: fixed; inset: 0; z-index: 100; overflow: hidden; }
 .door { position: absolute; top: 0; bottom: 0; width: 50.5%; background: var(--bg); z-index: 0; transition: transform .75s cubic-bezier(.7, 0, .2, 1); }
 .door-l { left: 0; } .door-r { right: 0; }
-.splash.open .door-l { box-shadow: 1px 0 0 #2a2a30; } .splash.open .door-r { box-shadow: -1px 0 0 #2a2a30; }
-.splash { --lane: calc(50% - 6px + min(86vw, 520px) * .1167 + 2px); --top: calc(50% - 6px - min(86vw, 520px) * .08); }
-.splash.open .door-l { transform: translateX(-101%); } .splash.open .door-r { transform: translateX(101%); }
-.i-stage { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; transition: opacity .3s ease, transform .5s var(--ease); }
-.splash.open .i-stage { opacity: 0; transform: scale(.97); }
-.i-lane { position: absolute; left: 0; right: 0; top: var(--lane); height: 2px; background: #1f1f25; overflow: hidden; }
-.i-dash { position: absolute; inset: 0 -1000px 0 0; background: repeating-linear-gradient(90deg, #3a3a42 0 34px, transparent 34px 70px); animation: lane 1.3s cubic-bezier(.15, .85, .3, 1) both; }
-@keyframes lane { from { transform: translateX(0); } to { transform: translateX(-980px); } }
-.i-box { position: absolute; top: calc(var(--lane) + 8px); left: 50%; width: min(70vw, 400px); transform: translateX(-50%); height: 22px; border: 1.5px solid #3a3a42; border-top: 0; border-radius: 0 0 6px 6px; display: grid; place-items: center; opacity: 0; animation: fadeIn .4s ease both 1.05s; }
-.i-box span { font: 400 9px var(--display); letter-spacing: .4em; color: #6a6a72; margin-right: -.4em; }
-.i-carwrap { position: relative; width: min(86vw, 520px); transform: translateY(-6px); animation: drive 1.3s cubic-bezier(.15, .85, .3, 1) both .15s; }
-.i-car { display: block; width: 100%; height: auto; overflow: visible; animation: settle .5s ease-out both 1.42s; transform-origin: 70% 90%; }
-.i-wheel { animation: spinStop 1.3s cubic-bezier(.15, .85, .3, 1) both .15s; }
-@keyframes drive { from { transform: translate(-130vw, -6px); } to { transform: translate(0, -6px); } }
-@keyframes spinStop { from { transform: rotate(0); } to { transform: rotate(2520deg); } }
-@keyframes settle { 0% { transform: rotate(0); } 35% { transform: rotate(1.6deg) translateY(2px); } 70% { transform: rotate(-.5deg); } 100% { transform: none; } }
-.i-streaks { position: absolute; right: 100%; top: 32%; width: 60vw; height: 40%; display: grid; align-content: space-between; animation: streaks 1.35s ease-out both .15s; }
-.i-streaks i { display: block; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.55)); }
-.i-streaks i:nth-child(2) { margin-left: 20%; background: linear-gradient(90deg, transparent, rgba(225,6,0,.8)); }
-.i-streaks i:nth-child(3) { margin-left: 40%; }
-@keyframes streaks { 0% { opacity: 1; } 70% { opacity: .9; } 100% { opacity: 0; transform: scaleX(.2); transform-origin: right; } }
-.i-lights { position: absolute; top: calc(var(--lane) + 52px); left: 50%; transform: translateX(-50%); display: flex; gap: 14px; }
-.i-lights i { width: 14px; height: 14px; border-radius: 50%; background: #1f1f25; animation: lamp .25s steps(1) both; }
-.i-lights i:nth-child(1) { --c: var(--red); animation-delay: 1.5s; }
-.i-lights i:nth-child(2) { --c: var(--yel); animation-delay: 1.68s; }
-.i-lights i:nth-child(3) { --c: #fff; animation-delay: 1.86s; }
+.splash.open .door-l { transform: translateX(-101%); box-shadow: 1px 0 0 #2a2a30; } .splash.open .door-r { transform: translateX(101%); box-shadow: -1px 0 0 #2a2a30; }
+.i-stage { position: absolute; inset: 0; z-index: 1; background: radial-gradient(120% 60% at 75% -12%, #6a0400 0%, #240100 40%, #0b0b0c 70%); transition: opacity .35s ease, transform .6s var(--ease); }
+.splash.open .i-stage { opacity: 0; transform: scale(1.04); }
+.i-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .3s ease; }
+.splash.go .i-stage canvas { opacity: 1; }
+.i-lights { position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%); display: flex; gap: 14px; }
+.i-lights i { width: 14px; height: 14px; border-radius: 50%; background: #1f1f25; }
+.splash.go .i-lights i { animation: lamp .25s steps(1) both; }
+.splash.go .i-lights i:nth-child(1) { --c: var(--red); animation-delay: 1.85s; }
+.splash.go .i-lights i:nth-child(2) { --c: var(--yel); animation-delay: 2.03s; }
+.splash.go .i-lights i:nth-child(3) { --c: #fff; animation-delay: 2.21s; }
 @keyframes lamp { to { background: var(--c); box-shadow: 0 0 16px color-mix(in srgb, var(--c) 70%, transparent); } }
-.i-word { position: absolute; top: calc(var(--top) - 56px); left: 0; right: 0; text-align: center; text-indent: .5em; font: 400 18px var(--display); letter-spacing: .5em; color: var(--ink); white-space: nowrap; animation: wordIn .6s var(--ease) both 1.95s; }
+.i-word { position: absolute; top: 13%; left: 0; right: 0; text-align: center; text-indent: .5em; font: 400 18px var(--display); letter-spacing: .5em; color: var(--ink); white-space: nowrap; opacity: 0; }
+.splash.go .i-word { animation: wordIn .6s var(--ease) both 2.25s; }
 .i-skip { position: absolute; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom)); background: none; border: 1px solid #2a2a30; color: #8c8c94; border-radius: 10px; padding: 8px 14px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; animation: fadeIn .4s ease both .6s; }
 .i-skip:hover { color: var(--ink); border-color: #44444c; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -334,27 +320,13 @@ body.intro-playing #home, body.intro-playing #home * { animation-play-state: pau
 <div id="intro" class="splash" aria-hidden="true">
   <div class="door door-l"></div><div class="door door-r"></div>
   <div class="i-stage">
-    <div class="i-lane"><span class="i-dash"></span></div>
-    <div class="i-box"><span>BOX</span></div>
-    <div class="i-carwrap"><div class="i-streaks"><i></i><i></i><i></i></div><svg class="i-car" viewBox="0 0 600 160" aria-hidden="true">
-  <path d="M24 32 L96 32 L92 46 L28 46 Z" fill="#151518"/><path d="M24 32 L96 32 L94 37 L26 37 Z" fill="#E10600"/>
-  <path d="M28 46 L50 46 L56 112 L34 112 Z" fill="#151518"/>
-  <path d="M44 126 L44 112 Q46 104 58 102 L74 98 L86 72 Q90 66 98 66 L200 54 Q212 44 226 44 Q236 44 238 52 L244 70 Q256 74 286 76 L360 84 Q420 92 470 100 L548 112 Q562 116 556 122 L520 124 L440 124 Q410 126 380 126 L330 128 Z" fill="#E10600"/>
-  <path d="M140 112 Q150 98 176 96 L320 96 Q340 98 346 112 L346 126 L140 126 Z" fill="#A80400"/>
-  <path d="M150 99 L340 99" stroke="#FFC906" stroke-width="2.4"/>
-  <path d="M60 130 L420 130 L426 136 L54 136 Z" fill="#151518"/>
-  <path d="M236 64 Q262 40 300 74" fill="none" stroke="#111" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="256" cy="62" r="10" fill="#FFC906"/><path d="M252 60.5 h13" stroke="#111" stroke-width="4" stroke-linecap="round"/>
-  <path d="M468 128 L590 128 L586 138 L466 138 Z" fill="#151518"/><path d="M578 106 L592 106 L592 138 L578 138 Z" fill="#E10600"/>
-  <g class="i-wheel" style="transform-origin:112px 118px"><circle cx="112" cy="118" r="32" fill="#0E0E10" stroke="#2A2A30" stroke-width="2"/><circle cx="112" cy="118" r="23.0" fill="none" stroke="#FFC906" stroke-width="2.4" stroke-dasharray="38 16"/><g stroke="#3A3A42" stroke-width="3" stroke-linecap="round"><line x1="112" y1="101.4" x2="112" y2="134.6" transform="rotate(0 112 118)"/><line x1="112" y1="101.4" x2="112" y2="134.6" transform="rotate(60 112 118)"/><line x1="112" y1="101.4" x2="112" y2="134.6" transform="rotate(120 112 118)"/></g><circle cx="112" cy="118" r="5.1" fill="#9A9AA2"/></g><g class="i-wheel" style="transform-origin:470px 120px"><circle cx="470" cy="120" r="30" fill="#0E0E10" stroke="#2A2A30" stroke-width="2"/><circle cx="470" cy="120" r="21.6" fill="none" stroke="#FFC906" stroke-width="2.4" stroke-dasharray="36 15"/><g stroke="#3A3A42" stroke-width="3" stroke-linecap="round"><line x1="470" y1="104.4" x2="470" y2="135.6" transform="rotate(0 470 120)"/><line x1="470" y1="104.4" x2="470" y2="135.6" transform="rotate(60 470 120)"/><line x1="470" y1="104.4" x2="470" y2="135.6" transform="rotate(120 470 120)"/></g><circle cx="470" cy="120" r="4.8" fill="#9A9AA2"/></g>
-</svg></div>
-    <div class="i-lights"><i></i><i></i><i></i></div>
     <div class="i-word">PITSTOP</div>
+    <div class="i-lights"><i></i><i></i><i></i></div>
     <button class="i-skip" type="button">Skip</button>
   </div>
 </div>
 <script>
-// ---------- intro: shown once per visit, skipped with a tap, never for "reduce motion" or deep links ----------
+// ---------- intro: once per visit, tap to skip, never for "reduce motion" or deep links ----------
 (function intro() {
   const el = document.getElementById("intro");
   if (!el) return;
@@ -364,17 +336,238 @@ body.intro-playing #home, body.intro-playing #home * { animation-play-state: pau
   if (seen || reduce || location.hash.length > 1 || /[?&]at=/.test(location.search)) { el.remove(); return; }
   document.body.classList.add("intro-playing");
   try { sessionStorage.setItem("pitstop:intro", "1"); } catch {}
-  let done = false;
+  let done = false, timer;
   const open = () => {
-    if (done) return; done = true;
+    if (done) return; done = true; clearTimeout(timer);
     el.classList.add("open");
     setTimeout(() => document.body.classList.remove("intro-playing"), 250);
     setTimeout(() => el.remove(), 900);
   };
-  const timer = setTimeout(open, 2700);
-  el.querySelector(".i-skip").addEventListener("click", () => { clearTimeout(timer); open(); });
-  el.addEventListener("click", e => { if (!e.target.closest(".i-skip")) { clearTimeout(timer); open(); } });
+  timer = setTimeout(open, 3500);            // the car never showed up (slow network, no WebGL)
+  window.__introOpen = open;
+  window.__introStart = () => { if (done) return false; clearTimeout(timer); el.classList.add("go"); timer = setTimeout(open, 3300); return true; };
+  el.dataset.play = "1";
+  el.addEventListener("click", open);
 })();
+</script>
+<script type="module">
+// ---------- the car: a 3D model built from code, lit like a studio launch ----------
+const el = document.getElementById("intro");
+if (el && el.dataset.play) {
+  try {
+    const THREE = await import("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js");
+    if (document.getElementById("intro")) drive(THREE);
+  } catch (e) { window.__introOpen && window.__introOpen(); }
+}
+
+function drive(THREE) {
+  const stage = el.querySelector(".i-stage");
+  const canvas = document.createElement("canvas"); stage.prepend(canvas);
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  const scene = new THREE.Scene();
+
+  // studio reflections: softboxes overhead and in front, a red wall behind
+  const pm = new THREE.PMREMGenerator(renderer), env = new THREE.Scene();
+  env.add(new THREE.Mesh(new THREE.BoxGeometry(30, 14, 30), new THREE.MeshBasicMaterial({ color: 0x050506, side: THREE.BackSide })));
+  const panel = (w, h, rgb, pos, rot) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color().setRGB(...rgb), side: THREE.DoubleSide })); m.position.set(...pos); m.rotation.set(...rot); env.add(m); };
+  panel(10, 2.2, [2.2, 2.2, 2.2], [0, 6.8, 0], [Math.PI / 2, 0, 0]);
+  panel(3, 10, [2, 2, 2], [9, 3, 12], [0, -0.6, 0]);
+  panel(30, 6, [1.4, 0.05, 0.01], [0, 4, -14.8], [0, 0, 0]);
+  panel(6, 2, [1.2, 1.2, 1.2], [14.8, 1.5, 0], [0, -Math.PI / 2, 0]);
+  scene.environment = pm.fromScene(env, 0.035).texture;
+
+  const ds = THREE.DoubleSide;
+  const paint = new THREE.MeshPhysicalMaterial({ color: 0xc00a04, metalness: .25, roughness: .28, clearcoat: 1, clearcoatRoughness: .05, side: ds });
+  const carbon = new THREE.MeshPhysicalMaterial({ color: 0x0a0a0c, metalness: .2, roughness: .55, clearcoat: .25, clearcoatRoughness: .4, envMapIntensity: .5, side: ds });
+  const matte = new THREE.MeshStandardMaterial({ color: 0x070708, roughness: .8, envMapIntensity: .3, side: ds });
+  const rubber = new THREE.MeshStandardMaterial({ color: 0x141416, roughness: .85, side: ds });
+  const rimMat = new THREE.MeshPhysicalMaterial({ color: 0xc80b05, metalness: .5, roughness: .25, clearcoat: 1 });
+  const yellow = new THREE.MeshStandardMaterial({ color: 0xffc906, roughness: .45, emissive: 0x3a2b00 });
+  const white = new THREE.MeshPhysicalMaterial({ color: 0xf4f4f4, roughness: .2, clearcoat: 1 });
+  const black = new THREE.MeshStandardMaterial({ color: 0x030304, roughness: .55 });
+  const glass = new THREE.MeshPhysicalMaterial({ color: 0x050507, metalness: .9, roughness: .05, clearcoat: 1 });
+
+  const car = new THREE.Group();
+  const add = (geo, mat, pos = [0, 0, 0], rot = [0, 0, 0], parent = car) => { const m = new THREE.Mesh(geo, mat); m.position.set(...pos); m.rotation.set(...rot); m.castShadow = true; parent.add(m); return m; };
+  const box = (sx, sy, sz, mat, pos, rot) => add(new THREE.BoxGeometry(sx, sy, sz), mat, pos, rot);
+  const rod = (a, b, r, mat = carbon) => {
+    const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), m = add(new THREE.CylinderGeometry(r, r, A.distanceTo(B), 8), mat);
+    m.position.copy(A).add(B).multiplyScalar(.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.sub(A).normalize()); return m;
+  };
+  // smooth bodywork lofted through cross-sections: [x, width, bottom, top, z centre]
+  const cr = (a, b, c, d, t) => .5 * (2 * b + (c - a) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (3 * b - a - 3 * c + d) * t * t * t);
+  function loft(st, pw = .45, n = 40, k = 8) {
+    st = st.map(r => [r[0], r[1], r[2], r[3], r[4] ?? 0]);
+    const rows = [];
+    for (let i = 0; i < st.length - 1; i++) for (let j = 0; j < k; j++)
+      rows.push(st[i].map((_, c) => cr((st[i - 1] || st[i])[c], st[i][c], st[i + 1][c], (st[i + 2] || st[i + 1])[c], j / k)));
+    rows.push(st[st.length - 1]);
+    const pos = [], idx = [];
+    for (const [x, w, b, t, zc] of rows) {
+      const ym = (b + t) / 2, hh = (t - b) / 2;
+      for (let j = 0; j < n; j++) { const a = j / n * Math.PI * 2, c = Math.cos(a), s = Math.sin(a);
+        pos.push(x, ym + hh * Math.sign(s) * Math.abs(s) ** pw, zc + w / 2 * Math.sign(c) * Math.abs(c) ** pw); }
+    }
+    const m = rows.length;
+    for (let i = 0; i < m - 1; i++) for (let j = 0; j < n; j++) { const a = i * n + j, b = i * n + (j + 1) % n; idx.push(a, a + n, b, b, a + n, b + n); }
+    for (const i of [0, m - 1]) { const [x, , b, t, zc] = rows[i], c = pos.length / 3; pos.push(x, (b + t) / 2, zc);
+      for (let j = 0; j < n; j++) idx.push(c, i * n + j, i * n + (j + 1) % n); }
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+  }
+
+  // chassis, engine cover and nose
+  add(loft([[-2.45, .22, .22, .40], [-2.0, .34, .17, .50], [-1.5, .44, .13, .62], [-1.0, .52, .12, .78], [-.6, .5, .12, .95],
+            [-.35, .42, .12, 1.0], [-.12, .5, .12, .92], [.05, .66, .12, .72], [.6, .68, .12, .68], [1.0, .58, .14, .63],
+            [1.5, .44, .18, .55], [2.0, .30, .22, .45], [2.5, .2, .24, .36], [2.82, .08, .26, .3]]), paint);
+  // sidepods, undercut toward the floor
+  for (const s of [1, -1])
+    add(loft([[.8, .22, .16, .48, .47 * s], [.55, .38, .14, .55, .47 * s], [.1, .44, .13, .55, .45 * s], [-.4, .38, .13, .47, .40 * s],
+              [-.9, .26, .13, .36, .33 * s], [-1.4, .1, .14, .25, .27 * s]], .5), paint);
+  for (const s of [1, -1]) { box(.03, .26, .24, black, [.79, .33, .47 * s]); }
+  // cockpit, driver, halo, mirrors, airbox
+  add(new THREE.SphereGeometry(1, 32, 16), black, [.3, .69, 0]).scale.set(.4, .05, .25);
+  add(new THREE.SphereGeometry(.125, 32, 24), white, [.2, .8, 0]);
+  add(new THREE.SphereGeometry(1, 24, 16), glass, [.29, .815, 0]).scale.set(.05, .04, .1);
+  add(new THREE.TorusGeometry(.126, .012, 8, 40), paint, [.2, .8, 0], [0, Math.PI / 2, 0]);
+  add(new THREE.SphereGeometry(1, 24, 16), black, [-.2, .94, 0]).scale.set(.05, .06, .11);
+  const halo = new THREE.CatmullRomCurve3([[-.02, .7, -.3], [.18, .85, -.29], [.48, .89, -.17], [.62, .89, 0], [.48, .89, .17], [.18, .85, .29], [-.02, .7, .3]].map(v => new THREE.Vector3(...v)));
+  add(new THREE.TubeGeometry(halo, 80, .026, 10), carbon);
+  rod([.62, .89, 0], [.8, .66, 0], .026);
+  for (const s of [1, -1]) { rod([.6, .67, .3 * s], [.62, .76, .44 * s], .012); box(.05, .07, .17, carbon, [.62, .77, .47 * s]); }
+  box(.5, .006, .03, yellow, [2.2, .41, 0], [0, 0, -.22]);
+  box(1.8, .006, .02, white, [-1.1, .7, 0], [0, 0, -.2]);
+  // floor, plank, diffuser
+  const plan = new THREE.Shape([[1.3, -.5], [1.1, -.92], [-1.25, -.92], [-1.6, -.56], [-2.2, -.5], [-2.2, .5], [-1.6, .56], [-1.25, .92], [1.1, .92], [1.3, .5]].map(([x, z]) => new THREE.Vector2(x, z)));
+  const floorG = new THREE.ExtrudeGeometry(plan, { depth: .025, bevelEnabled: false }); floorG.rotateX(Math.PI / 2);
+  add(floorG, matte, [0, .1, 0]);
+  box(.5, .02, 1.0, carbon, [-2.35, .15, 0], [0, 0, -.35]);
+  for (const s of [1, -1]) box(.5, .12, .015, carbon, [-2.35, .17, .5 * s], [0, 0, -.35]);
+  // front wing
+  [[2.76, .085, .44, 1.94, .05, carbon], [2.64, .135, .32, 1.86, .25, paint], [2.54, .185, .24, 1.8, .45, carbon], [2.47, .235, .17, 1.7, .62, paint]]
+    .forEach(([x, y, c, sp, r, m]) => box(c, .018, sp, m, [x, y, 0], [0, 0, r]));
+  for (const s of [1, -1]) box(.62, .26, .02, carbon, [2.7, .17, .98 * s]);
+  for (const s of [1, -1]) rod([2.55, .26, .08 * s], [2.6, .1, .12 * s], .012);
+  // rear wing, beam wing, rain light
+  for (const s of [1, -1]) box(.56, .64, .02, carbon, [-2.45, .66, .5 * s]);
+  box(.34, .03, 1.0, paint, [-2.44, .82, 0], [0, 0, .16]);
+  box(.22, .025, 1.0, paint, [-2.32, .94, 0], [0, 0, .5]);
+  box(.06, .42, .05, carbon, [-2.32, .6, 0], [0, 0, -.25]);
+  box(.24, .02, .9, carbon, [-2.42, .42, 0], [0, 0, .2]);
+  const rain = box(.02, .05, .09, new THREE.MeshStandardMaterial({ color: 0x330000, emissive: 0xff1a0a, emissiveIntensity: 3 }), [-2.47, .33, 0]);
+  // suspension
+  for (const s of [1, -1]) {
+    rod([1.55, .42, .25 * s], [1.8, .43, .66 * s], .016); rod([2.05, .44, .14 * s], [1.8, .43, .66 * s], .016);
+    rod([1.55, .22, .27 * s], [1.8, .28, .66 * s], .016); rod([2.05, .24, .16 * s], [1.8, .28, .66 * s], .016);
+    rod([-1.55, .42, .26 * s], [-1.8, .42, .58 * s], .016); rod([-2.05, .40, .2 * s], [-1.8, .42, .58 * s], .016);
+    rod([-1.55, .2, .28 * s], [-1.8, .26, .58 * s], .016); rod([-2.05, .22, .2 * s], [-1.8, .26, .58 * s], .016);
+  }
+  // wheels: low-profile tyres, compound band, wheel covers
+  function wheel(x, z, w) {
+    const g = new THREE.Group(); g.name = "wheel"; g.position.set(x, .36, z); car.add(g);
+    const prof = [[.225, -w / 2], [.33, -w / 2], [.352, -w / 2 + .02], [.36, -w / 2 + .06], [.36, w / 2 - .06], [.352, w / 2 - .02], [.33, w / 2], [.225, w / 2]].map(([r, y]) => new THREE.Vector2(r, y));
+    add(new THREE.LatheGeometry(prof, 80), rubber, [0, 0, 0], [Math.PI / 2, 0, 0], g);
+    add(new THREE.CylinderGeometry(.228, .228, w * .92, 48), rimMat, [0, 0, 0], [Math.PI / 2, 0, 0], g);
+    for (const s of [1, -1]) {
+      add(new THREE.TorusGeometry(.3, .008, 8, 96), yellow, [0, 0, s * (w / 2 + .002)], [0, 0, 0], g);
+      add(new THREE.TorusGeometry(.17, .012, 8, 64), black, [0, 0, s * (w * .46 + .002)], [0, 0, 0], g);
+      add(new THREE.CylinderGeometry(.045, .045, .03, 20), black, [0, 0, s * (w * .46 + .01)], [Math.PI / 2, 0, 0], g);
+      add(new THREE.BoxGeometry(.012, .09, .004), white, [0, .1, s * (w * .46 + .004)], [0, 0, 0], g);
+      add(new THREE.BoxGeometry(.012, .09, .004), white, [0, -.1, s * (w * .46 + .004)], [0, 0, 0], g);
+    }
+    return g;
+  }
+  wheel(1.8, .8, .3); wheel(1.8, -.8, .3); wheel(-1.8, .76, .4); wheel(-1.8, -.76, .4);
+  scene.add(car);
+  const wheels = car.children.filter(c => c.name === "wheel");
+  // the wet floor: a mirrored car under a dark, partly see-through floor
+  const ref = car.clone(); ref.scale.y = -1; scene.add(ref);
+  const refWheels = ref.children.filter(c => c.name === "wheel");
+  const fade = document.createElement("canvas"); fade.width = fade.height = 256;
+  { const c = fade.getContext("2d"), gr = c.createRadialGradient(128, 128, 10, 128, 128, 128); gr.addColorStop(0, "#fff"); gr.addColorStop(.55, "#bbb"); gr.addColorStop(1, "#000"); c.fillStyle = gr; c.fillRect(0, 0, 256, 256); }
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(70, 34), new THREE.MeshStandardMaterial({ color: 0x030304, roughness: .75, metalness: 0, envMapIntensity: .1, transparent: true, opacity: .88, alphaMap: new THREE.CanvasTexture(fade) }));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(70, 34), new THREE.ShadowMaterial({ opacity: .75 }));
+  shadow.rotation.x = -Math.PI / 2; shadow.position.y = .002; shadow.receiveShadow = true; scene.add(shadow);
+  for (const z of [-1.7, 2.3]) { const l = new THREE.Mesh(new THREE.PlaneGeometry(70, .05), new THREE.MeshBasicMaterial({ color: 0x8a8a92, transparent: true, opacity: .35 })); l.rotation.x = -Math.PI / 2; l.position.set(0, .003, z); scene.add(l); }
+
+  scene.add(new THREE.HemisphereLight(0x553333, 0x050505, .35));
+  const key = new THREE.SpotLight(0xffffff, 2.2, 0, .42, .9, 0); key.position.set(1, 10, 2.5); key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048); key.shadow.camera.near = 3; key.shadow.camera.far = 16; key.shadow.bias = -.0004; scene.add(key);
+  const rim = new THREE.DirectionalLight(0xff2a14, 2); rim.position.set(-6, 4, -9); scene.add(rim);
+  const fill = new THREE.DirectionalLight(0xffffff, .55); fill.position.set(8, 2, 6); scene.add(fill);
+
+  const cam = new THREE.PerspectiveCamera(26, 1, .1, 120), target = new THREE.Vector3(.15, .42, 0), camBase = new THREE.Vector3();
+  function frameCam() {
+    const a = innerWidth / innerHeight; cam.aspect = a;
+    const dir = a >= 1 ? new THREE.Vector3(1, .5, 1.25) : new THREE.Vector3(1.5, .62, 1);
+    target.x = a >= 1 ? .15 : .4;
+    camBase.copy(target).addScaledVector(dir.normalize(), a >= 1.2 ? 11.5 : 11.5 * Math.min(2.1, 1.05 / a));
+    cam.position.copy(camBase); cam.lookAt(target); cam.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight, false);
+  }
+  frameCam(); addEventListener("resize", frameCam);
+
+  // sparks off the plank under braking, smoke from a locked front tyre
+  const sparkMat = new THREE.MeshBasicMaterial({ color: new THREE.Color().setRGB(3, 1.7, .5) });
+  const sparkG = new THREE.BoxGeometry(.09, .007, .007), sparks = [];
+  const puff = document.createElement("canvas"); puff.width = puff.height = 64;
+  { const c = puff.getContext("2d"), gr = c.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(220,220,228,.9)"); gr.addColorStop(1, "rgba(220,220,228,0)"); c.fillStyle = gr; c.fillRect(0, 0, 64, 64); }
+  const puffTex = new THREE.CanvasTexture(puff), smoke = [];
+
+  const T = 1.7, T1 = .62, X0 = -40, v = -X0 / (T1 + (T - T1) / 2), acc = v / (T - T1);
+  const pos = t => t <= 0 ? X0 : t < T1 ? X0 + v * t : t < T ? X0 + v * T1 + v * (t - T1) - acc * (t - T1) ** 2 / 2 : 0;
+  const speed = t => t <= 0 ? v : t < T1 ? v : t < T ? v - acc * (t - T1) : 0;
+  car.position.x = ref.position.x = X0;
+  renderer.compile(scene, cam);
+  let t0 = null, last = 0, smoked = false;
+  function tick(now) {
+    if (!document.getElementById("intro")) { renderer.dispose(); renderer.forceContextLoss(); return; }
+    requestAnimationFrame(tick);
+    if (t0 === null) { if (!window.__introStart()) return; t0 = now; last = now; }
+    const t = (now - t0) / 1000 - .05, dt = Math.min(.05, (now - last) / 1000); last = now;
+    const x = pos(t), sp = speed(t);
+    let pitch = 0, dip = 0;
+    if (t > T1 && t < T) { const b = Math.min(1, (t - T1) / .12); pitch = .018 * b; dip = .025 * b; }
+    else if (t >= T) { const u = t - T, e = Math.exp(-6 * u) * Math.cos(15 * u); pitch = .018 * e; dip = .025 * e; }
+    car.position.set(x, -dip, 0); car.rotation.z = -pitch;
+    ref.position.set(x, dip, 0); ref.rotation.z = pitch;
+    const spin = -(x - X0) / .36;
+    wheels.forEach(w => w.rotation.z = spin); refWheels.forEach(w => w.rotation.z = spin);
+    if (t > T1 && t < T - .05) for (let i = 0; i < 4; i++) {
+      const m = new THREE.Mesh(sparkG, sparkMat); m.position.set(x + Math.random() * 2.2 - 1.3, .03, Math.random() * 1 - .5);
+      m.userData = { v: new THREE.Vector3(sp * .55 - Math.random() * 3, .6 + Math.random() * 2.2, Math.random() * 2 - 1), life: .3 + Math.random() * .25 };
+      scene.add(m); sparks.push(m);
+    }
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const m = sparks[i], d = m.userData; d.life -= dt; d.v.y -= 9.8 * dt; m.position.addScaledVector(d.v, dt);
+      if (m.position.y < .01) { m.position.y = .01; d.v.y *= -.35; }
+      m.rotation.z = Math.atan2(d.v.y, d.v.x); m.rotation.y = -Math.atan2(d.v.z, d.v.x);
+      if (d.life <= 0) { scene.remove(m); sparks.splice(i, 1); }
+    }
+    if (!smoked && t >= T) {
+      smoked = true;
+      for (let i = 0; i < 12; i++) {
+        const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: puffTex, transparent: true, depthWrite: false, opacity: .35 }));
+        sp.position.set(x + 1.7 + Math.random() * .3, .1, (i % 2 ? .85 : -.85) + Math.random() * .3 - .15);
+        sp.userData = { age: -i * .02, dx: -(.2 + Math.random() * .5), dy: .1 + Math.random() * .25, s: .6 + Math.random() * .7 };
+        scene.add(sp); smoke.push(sp);
+      }
+    }
+    for (const sp of smoke) {
+      const d = sp.userData; d.age += dt; const k = Math.max(0, d.age) / 1.4;
+      sp.material.opacity = Math.max(0, .35 * (1 - k)); sp.scale.setScalar(.3 + d.s * Math.min(1, k * 1.5));
+      sp.position.x += d.dx * dt; sp.position.y += d.dy * dt;
+    }
+    const shake = t >= T ? Math.exp(-14 * (t - T)) * .03 : 0;
+    cam.position.set(camBase.x + (Math.random() - .5) * shake, camBase.y + (Math.random() - .5) * shake, camBase.z);
+    rain.material.emissiveIntensity = 2 + Math.sin(now / 60) * 1.5 * (t > T1 && t < T + .6 ? 1 : 0);
+    renderer.render(scene, cam);
+  }
+  requestAnimationFrame(tick);
+}
 </script>
 
 <!-- start: what do you need? -->
