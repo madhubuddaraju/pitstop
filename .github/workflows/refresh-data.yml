@@ -34,6 +34,13 @@ jobs:
       - name: Restaurants in covered metros (map tiles)
         continue-on-error: true
         run: python scripts/build_food_tiles.py 2>&1 | tee food-log.txt; exit ${PIPESTATUS[0]}
+      - name: Commit restaurant tiles
+        run: |
+          git add docs
+          if git diff --cached --quiet; then echo "No changes."; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Refresh restaurant tiles $(date -u +%Y-%m-%d)"
+          git pull --rebase -q origin main
+          git push
       - name: US gas stations (map tiles)
         continue-on-error: true
         run: python scripts/build_fuel_tiles.py 2>&1 | tee fuel-log.txt; exit ${PIPESTATUS[0]}

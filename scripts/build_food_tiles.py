@@ -23,6 +23,8 @@ SERVERS = ["https://overpass-api.de/api/interpreter", "https://overpass.private.
 AMENITIES = "restaurant|fast_food|cafe|food_court|ice_cream|pub|bar"
 GRID = 40          # tiles per degree
 BOX = 0.1          # degrees per Overpass request
+BUDGET_MIN = 15    # keep each run short; boxes not reached are fetched first next run
+STARTED = time.time()
 METROS = {
     # south, west, north, east
     "nyc": (40.45, -74.30, 41.05, -73.65),
@@ -79,7 +81,7 @@ def fetch_box(session, box):
     for attempt in range(3):
         url = SERVERS[attempt % len(SERVERS)]
         try:
-            r = session.post(url, data={"data": query(box)}, timeout=150)
+            r = session.post(url, data={"data": query(box)}, timeout=90)
             if r.status_code == 200:
                 data = r.json()
                 if "remark" in data and "runtime error" in data["remark"]:
@@ -128,7 +130,12 @@ def main(metros):
     for metro in metros:
         bounds = METROS[metro]
         got, failed = {}, 0
-        for box in boxes(bounds):
+        fetched = index["metros"].get(metro, {}).get("boxes", {})
+        # boxes never fetched (or fetched longest ago) first, so a run cut short by the time budget resumes next time
+        for box in sorted(boxes(bounds), key=lambda b: fetched.get(",".join(map(str, b)), "")):
+            if time.time() - STARTED > BUDGET_MIN * 60:
+                failed += 1
+                continue
             data = fetch_box(session, box)
             if data is None:
                 failed += 1
@@ -139,6 +146,7 @@ def main(metros):
             print(f"{metro}: nothing fetched", file=sys.stderr)
             continue
         index["metros"][metro] = write_metro(metro, got, bounds)
+        index["metros"][metro]["boxes"] = fetched | {",".join(map(str, b)): time.strftime("%Y-%m-%d") for b in got}
         m = index["metros"][metro]
         print(f"{metro}: {m['places']:,} places in {len(m['tiles'])} tiles; {len(got)} boxes fetched, {failed} kept from before")
     index["grid"] = GRID
