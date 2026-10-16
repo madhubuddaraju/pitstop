@@ -442,6 +442,7 @@ function openGoogleSheet() {
       <form class="field" id="gform"><input id="gin" placeholder="${has ? "Saved. Paste a new one to replace it" : "AIza…"}" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn">Save</button></form>
       ${has ? `<button class="linkbtn" id="gdel" style="margin-top:12px">Remove the key</button>` : ""}
       <p class="summary" id="gmsg" style="margin:10px 0 0"></p>
+      <p class="summary" style="margin:6px 0 0">Used today: ${googleBudget().n} of ${GOOGLE_DAILY_LIMIT} lookups. Pitstop stops at ${GOOGLE_DAILY_LIMIT} a day, so you stay inside Google's free allowance.</p>
     </div>
     <div class="note">The key is stored only in this browser on this phone and is sent only to Google. Create it in Google Cloud with <b>Places API (New)</b> enabled, restricted to the website <b>madhubuddaraju.github.io/*</b>. Google gives a free monthly allowance; set a budget alert to be safe.</div>
   </div>`;
@@ -466,7 +467,18 @@ function openGoogleSheet() {
   $("#gdel")?.addEventListener("click", () => { store.set("gkey", ""); S.places = {}; S.liveFood = null; updateGoogleBtn(); closeSheet(); });
 }
 
+// Pitstop never sends more than this many Google requests a day, which keeps usage inside Google's free allowance.
+const GOOGLE_DAILY_LIMIT = 30;
+function googleBudget() {
+  const today = new Date().toDateString();
+  const u = store.get("gusage", {});
+  return u.day === today ? u : { day: today, n: 0 };
+}
+
 async function googleSearch(url, body, fields, key = gkey()) {
+  const u = googleBudget();
+  if (u.n >= GOOGLE_DAILY_LIMIT) throw new Error(`today's ${GOOGLE_DAILY_LIMIT} free Google lookups are used up; back tomorrow`);
+  store.set("gusage", { day: u.day, n: u.n + 1 });
   const r = await fetch(url, { method: "POST", body: JSON.stringify(body),
     headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": fields } });
   const j = await r.json().catch(() => ({}));
