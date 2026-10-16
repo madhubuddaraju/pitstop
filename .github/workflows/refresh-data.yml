@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       part:
-        description: "food (restaurant tiles), quick (prices, dishes, restaurants) or all (adds every US gas station)"
+        description: "food, stations, quick (prices, dishes, restaurants) or all (quick plus every US gas station)"
         default: quick
 
 permissions:
@@ -27,8 +27,9 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     env:
-      WEEKLY: ${{ github.event.schedule == '23 13 * * 2' || github.event.inputs.part == 'all' }}
+      WEEKLY: ${{ github.event.schedule == '23 13 * * 2' || github.event.inputs.part == 'all' || github.event.inputs.part == 'stations' }}
       NIGHTLY_ONLY: ${{ github.event.schedule == '41 4 * * *' || github.event.inputs.part == 'food' }}
+      STATIONS_ONLY: ${{ github.event.inputs.part == 'stations' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -36,31 +37,22 @@ jobs:
           python-version: "3.12"
       - run: sudo apt-get install -y -qq osmium-tool && pip install -r requirements.txt
       - name: Gas prices
-        if: env.NIGHTLY_ONLY != 'true'
+        if: env.NIGHTLY_ONLY != 'true' && env.STATIONS_ONLY != 'true'
         run: python scripts/fetch_gas.py
       - name: Dishes
-        if: env.NIGHTLY_ONLY != 'true'
+        if: env.NIGHTLY_ONLY != 'true' && env.STATIONS_ONLY != 'true'
         run: python scripts/build_dishes.py
       - name: Restaurants in covered metros (map tiles)
+        if: env.STATIONS_ONLY != 'true'
         run: python scripts/build_food_tiles.py 2>&1 | tee food-log.txt; exit ${PIPESTATUS[0]}
       - name: Commit
-        run: |
-          git add docs
-          if git diff --cached --quiet; then echo "No changes."; exit 0; fi
-          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Refresh data $(date -u +%Y-%m-%d)"
-          git pull --rebase -q origin main
-          git push
+        run: scripts/commit_data.sh "Refresh data" docs/gas.json docs/dishes.json docs/food
       - name: US gas stations (map tiles)
         if: env.WEEKLY == 'true'
         run: python scripts/build_fuel_tiles.py 2>&1 | tee fuel-log.txt; exit ${PIPESTATUS[0]}
       - name: Commit gas stations
         if: env.WEEKLY == 'true'
-        run: |
-          git add docs
-          if git diff --cached --quiet; then echo "No changes."; exit 0; fi
-          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Refresh gas stations $(date -u +%Y-%m-%d)"
-          git pull --rebase -q origin main
-          git push
+        run: scripts/commit_data.sh "Refresh gas stations" docs/fuel
       - name: Keep the build logs on the refresh-log branch
         if: always()
         run: |
