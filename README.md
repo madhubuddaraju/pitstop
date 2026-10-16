@@ -37,6 +37,11 @@ Google's Places API has them. Paste your own key under "Google data" on the star
 browser) and the gas list shows each station's regular, premium and diesel price, sorted cheapest first; restaurant
 lists and pages add live Google hours, ratings and price level, and places Google knows that the map doesn't yet. For one person, the monthly free allowance covers normal use, and Pitstop never sends more than 30 Google requests a day.
 
+**Must-try dishes from reviews** (with a Google key). On a restaurant page Pitstop reads the reviews Google shares
+and lists the dishes reviewers recommend first, with a short quote: dishes from the guide that reviews name, plus items
+named after phrases like "must try the…", "get the…", "recommend the…". Each has an Explain button: the dish guide
+for known dishes, Wikipedia for others, or a note that it's the restaurant's own creation.
+
 **Offers.** Restaurants don't publish promotions as open data, so each restaurant page links to its Uber Eats and
 DoorDash listings, where current promotions show, and lets you save a deal you saw (kept on your phone). Happy hours
 are shown where OpenStreetMap lists them.

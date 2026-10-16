@@ -223,3 +223,28 @@ test("Google live results merge into the food list", async () => {
   assert.equal(out[1].live.price, "$$");
   assert.equal(places[0].live, undefined);                      // input list untouched
 });
+
+test("dishes reviewers recommend are pulled out of reviews", async () => {
+  const { dishLexicon, reviewPicks } = await import("../docs/core.js");
+  const lex = dishLexicon(dishes.dishes);
+  const reviews = [
+    { author: "Ana", text: "The pad thai was fine. You MUST try the green curry, it was incredible! Service was slow." },
+    { author: "Ben", text: "Get the khao soi, best in the city. Green curry is good too." },
+    { author: "Cy", text: "Great vibe. I recommend the mango sticky rice for dessert." },
+    { author: "Di", text: "Must try the service here. Loved the place." },
+  ];
+  const picks = reviewPicks(reviews, lex);
+  const names = picks.map(p => p.name);
+  assert.equal(picks[0].name, "Green curry");
+  assert.equal(picks[0].count, 2);
+  assert.ok(picks[0].mustTry);
+  assert.match(picks[0].quote, /MUST try the green curry/);
+  assert.ok(names.includes("Khao Soi"));                       // not in the guide, found from "get the khao soi"
+  assert.equal(picks.find(p => p.name === "Khao Soi").id, null);
+  assert.ok(names.includes("Mango sticky rice"));
+  assert.ok(names.includes("Pad thai"));
+  assert.ok(!names.some(n => /service|place|vibe/i.test(n)));
+  const pt = picks.find(p => p.name === "Pad thai");
+  assert.ok(!pt.mustTry);
+  assert.ok(picks.indexOf(pt) > picks.indexOf(picks.find(p => p.name === "Mango sticky rice")));
+});

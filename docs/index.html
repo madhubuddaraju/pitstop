@@ -278,7 +278,7 @@ a { color: inherit; }
 import {
   overpassQuery, parsePlaces, cuisineIndex, cuisinesFor, cuisineLabel, dishesFor, dietBadges, serviceBadges,
   hoursStatus, lateNight, weekHours, formatDistance, gasForLocation, inNYC, matchInspection, OVERPASS_URLS, distanceMeters,
-  fuelTileKeys, placesFromTiles, foodMetro, foodTileKeys, placesFromFoodTiles, foodBoxesFor, GOOGLE_NEARBY, GOOGLE_TEXT, googleStatus, fromGoogle, sameGooglePlace, mergeGoogleFood,
+  fuelTileKeys, placesFromTiles, foodMetro, foodTileKeys, placesFromFoodTiles, foodBoxesFor, dishLexicon, reviewPicks, GOOGLE_NEARBY, GOOGLE_TEXT, googleStatus, fromGoogle, sameGooglePlace, mergeGoogleFood,
 } from "./core.js";
 
 const DATA_BASE = location.hostname.endsWith("github.io") || location.protocol === "file:"
@@ -293,6 +293,7 @@ const store = {
 
 const S = {
   mode: null, loc: null, places: {}, loading: {}, OH: null, dishes: null, cIndex: null, gas: null,
+  reviews: {},
   filters: { open: true, late: false, halal: false, veg: false, cuisine: null, q: "" }, shown: 40,
 };
 
@@ -318,7 +319,8 @@ function route() {
   } else if (view === "place" && S.mode) {
     openPlace(decodeURIComponent(arg));
   } else if (view === "dish" && S.dishes) {
-    openDish(decodeURIComponent(arg));
+    const id = decodeURIComponent(arg);
+    id.startsWith("w:") ? openUnknownDish(id.slice(2)) : openDish(id);
   } else {
     closeSheet(true);
     $("#results").classList.add("hidden");
@@ -484,6 +486,17 @@ async function googleSearch(url, body, fields, key = gkey()) {
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(j.error?.message?.split(".")[0] || "HTTP " + r.status);
   return j.places || [];
+}
+
+async function googlePlace(id, fields) {
+  const u = googleBudget();
+  if (u.n >= GOOGLE_DAILY_LIMIT) throw new Error(`today's ${GOOGLE_DAILY_LIMIT} free Google lookups are used up; back tomorrow`);
+  store.set("gusage", { day: u.day, n: u.n + 1 });
+  const r = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(id)}`,
+    { headers: { "X-Goog-Api-Key": gkey(), "X-Goog-FieldMask": fields } });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error?.message?.split(".")[0] || "HTTP " + r.status);
+  return j;
 }
 
 const GAS_FIELDS = "places.id,places.displayName,places.location,places.formattedAddress,places.shortFormattedAddress,"
@@ -907,8 +920,9 @@ function openPlace(id) {
   } else if (kind === "food" && !p.live) {
     html += `<div class="panel"><h3>Hours</h3><p style="margin:0;color:var(--muted)">This place hasn't listed its hours${phone ? ", so call to check" : ""}.</p></div>`;
   }
-  if (kind === "food") html += offersPanel(p);
+  if (kind === "food") html += picksPanel(p);
   if (kind === "food") html += dishesPanel(p);
+  if (kind === "food") html += offersPanel(p);
   html += p.google ? `</div>` : `<p class="credit">Details © OpenStreetMap contributors · <a href="https://www.openstreetmap.org/${esc(p.id)}" target="_blank" rel="noopener">fix something wrong</a></p></div>`;
 
   const sheet = $("#sheet");
@@ -921,7 +935,10 @@ function openPlace(id) {
   sheet.querySelectorAll("[data-dish]").forEach(b => b.onclick = () => { location.hash = "dish/" + b.dataset.dish; });
   if (kind === "gas" && $("#priceForm")) bindPriceForm(p);
   if (kind === "food" && gkey() && !p.live) loadGoogleDetails(p);
+  if (kind === "food" && gkey() && p.live?.id) loadReviews(p);
+  if (kind === "food" && S.reviews[p.id]) showPicks(p, S.reviews[p.id].reviews);
   if (kind === "food") bindDeals(p);
+  sheet.querySelectorAll("[data-gsettings]").forEach(b => b.onclick = openGoogleSheet);
   if (kind === "food" && inNYC(p.lat, p.lon)) loadGrade(p);
 }
 
@@ -957,6 +974,7 @@ function openDish(id) {
     <div class="panel"><h3>What's in it</h3><div class="ingr">${d.ingredients.map(x => `<span>${esc(x)}</span>`).join("")}</div></div>
     <div class="panel"><h3>How it's made</h3><ol class="steps">${d.steps.map(s => `<li>${esc(s)}</li>`).join("")}</ol></div>
     ${d.tip ? `<div class="panel tip"><h3>Good to know</h3><p style="margin:0">${esc(d.tip)}</p></div>` : ""}
+    ${S.pickContext?.pick?.id === id ? `<div class="panel tip"><h3>What a reviewer said at ${esc(S.pickContext.place)}</h3><p style="margin:0">“${esc(S.pickContext.pick.quote)}” — ${esc(S.pickContext.pick.author)}</p></div>` : ""}
     ${w.url ? `<p class="credit">Photo and longer description from <a href="${esc(w.url)}" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA). Recipes vary from place to place.</p>` : `<p class="credit">Recipes vary from place to place.</p>`}
   </div>`;
   const sheet = $("#sheet");
@@ -1001,14 +1019,102 @@ async function loadGoogleDetails(p) {
   try {
     const res = await googleSearch(GOOGLE_TEXT, { textQuery: p.name, maxResultCount: 5,
       locationBias: { circle: { center: { latitude: p.lat, longitude: p.lon }, radius: 150 } } },
-      "places.id,places.displayName,places.location,places.rating,places.userRatingCount,places.priceLevel,places.currentOpeningHours,places.googleMapsUri,places.editorialSummary");
+      "places.id,places.displayName,places.location,places.rating,places.userRatingCount,places.priceLevel,places.currentOpeningHours,places.googleMapsUri,places.editorialSummary,places.reviews");
     const g = sameGooglePlace(p, res);
+    showPicks(p, g ? g.reviews : null);
     if (!box.isConnected) return;
     if (!g) { box.remove(); return; }
     const price = { PRICE_LEVEL_INEXPENSIVE: "$", PRICE_LEVEL_MODERATE: "$$", PRICE_LEVEL_EXPENSIVE: "$$$", PRICE_LEVEL_VERY_EXPENSIVE: "$$$$" }[g.priceLevel];
     box.innerHTML = googlePanelHtml({ coh: g.currentOpeningHours, rating: g.rating, ratings: g.userRatingCount, price,
       mapsUri: g.googleMapsUri, summary: g.editorialSummary?.text });
-  } catch { box?.remove(); }
+  } catch (e) { box?.remove(); showPicks(p, null, e.message); }
+}
+
+// ---------- what reviewers recommend (needs Google data; Google returns a place's most relevant reviews) ----------
+function picksPanel(p) {
+  if (!gkey()) return `<div class="panel"><h3>Must-try, from reviews</h3><p style="margin:0;color:var(--muted)">Pitstop can read this restaurant's reviews and list the dishes people recommend. <button class="linkbtn" data-gsettings>Add Google data</button> to turn it on.</p></div>`;
+  return `<div class="panel" id="picks"><h3>Must-try, from reviews</h3><p class="summary" style="margin:0">Reading reviews…</p></div>`;
+}
+
+async function loadReviews(p) {
+  if (S.reviews[p.id]) return;
+  try {
+    const g = await googlePlace(p.live.id, "reviews");
+    showPicks(p, g.reviews || []);
+  } catch (e) { showPicks(p, null, e.message); }
+}
+
+function showPicks(p, googleReviews, error) {
+  if (googleReviews && !S.reviews[p.id]) {
+    const reviews = googleReviews.map(r => ({ text: r.originalText?.text || r.text?.text || "", rating: r.rating,
+      author: r.authorAttribution?.displayName || "A reviewer", when: r.relativePublishTimeDescription }));
+    S.lexicon ??= dishLexicon(S.dishes.dishes);
+    S.reviews[p.id] = { reviews: googleReviews, picks: reviewPicks(reviews, S.lexicon), n: reviews.length };
+  }
+  const box = $("#picks");
+  if (!box) return;
+  const R = S.reviews[p.id];
+  if (!R) {
+    box.innerHTML = `<h3>Must-try, from reviews</h3><p style="margin:0;color:var(--muted)">${error ? `Reviews didn't load (${esc(error)}).` : "Google has no reviews for this place."}</p>`;
+    return;
+  }
+  if (!R.picks.length) {
+    box.innerHTML = `<h3>Must-try, from reviews</h3><p style="margin:0;color:var(--muted)">The ${R.n} reviews Google shares don't name a particular dish.</p>`;
+    return;
+  }
+  box.innerHTML = `<h3>Must-try, from reviews</h3>
+    ${R.picks.slice(0, 6).map((k, i) => `<div class="dish">
+      <h4>${esc(k.name)}${k.mustTry ? ` <span class="cheapest" style="margin-left:4px">Must try</span>` : ""}</h4>
+      <button class="explain" data-pick="${i}">Explain</button>
+      <p>“${esc(k.quote)}” <span style="white-space:nowrap">— ${esc(k.author)}</span></p>
+      <div class="marks"><span>Mentioned in ${k.count} of ${R.n} review${R.n === 1 ? "" : "s"}</span></div>
+    </div>`).join("")}
+    <p class="credit" style="margin-top:6px">From the ${R.n} most relevant Google reviews.${p.live?.mapsUri ? ` <a href="${esc(p.live.mapsUri)}" target="_blank" rel="noopener">Read all reviews</a>` : ""}</p>`;
+  box.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => {
+    const k = R.picks[+b.dataset.pick];
+    S.pickContext = { place: p.name, pick: k };
+    location.hash = k.id ? "dish/" + k.id : "dish/" + encodeURIComponent("w:" + k.name);
+  });
+}
+
+// A menu item that isn't in the dish guide: look it up on Wikipedia, trying shorter names ("Spicy Vodka Rigatoni" -> "Rigatoni").
+async function wikiLookup(name) {
+  const words = name.split(/\s+/);
+  const tries = [name, ...words.map((_, i) => words.slice(i + 1).join(" ")).filter(w => w.length > 2)];
+  for (const t of tries) {
+    try {
+      const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t.replace(/ /g, "_"))}`);
+      if (!r.ok) continue;
+      const j = await r.json();
+      if (j.type === "disambiguation" || !j.extract) continue;
+      if (!/food|dish|cuisine|cooked|sauce|bread|soup|meat|served|made|noodle|rice|pastry|sandwich|dessert|drink|cheese|fried|baked/i.test(j.extract)) continue;
+      return { title: j.title, extract: j.extract, image: j.thumbnail?.source, url: j.content_urls?.mobile?.page, exact: t === name };
+    } catch {}
+  }
+  return null;
+}
+
+async function openUnknownDish(name) {
+  const ctx = S.pickContext?.pick?.name === name ? S.pickContext : null;
+  const sheet = $("#sheet");
+  const quote = ctx ? `<div class="panel tip"><h3>What a reviewer said</h3><p style="margin:0">“${esc(ctx.pick.quote)}” — ${esc(ctx.pick.author)}</p></div>` : "";
+  sheet.innerHTML = `<div class="wrap"><div class="sheet-top"><button class="iconbtn" data-close aria-label="Back">${I.back}</button></div>
+    <h2 class="dish-title">${esc(name)}</h2><p class="summary">Looking it up…</p>${quote}</div>`;
+  sheet.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  sheet.querySelector("[data-close]").onclick = () => history.back();
+  const w = await wikiLookup(name);
+  if (!location.hash.startsWith("#dish/")) return;     // the user went back while it was loading
+  sheet.innerHTML = `<div class="wrap"><div class="sheet-top"><button class="iconbtn" data-close aria-label="Back">${I.back}</button></div>
+    ${w?.image ? `<img class="dish-hero" src="${esc(w.image)}" alt="${esc(w.title)}" referrerpolicy="no-referrer">` : ""}
+    <h2 class="dish-title">${esc(name)}</h2>
+    ${ctx ? `<p class="lead">A dish reviewers recommend at ${esc(ctx.place)}.</p>` : ""}
+    ${w ? `<div class="panel"><h3>${w.exact ? "What it is" : `About ${esc(w.title)}`}</h3><p style="margin:0">${esc(w.extract)}</p></div>`
+        : `<div class="panel"><h3>What it is</h3><p style="margin:0;color:var(--muted)">This looks like the restaurant's own dish, so there's no general description. Ask the staff, or check the menu.</p></div>`}
+    ${quote}
+    ${w?.url ? `<p class="credit">Description from <a href="${esc(w.url)}" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA). The restaurant's version may differ.</p>` : ""}
+  </div>`;
+  sheet.querySelector("[data-close]").onclick = () => history.back();
 }
 
 // ---------- offers: delivery apps show each restaurant's current promotions; deals you saw are kept on this phone ----------

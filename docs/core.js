@@ -429,7 +429,7 @@ export function googleCuisine(type) {
 const PRICE = { PRICE_LEVEL_INEXPENSIVE: "$", PRICE_LEVEL_MODERATE: "$$", PRICE_LEVEL_EXPENSIVE: "$$$", PRICE_LEVEL_VERY_EXPENSIVE: "$$$$" };
 
 function liveFrom(g) {
-  return { coh: g.currentOpeningHours, rating: g.rating, ratings: g.userRatingCount, price: PRICE[g.priceLevel],
+  return { id: g.id, coh: g.currentOpeningHours, rating: g.rating, ratings: g.userRatingCount, price: PRICE[g.priceLevel],
     mapsUri: g.googleMapsUri, summary: g.editorialSummary?.text };
 }
 
@@ -455,4 +455,96 @@ export function mergeGoogleFood(places, results, origin) {
     });
   }
   return out.sort((a, b) => a.dist - b.dist);
+}
+
+// ---------- dishes reviewers recommend ----------
+
+const fold = s => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+// other ways reviews name dishes from the guide
+const ALIASES = {
+  "tikka-masala": ["tikka masala", "chicken tikka"], "butter-chicken": ["murgh makhani"], "dumplings": ["dumpling", "soup dumplings", "xiao long bao", "xlb", "potstickers"],
+  "ny-slice": ["slice", "cheese slice", "pepperoni slice", "pizza slice"], "margherita-pizza": ["margherita"], "bacon-egg-cheese": ["bacon egg and cheese", "bacon, egg and cheese", "bec"],
+  "tacos-al-pastor": ["al pastor", "pastor tacos"], "banh-mi": ["banh mi"], "creme-brulee": ["creme brulee"], "pho": ["pho"],
+  "chicken-over-rice": ["chicken and rice", "chicken over rice", "combo over rice"], "general-tso": ["general tso", "general tsos", "general tso's"],
+  "chicken-parm": ["chicken parm", "chicken parmigiana", "chicken parmesan"], "carbonara": ["carbonara"], "pastrami-on-rye": ["pastrami"],
+  "bagel-lox": ["lox", "nova"], "korean-fried-chicken": ["kfc", "korean fried chicken"], "fried-chicken": ["fried chicken"], "buffalo-wings": ["wings", "buffalo wings"],
+  "french-fries": ["fries"], "cheeseburger": ["burger", "cheeseburger", "smashburger", "smash burger"], "massaman-curry": ["massaman"], "green-curry": ["green curry"],
+  "tom-yum": ["tom yum", "tom yam"], "pad-see-ew": ["pad see ew", "pad see eew"], "mango-sticky-rice": ["mango sticky rice"], "kimchi-jjigae": ["kimchi stew", "kimchi jjigae"],
+  "tteokbokki": ["tteokbokki", "topokki", "ddeokbokki"], "spring-rolls": ["summer rolls", "fresh rolls"], "jamaican-patty": ["beef patty", "patty"], "oxtail": ["oxtail", "oxtails"],
+  "jerk-chicken": ["jerk chicken", "jerk"], "pollo-a-la-brasa": ["rotisserie chicken", "pollo a la brasa"], "cuban-sandwich": ["cuban sandwich", "cubano"],
+  "doner-kebab": ["doner", "döner"], "gyro": ["gyro", "gyros"], "falafel": ["falafel"], "hummus": ["hummus"], "pancakes": ["pancakes", "pancake"],
+  "lobster-roll": ["lobster roll"], "clam-chowder": ["clam chowder", "chowder"], "fish-and-chips": ["fish and chips", "fish & chips"], "cheesecake": ["cheesecake"],
+  "cold-brew": ["cold brew"], "latte": ["latte"], "matcha-latte": ["matcha"], "bubble-tea": ["boba", "bubble tea"], "croissant": ["croissant"],
+};
+// phrases that point at a recommendation
+const RECOMMEND = /\b(must[- ]?(try|have|order|get)|highly recommend|recommend(ed)?|you have to (try|get|order)|don'?t miss|the best|favorite|favourite|star of|standout|order the|get the|try the|loved the|amazing|incredible|delicious|to die for)\b/i;
+const NOT_DISHES = new Set(["place", "service", "staff", "food", "atmosphere", "vibe", "vibes", "ambiance", "ambience", "experience", "spot", "restaurant",
+  "price", "prices", "portion", "portions", "menu", "waiter", "waitress", "server", "owner", "location", "music", "decor", "view", "drinks", "meal",
+  "dinner", "lunch", "breakfast", "brunch", "everything", "anything", "something", "time", "people", "line", "wait", "way", "one", "ones", "dish", "dishes"]);
+
+/** Searchable names for the dish guide: [{id, name, re}] longest first, so "chicken tikka masala" wins over "chicken". */
+export function dishLexicon(dishes) {
+  const out = [];
+  for (const [id, d] of Object.entries(dishes)) {
+    const names = new Set([fold(d.name).replace(/\s*\(.*?\)/g, ""), ...(ALIASES[id] || []).map(fold)]);
+    for (const n of names) if (n.length >= 3) out.push({ id, name: d.name, phrase: n,
+      re: new RegExp(`(^|[^a-z])${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}s?(?=$|[^a-z])`, "i") });
+  }
+  return out.sort((a, b) => b.phrase.length - a.phrase.length);
+}
+
+function sentences(text) {
+  return (text || "").replace(/\s+/g, " ").split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(Boolean);
+}
+
+function clip(s, max = 140) {
+  return s.length <= max ? s : s.slice(0, max - 1).replace(/\s+\S*$/, "") + "…";
+}
+
+/**
+ * Dishes reviewers recommend, from review texts: dishes from the guide that reviews mention (by name or alias), plus
+ * items named after "must try", "get the", "recommend the"… Sorted with must-try first, then how many reviews mention them.
+ * reviews: [{text, author, rating}]. Returns [{name, id, count, mustTry, quote, author}].
+ */
+export function reviewPicks(reviews, lexicon) {
+  const picks = new Map();
+  const add = (key, name, id, sentence, author, strong) => {
+    const p = picks.get(key) || { name, id, count: 0, mustTry: false, quote: "", author: "", seen: new Set() };
+    if (!p.seen.has(author + "|" + sentence)) {
+      if (!p.seen.size || (strong && !p.mustTry)) { p.quote = clip(sentence); p.author = author; }
+      p.seen.add(author + "|" + sentence);
+    }
+    p.mustTry ||= strong;
+    picks.set(key, p);
+  };
+  for (const r of reviews || []) {
+    const counted = new Set();
+    for (const s of sentences(r.text)) {
+      const f = fold(s);
+      const strong = RECOMMEND.test(f);
+      const taken = [];
+      for (const d of lexicon) {
+        if (!d.re.test(f) || taken.some(t => t.includes(d.phrase))) continue;
+        taken.push(d.phrase);
+        add(d.id, d.name, d.id, s, r.author, strong);
+        if (!counted.has(d.id)) { counted.add(d.id); picks.get(d.id).count++; }
+      }
+      // menu items the guide doesn't know: "must try the spicy vodka rigatoni", "get the lamb shank"
+      const m = f.match(/\b(?:must[- ]?(?:try|have|order|get)|you have to (?:try|get|order)|(?:highly )?recommend(?:ed)?|order(?:ed)?|get|got|try|tried|loved|love) (?:the |their |a |an )?([a-z][a-z'&\- ]{2,40}?)(?=[.,!;:)]| (?:and|is|was|were|are|here|it|but|with|for|too|as|which|that|so)\b|$)/);
+      if (m) {
+        const phrase = m[1].trim().replace(/\s+/g, " ");
+        const words = phrase.split(" ");
+        if (words.length <= 5 && !NOT_DISHES.has(words[words.length - 1]) && !taken.some(t => phrase.includes(t) || t.includes(phrase))
+            && !/^(it|this|that|them|here|there|again|back|everything|some|more|one|my|our|your)\b/.test(phrase)) {
+          const name = phrase.replace(/\b[a-z]/g, c => c.toUpperCase());
+          const key = "x:" + phrase;
+          add(key, name, null, s, r.author, true);
+          if (!counted.has(key)) { counted.add(key); picks.get(key).count++; }
+        }
+      }
+    }
+  }
+  return [...picks.values()].map(({ seen, ...p }) => p)
+    .sort((a, b) => (b.mustTry - a.mustTry) || (b.count - a.count) || (a.id ? -1 : 1));
 }
