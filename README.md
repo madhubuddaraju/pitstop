@@ -58,7 +58,8 @@ The app itself is meant to feel like something on your phone rather than a web p
 lists with inset dividers, a segmented Gas/Food switch, and a light theme by day and a dark one at night (it follows the
 phone). The start screen shows a station-style price sign with this week's regular and diesel averages, the third
 decimal set small as on a real pylon. The one piece of theatre is the intro, where a car comes in, stops on its mark and
-the title flies up into the logo; everything after that stays quiet. Motion is off for people who set "reduce motion".
+the title flies up into the logo. The frame where the car parked becomes the start screen's wallpaper, seen through
+frosted-glass panels (CSS `backdrop-filter`, no library); everything after that stays quiet. Motion is off for people who set "reduce motion".
 
 ## How it works
 
