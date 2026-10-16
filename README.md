@@ -35,7 +35,7 @@ You open the page and it asks one thing: **Gas or Food?**
 **Optional: live prices with your own Google key.** Station-level prices aren't open data anywhere in the US, but
 Google's Places API has them. Paste your own key under "Google data" on the start screen (it stays in that phone's
 browser) and the gas list shows each station's regular, premium and diesel price, sorted cheapest first; restaurant
-lists and pages add live Google hours, ratings and price level, and places Google knows that the map doesn't yet. For one person, the monthly free allowance covers normal use.
+lists and pages add live Google hours, ratings and price level, and places Google knows that the map doesn't yet. For one person, the monthly free allowance covers normal use, and Pitstop never sends more than 30 Google requests a day.
 
 **Offers.** Restaurants don't publish promotions as open data, so each restaurant page links to its Uber Eats and
 DoorDash listings, where current promotions show, and lets you save a deal you saw (kept on your phone). Happy hours
