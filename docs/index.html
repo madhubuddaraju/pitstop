@@ -278,7 +278,7 @@ a { color: inherit; }
 import {
   overpassQuery, parsePlaces, cuisineIndex, cuisinesFor, cuisineLabel, dishesFor, dietBadges, serviceBadges,
   hoursStatus, lateNight, weekHours, formatDistance, gasForLocation, inNYC, matchInspection, OVERPASS_URLS, distanceMeters,
-  fuelTileKeys, placesFromTiles, foodMetro, foodTileKeys, placesFromFoodTiles, foodBoxesFor, GOOGLE_NEARBY, GOOGLE_TEXT, googleStatus, fromGoogle, sameGooglePlace,
+  fuelTileKeys, placesFromTiles, foodMetro, foodTileKeys, placesFromFoodTiles, foodBoxesFor, GOOGLE_NEARBY, GOOGLE_TEXT, googleStatus, fromGoogle, sameGooglePlace, mergeGoogleFood,
 } from "./core.js";
 
 const DATA_BASE = location.hostname.endsWith("github.io") || location.protocol === "file:"
@@ -361,6 +361,7 @@ async function ensureLocation() {
 function setLocation(pos, label) {
   S.loc = { lat: pos.lat, lon: pos.lon, label: label || "Your location", country: "us", stateCode: null };
   S.places = {};
+  S.liveFood = null;
   $("#locText").textContent = S.loc.label;
   reverseGeocode(S.loc).then(() => { if (S.mode === "gas") renderGas(); });
 }
@@ -456,13 +457,13 @@ function openGoogleSheet() {
       await googleSearch(GOOGLE_NEARBY, { includedTypes: ["gas_station"], maxResultCount: 1,
         locationRestriction: { circle: { center: { latitude: 40.758, longitude: -73.9855 }, radius: 3000 } } }, "places.id", k);
       store.set("gkey", k);
-      S.places = {};
+      S.places = {}; S.liveFood = null;
       updateGoogleBtn();
       $("#gmsg").textContent = "Key works. Gas prices are on.";
       setTimeout(() => closeSheet(), 900);
     } catch (err) { $("#gmsg").textContent = "Google didn't accept it: " + err.message; }
   };
-  $("#gdel")?.addEventListener("click", () => { store.set("gkey", ""); S.places = {}; updateGoogleBtn(); closeSheet(); });
+  $("#gdel")?.addEventListener("click", () => { store.set("gkey", ""); S.places = {}; S.liveFood = null; updateGoogleBtn(); closeSheet(); });
 }
 
 async function googleSearch(url, body, fields, key = gkey()) {
@@ -485,6 +486,25 @@ async function googleStations(loc) {
     if (places.length >= 8) break;
   }
   return places;
+}
+
+const FOOD_FIELDS = "places.id,places.displayName,places.location,places.formattedAddress,places.shortFormattedAddress,"
+  + "places.primaryType,places.currentOpeningHours,places.rating,places.userRatingCount,places.priceLevel,places.googleMapsUri,"
+  + "places.nationalPhoneNumber,places.websiteUri,places.editorialSummary,places.servesVegetarianFood";
+
+// Live food from Google: the map's list shows at once, then Google's live hours, ratings and any new places are merged in.
+async function addLiveFood() {
+  if (!gkey() || S.liveFood || !S.places.food) return;
+  const loc = S.loc;
+  try {
+    const res = await googleSearch(GOOGLE_NEARBY, { includedTypes: ["restaurant", "cafe", "bar", "fast_food_restaurant", "meal_takeaway", "bakery"],
+      maxResultCount: 20, rankPreference: "DISTANCE",
+      locationRestriction: { circle: { center: { latitude: loc.lat, longitude: loc.lon }, radius: 800 } } }, FOOD_FIELDS);
+    if (loc !== S.loc) return;
+    S.places.food = mergeGoogleFood(S.places.food, res, loc);
+    S.liveFood = { at: Date.now(), n: res.length };
+    if (S.mode === "food") { enrich("food"); renderFood(); }
+  } catch (e) { S.liveFood = { error: e.message }; if (S.mode === "food") renderFood(); }
 }
 
 // ---------- data ----------
@@ -652,6 +672,7 @@ async function reload() {
   if (S.mode !== mode) return;
   enrich(mode);
   mode === "food" ? renderFood() : renderGas();
+  if (mode === "food") addLiveFood();
 }
 
 function ohContext() {
@@ -661,7 +682,8 @@ function ohContext() {
 function enrich(mode) {
   const now = new Date();
   for (const p of S.places[mode]) {
-    p.status = p.google ? googleStatus(p.googleStatus, now) : hoursStatus(S.OH, p.tags.opening_hours, now, ohContext());
+    p.status = p.live?.coh ? googleStatus(p.live.coh, now)
+      : p.google ? googleStatus(p.googleStatus, now) : hoursStatus(S.OH, p.tags.opening_hours, now, ohContext());
     if (mode === "food") {
       p.cuisines = cuisinesFor(p.tags, S.cIndex);
       p.cuisineText = cuisineLabel(p.tags, p.cuisines, S.dishes.cuisines);
@@ -709,7 +731,12 @@ function renderFood() {
     content.innerHTML = `<div class="state"><h3>Nothing matches</h3><p>Try removing a filter.</p></div>`;
     return;
   }
-  let html = `<p class="summary">${open.length} open now${f.open ? "" : ` · ${closed.length} closed`} · ${unknown.length} without listed hours</p>`;
+  const live = S.liveFood;
+  const liveNote = !gkey() ? `<p class="summary">Hours from OpenStreetMap, updated nightly. <button class="linkbtn" data-gsettings>Add Google data</button> for live hours and ratings.</p>`
+    : live?.error ? `<p class="summary">Google data didn't load (${esc(live.error)}). Showing hours from OpenStreetMap.</p>`
+    : live?.at ? `<p class="summary">Live from Google: hours and ratings for the ${live.n} closest places, checked just now.</p>`
+    : `<p class="summary">Checking Google for live hours…</p>`;
+  let html = liveNote + `<p class="summary">${open.length} open now${f.open ? "" : ` · ${closed.length} closed`} · ${unknown.length} without listed hours</p>`;
   const groups = f.open
     ? [["", open], ["Hours not listed · may be open", unknown]]
     : [["", [...open, ...closed, ...unknown].sort((a, b) => a.dist - b.dist)]];
@@ -728,15 +755,17 @@ function renderFood() {
   content.innerHTML = html;
   bindItems();
   $("#more")?.addEventListener("click", () => { S.shown += 40; renderFood(); });
+  content.querySelectorAll("[data-gsettings]").forEach(b => b.onclick = openGoogleSheet);
 }
 
 function foodItem(p) {
   const tags = [...p.diet.slice(0, 2)];
+  if (savedDeals()[p.id]?.length) tags.unshift("Deal saved");
   if (p.late && !p.status.open24) tags.push("Late night");
   return `<button class="item" data-place="${esc(p.id)}">
     <h3>${esc(p.name)}</h3><span class="right">${esc(formatDistance(p.dist, { miles: miles() }).split(" · ")[1] || "")}</span>
     <span class="meta">${esc(p.cuisineText)} · ${esc(formatDistance(p.dist, { miles: miles() }).split(" · ")[0])}</span>
-    <span class="row2">${pill(p.status)}${tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}</span>
+    <span class="row2">${pill(p.status)}${p.live?.rating ? `<span class="stars">★ ${p.live.rating.toFixed(1)}</span>` : ""}${p.live?.price ? `<span class="tag">${p.live.price}</span>` : ""}${tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}</span>
   </button>`;
 }
 
@@ -859,12 +888,14 @@ function openPlace(id) {
   if (kind === "food" && inNYC(p.lat, p.lon)) html += `<div class="panel" id="grade"><h3>NYC health inspection</h3><p class="summary" style="margin:0">Checking…</p></div>`;
   if (kind === "gas" && p.fuel && Object.keys(p.fuel).some(k => k !== "updated")) html += googleFuelPanel(p);
   else if (kind === "gas") html += gasPricePanel(p);
-  if (kind === "food" && gkey()) html += `<div class="panel" id="gpanel"><h3>On Google</h3><p class="summary" style="margin:0">Loading…</p></div>`;
+  if (kind === "food" && p.live) html += `<div class="panel" id="gpanel">${googlePanelHtml(p.live)}</div>`;
+  else if (kind === "food" && gkey()) html += `<div class="panel" id="gpanel"><h3>On Google</h3><p class="summary" style="margin:0">Loading…</p></div>`;
   if (week.length) {
     html += `<div class="panel"><h3>Hours</h3><table class="hours">${week.map((r, i) => `<tr class="${i === 0 ? "today" : ""}"><td>${r.day}</td><td>${esc(r.text)}</td></tr>`).join("")}</table></div>`;
-  } else if (kind === "food") {
+  } else if (kind === "food" && !p.live) {
     html += `<div class="panel"><h3>Hours</h3><p style="margin:0;color:var(--muted)">This place hasn't listed its hours${phone ? ", so call to check" : ""}.</p></div>`;
   }
+  if (kind === "food") html += offersPanel(p);
   if (kind === "food") html += dishesPanel(p);
   html += p.google ? `</div>` : `<p class="credit">Details © OpenStreetMap contributors · <a href="https://www.openstreetmap.org/${esc(p.id)}" target="_blank" rel="noopener">fix something wrong</a></p></div>`;
 
@@ -877,7 +908,8 @@ function openPlace(id) {
   sheet.querySelector("[data-close]").onclick = () => history.back();
   sheet.querySelectorAll("[data-dish]").forEach(b => b.onclick = () => { location.hash = "dish/" + b.dataset.dish; });
   if (kind === "gas" && $("#priceForm")) bindPriceForm(p);
-  if (kind === "food" && gkey()) loadGoogleDetails(p);
+  if (kind === "food" && gkey() && !p.live) loadGoogleDetails(p);
+  if (kind === "food") bindDeals(p);
   if (kind === "food" && inNYC(p.lat, p.lon)) loadGrade(p);
 }
 
@@ -943,6 +975,15 @@ function googleFuelPanel(p) {
     <p class="credit" style="margin-top:10px">From Google${when ? `, updated ${when}` : ""}. ${p.mapsUri ? `<a href="${esc(p.mapsUri)}" target="_blank" rel="noopener">Open in Google Maps</a>` : ""}</p></div>`;
 }
 
+function googlePanelHtml(L) {
+  const st = googleStatus(L.coh);
+  return `<h3>Live on Google</h3>
+    <p style="margin:0">${L.rating ? `<span class="stars">★ ${L.rating.toFixed(1)}</span> <span class="summary">(${(L.ratings || 0).toLocaleString()} reviews)</span>` : ""}${L.price ? ` · ${L.price}` : ""}</p>
+    ${st.state !== "unknown" ? `<div style="margin-top:8px">${pill(st)}</div>` : ""}
+    ${L.summary ? `<p style="margin:10px 0 0">${esc(L.summary)}</p>` : ""}
+    ${L.mapsUri ? `<p class="credit"><a href="${esc(L.mapsUri)}" target="_blank" rel="noopener">Open in Google Maps</a> for photos, reviews and the menu</p>` : ""}`;
+}
+
 async function loadGoogleDetails(p) {
   const box = $("#gpanel");
   try {
@@ -953,13 +994,51 @@ async function loadGoogleDetails(p) {
     if (!box.isConnected) return;
     if (!g) { box.remove(); return; }
     const price = { PRICE_LEVEL_INEXPENSIVE: "$", PRICE_LEVEL_MODERATE: "$$", PRICE_LEVEL_EXPENSIVE: "$$$", PRICE_LEVEL_VERY_EXPENSIVE: "$$$$" }[g.priceLevel];
-    const st = googleStatus(g.currentOpeningHours);
-    box.innerHTML = `<h3>On Google</h3>
-      <p style="margin:0">${g.rating ? `<span class="stars">★ ${g.rating.toFixed(1)}</span> <span class="summary">(${(g.userRatingCount || 0).toLocaleString()} reviews)</span>` : ""}${price ? ` · ${price}` : ""}</p>
-      ${st.state !== "unknown" ? `<div style="margin-top:8px">${pill(st)}</div>` : ""}
-      ${g.editorialSummary?.text ? `<p style="margin:10px 0 0">${esc(g.editorialSummary.text)}</p>` : ""}
-      ${g.googleMapsUri ? `<p class="credit"><a href="${esc(g.googleMapsUri)}" target="_blank" rel="noopener">Open in Google Maps</a> for photos and reviews</p>` : ""}`;
+    box.innerHTML = googlePanelHtml({ coh: g.currentOpeningHours, rating: g.rating, ratings: g.userRatingCount, price,
+      mapsUri: g.googleMapsUri, summary: g.editorialSummary?.text });
   } catch { box?.remove(); }
+}
+
+// ---------- offers: delivery apps show each restaurant's current promotions; deals you saw are kept on this phone ----------
+const savedDeals = () => store.get("deals", {});
+
+function offersPanel(p) {
+  const q = encodeURIComponent(p.name);
+  const deals = savedDeals()[p.id] || [];
+  const happy = p.tags.happy_hours;
+  return `<div class="panel" id="offers"><h3>Offers</h3>
+    ${happy ? `<p style="margin:0 0 10px"><b>Happy hour:</b> ${esc(happy)}</p>` : ""}
+    <div class="actions" style="margin-top:0">
+      <a class="action" href="https://www.ubereats.com/search?q=${q}" target="_blank" rel="noopener">${I.menu}Uber Eats</a>
+      <a class="action" href="https://www.doordash.com/search/store/${q}/" target="_blank" rel="noopener">${I.menu}DoorDash</a>
+      ${p.live?.mapsUri ? `<a class="action" href="${esc(p.live.mapsUri)}" target="_blank" rel="noopener">${I.nav}Google Maps</a>` : ""}
+    </div>
+    <p class="credit" style="margin-top:8px">Current promotions for this restaurant show in the delivery apps. Restaurants don't publish offers anywhere else.</p>
+    <div id="dealList">${deals.map((d, i) => `<p class="deal" style="margin:10px 0 0;display:flex;gap:8px;align-items:baseline"><span class="seen" style="flex:1">${esc(d.text)}</span><span class="summary" style="margin:0">${ago(d.at)}</span><button class="linkbtn" data-deldeal="${i}" aria-label="Remove">Remove</button></p>`).join("")}</div>
+    <form class="field" id="dealForm"><input id="dealIn" maxlength="120" placeholder="Saw a deal? e.g. 20% off Tuesdays" aria-label="Deal you saw"><button class="btn">Save</button></form>
+  </div>`;
+}
+
+function bindDeals(p) {
+  const form = $("#dealForm");
+  if (!form) return;
+  form.onsubmit = e => {
+    e.preventDefault();
+    const text = $("#dealIn").value.trim();
+    if (!text) return;
+    const all = savedDeals();
+    (all[p.id] ||= []).unshift({ text, at: Date.now(), name: p.name });
+    store.set("deals", all);
+    openPlace(p.id);
+    document.getElementById("offers")?.scrollIntoView({ block: "center" });
+  };
+  $("#sheet").querySelectorAll("[data-deldeal]").forEach(b => b.onclick = () => {
+    const all = savedDeals();
+    all[p.id]?.splice(+b.dataset.deldeal, 1);
+    if (all[p.id] && !all[p.id].length) delete all[p.id];
+    store.set("deals", all);
+    openPlace(p.id);
+  });
 }
 
 // ---------- gas price notes ----------

@@ -31,7 +31,7 @@ METROS = {
 }
 KEEP = {"amenity", "cuisine", "opening_hours", "takeaway", "delivery", "outdoor_seating", "wheelchair", "phone",
         "contact:phone", "website", "contact:website", "website:menu", "menu:url", "addr:housenumber", "addr:street",
-        "addr:city", "payment:cash", "payment:cards", "payment:credit_cards", "brand"}
+        "addr:city", "payment:cash", "payment:cards", "payment:credit_cards", "brand", "happy_hours"}
 
 
 def keep(tags: dict) -> dict:

@@ -414,3 +414,45 @@ export function foodBoxesFor(metro, lat, lon, m, box = 0.1) {
   }
   return ids;
 }
+
+/** Google primaryType ("thai_restaurant", "coffee_shop") -> an OSM-style cuisine value the dish guide understands. */
+export function googleCuisine(type) {
+  if (!type) return "";
+  const special = { hamburger_restaurant: "burger", steak_house: "steak_house", coffee_shop: "coffee_shop", cafe: "coffee_shop",
+    ice_cream_shop: "ice_cream", sandwich_shop: "sandwich", bagel_shop: "bagel", donut_shop: "donut", bakery: "bakery",
+    barbecue_restaurant: "barbecue", breakfast_restaurant: "breakfast", brunch_restaurant: "brunch", tea_house: "tea",
+    dessert_shop: "dessert", juice_shop: "juice", chicken_restaurant: "chicken", fast_food_restaurant: "" };
+  if (type in special) return special[type];
+  return type.endsWith("_restaurant") ? type.slice(0, -"_restaurant".length) : "";
+}
+
+const PRICE = { PRICE_LEVEL_INEXPENSIVE: "$", PRICE_LEVEL_MODERATE: "$$", PRICE_LEVEL_EXPENSIVE: "$$$", PRICE_LEVEL_VERY_EXPENSIVE: "$$$$" };
+
+function liveFrom(g) {
+  return { coh: g.currentOpeningHours, rating: g.rating, ratings: g.userRatingCount, price: PRICE[g.priceLevel],
+    mapsUri: g.googleMapsUri, summary: g.editorialSummary?.text };
+}
+
+/**
+ * Add Google's live results to the map's list of food places: a place on both gets Google's live hours and rating;
+ * a place only Google knows (new, or not yet mapped) is added. Returns a new list, nearest first.
+ */
+export function mergeGoogleFood(places, results, origin) {
+  const out = places.map(p => ({ ...p }));
+  for (const g of results) {
+    const match = sameGooglePlace(g.displayName ? { name: g.displayName.text, lat: g.location?.latitude, lon: g.location?.longitude } : {},
+      out.map(p => ({ displayName: { text: p.name }, location: { latitude: p.lat, longitude: p.lon }, p })))?.p;
+    if (match) { match.live = liveFrom(g); continue; }
+    const lat = g.location?.latitude, lon = g.location?.longitude;
+    if (lat == null) continue;
+    out.push({
+      id: "g/" + g.id, google: true, name: g.displayName?.text || "Restaurant", lat, lon,
+      dist: distanceMeters(origin.lat, origin.lon, lat, lon),
+      address: (g.shortFormattedAddress || g.formattedAddress || "").replace(/, USA$/, ""),
+      tags: { amenity: "restaurant", cuisine: googleCuisine(g.primaryType), phone: g.nationalPhoneNumber, website: g.websiteUri,
+        ...(g.servesVegetarianFood ? { "diet:vegetarian": "yes" } : {}) },
+      live: liveFrom(g),
+    });
+  }
+  return out.sort((a, b) => a.dist - b.dist);
+}
