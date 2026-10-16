@@ -1,9 +1,9 @@
 # Pitstop: gas and food near you
 
-![CI](https://github.com/madhubuddaraju/pitstop/actions/workflows/ci.yml/badge.svg)
-![Data](https://github.com/madhubuddaraju/pitstop/actions/workflows/refresh-data.yml/badge.svg)
+![CI](https://github.com/subbarajubuddaraju/pitstop/actions/workflows/ci.yml/badge.svg)
+![Data](https://github.com/subbarajubuddaraju/pitstop/actions/workflows/refresh-data.yml/badge.svg)
 
-**Open it on your phone: [madhubuddaraju.github.io/pitstop](https://madhubuddaraju.github.io/pitstop/)**
+**Open it on your phone: [subbarajubuddaraju.github.io/pitstop](https://subbarajubuddaraju.github.io/pitstop/)**
 
 ## The problem
 

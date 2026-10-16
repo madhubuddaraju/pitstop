@@ -843,7 +843,7 @@ import {
 } from "./core.js";
 
 const DATA_BASE = location.hostname.endsWith("github.io") || location.protocol === "file:"
-  ? "https://raw.githubusercontent.com/madhubuddaraju/pitstop/main/docs/" : "./";
+  ? "https://raw.githubusercontent.com/subbarajubuddaraju/pitstop/main/docs/" : "./";
 const OH_URL = "https://cdn.jsdelivr.net/npm/opening_hours@3.15.0/+esm";
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -1033,7 +1033,7 @@ function openGoogleSheet() {
       <p class="summary" id="gmsg" style="margin:10px 0 0"></p>
       <p class="summary" style="margin:6px 0 0">Used today: ${googleBudget().n} of ${GOOGLE_DAILY_LIMIT} lookups. Pitstop stops at ${GOOGLE_DAILY_LIMIT} a day, so you stay inside Google's free allowance.</p>
     </div>
-    <div class="note">The key is stored only in this browser on this phone and is sent only to Google. Create it in Google Cloud with <b>Places API (New)</b> enabled, restricted to the website <b>madhubuddaraju.github.io/*</b>. Google gives a free monthly allowance; set a budget alert to be safe.</div>
+    <div class="note">The key is stored only in this browser on this phone and is sent only to Google. Create it in Google Cloud with <b>Places API (New)</b> enabled, restricted to the website <b>subbarajubuddaraju.github.io/*</b>. Google gives a free monthly allowance; set a budget alert to be safe.</div>
   </div>`;
   sheet.classList.remove("hidden");
   document.body.style.overflow = "hidden";

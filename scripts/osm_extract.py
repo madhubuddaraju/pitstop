@@ -12,7 +12,7 @@ import tempfile
 from pathlib import Path
 
 GEOFABRIK = "https://download.geofabrik.de/north-america/{}-latest.osm.pbf"
-UA = {"User-Agent": "pitstop/1.0 (github.com/madhubuddaraju/pitstop)"}
+UA = {"User-Agent": "pitstop/1.0 (github.com/subbarajubuddaraju/pitstop)"}
 
 
 def download(region: str, folder: Path) -> Path:

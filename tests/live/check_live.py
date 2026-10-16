@@ -1,7 +1,7 @@
 """Open the published page in a phone-sized browser at a few real places and check it works end to end
 against the live map, price and dish data. Run by the "Live check" workflow; not part of the unit tests.
 
-    python tests/live/check_live.py https://madhubuddaraju.github.io/pitstop/
+    python tests/live/check_live.py https://subbarajubuddaraju.github.io/pitstop/
 """
 
 import sys
@@ -60,4 +60,4 @@ def check(url: str) -> None:
 
 
 if __name__ == "__main__":
-    check(sys.argv[1] if len(sys.argv) > 1 else "https://madhubuddaraju.github.io/pitstop/")
+    check(sys.argv[1] if len(sys.argv) > 1 else "https://subbarajubuddaraju.github.io/pitstop/")

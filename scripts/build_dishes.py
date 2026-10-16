@@ -16,7 +16,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "dishes.json"
 SUMMARY = "https://en.wikipedia.org/api/rest_v1/page/summary/{}"
-HEADERS = {"User-Agent": "pitstop-dishes/1.0 (https://github.com/madhubuddaraju/pitstop)"}
+HEADERS = {"User-Agent": "pitstop-dishes/1.0 (https://github.com/subbarajubuddaraju/pitstop)"}
 DIETS = {"meat", "fish", "veg", "vegan"}
 
 

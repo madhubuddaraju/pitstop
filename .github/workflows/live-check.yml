@@ -19,7 +19,7 @@ jobs:
           python-version: "3.12"
       - run: pip install playwright==1.55.0 && python -m playwright install --with-deps chromium
       - name: Check the published page
-        run: python tests/live/check_live.py https://madhubuddaraju.github.io/pitstop/ 2>&1 | tee live-check.txt; exit ${PIPESTATUS[0]}
+        run: python tests/live/check_live.py https://subbarajubuddaraju.github.io/pitstop/ 2>&1 | tee live-check.txt; exit ${PIPESTATUS[0]}
       - name: Keep the report on the live-check-log branch
         if: always()
         run: |
