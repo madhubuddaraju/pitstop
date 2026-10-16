@@ -48,6 +48,16 @@ are shown where OpenStreetMap lists them.
 
 Your location is used in the browser only; nothing is stored on a server.
 
+## Design
+
+The logo is the name followed by three points, red, yellow and white: the soft, medium and hard tyre compounds, and
+also a signal: stop, get ready, go. The same three points run the interface. A white ring means open, yellow means
+closing soon, red means closed, and while places load the points light up one by one like start lights.
+
+The interface is dark, with a wide display face for labels and numbers and lists laid out like a timing tower (P1, P2…).
+Motion is short and purposeful: the logo's lights come on at launch, rows arrive in sequence, the Gas/Food switch slides,
+prices count up, and detail pages rise into place. All of it is turned off for people who set "reduce motion".
+
 ## How it works
 
 ```mermaid
