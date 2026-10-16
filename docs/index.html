@@ -9,7 +9,8 @@
 <meta name="theme-color" content="#151412" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Pitstop">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231B1A17'/%3E%3Cpath d='M20 46V18h14a9 9 0 0 1 0 18H27' fill='none' stroke='%23F2A93B' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22#DC0000%22/%3E%3Cpath d=%22M8 40 L12 33 Q20 30 26 30 Q30 22 36 22 Q40 22 42 28 L54 34 Q58 36 56 40 Z%22 fill=%22#fff%22/%3E%3Cpath d=%22M6 18 h14 l-2 4 h-12 z%22 fill=%22#FFCC1A%22/%3E%3Crect x=%229%22 y=%2220%22 width=%223%22 height=%2216%22 fill=%22#fff%22/%3E%3Ccircle cx=%2218%22 cy=%2242%22 r=%227%22 fill=%22#141414%22/%3E%3Ccircle cx=%2218%22 cy=%2242%22 r=%223%22 fill=%22#FFCC1A%22/%3E%3Ccircle cx=%2247%22 cy=%2243%22 r=%226%22 fill=%22#141414%22/%3E%3Ccircle cx=%2247%22 cy=%2243%22 r=%222.6%22 fill=%22#FFCC1A%22/%3E%3Ccircle cx=%2235%22 cy=%2227%22 r=%223.2%22 fill=%22#FFCC1A%22/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -53,10 +54,8 @@ a { color: inherit; }
 
 /* ---------- start screen ---------- */
 #home { min-height: 100dvh; display: flex; flex-direction: column; padding-top: calc(28px + env(safe-area-inset-top)); }
-.brand { display: flex; align-items: center; gap: 10px; }
-.brand-mark { width: 38px; height: 38px; border-radius: 11px; background: var(--ink); display: grid; place-items: center; }
-.brand-mark svg { width: 22px; height: 22px; }
-.brand h1 { font-size: 26px; font-weight: 800; }
+.brand { margin: 0; }
+.brand .logo { display: block; width: min(100%, 380px); height: auto; margin-left: -4px; }
 .road { height: 4px; margin: 22px 0 0; background: repeating-linear-gradient(90deg, var(--line) 0 22px, transparent 22px 36px); border-radius: 2px; }
 .ask { margin: 40px 0 6px; font-size: clamp(34px, 9vw, 46px); font-weight: 800; line-height: 1.02; }
 .ask-sub { color: var(--muted); margin: 0 0 24px; }
@@ -218,10 +217,34 @@ a { color: inherit; }
 
 <!-- start: what do you need? -->
 <main id="home" class="wrap">
-  <div class="brand">
-    <div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#F2A93B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20V4h6a5 5 0 0 1 0 10H10"/></svg></div>
-    <h1>Pitstop</h1>
-  </div>
+  <h1 class="brand"><span class="sr">Pitstop</span>
+  <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 104" role="img" aria-label="Pitstop">
+  <defs>
+    <linearGradient id="ps-red" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FF2B1C"/><stop offset=".55" stop-color="#DC0000"/><stop offset="1" stop-color="#930000"/>
+    </linearGradient>
+  </defs>
+  <g stroke-linecap="round" stroke-width="4">
+    <line x1="2" y1="40" x2="22" y2="40" stroke="#FFCC1A"/>
+    <line x1="8" y1="52" x2="28" y2="52" stroke="#DC0000"/>
+    <line x1="0" y1="64" x2="20" y2="64" stroke="#FFCC1A"/>
+  </g>
+  <rect x="38" y="22" width="11" height="48" rx="2" fill="#141414"/>
+  <path d="M30 14 h54 l-5 10 h-49 z" fill="url(#ps-red)"/>
+  <path d="M32 24 h48 l-2 4.5 h-46 z" fill="#FFCC1A"/>
+  <path d="M46 74 L48 50 Q56 42 76 40 L88 38 Q100 18 120 18 Q134 18 140 30 L150 36 L300 38 Q312 38 324 44 L376 62 Q384 66 378 74 Z" fill="url(#ps-red)"/>
+  <path d="M112 36 Q128 16 154 36" fill="none" stroke="#141414" stroke-width="4.5" stroke-linecap="round"/>
+  <circle cx="131" cy="31" r="8.5" fill="#FFCC1A"/>
+  <path d="M132 27.5 h8 v6 h-8 z" fill="#141414"/>
+  <text x="232" y="64" text-anchor="middle" font-family="'Bricolage Grotesque', 'Arial Black', Impact, sans-serif" font-weight="800"
+        font-size="30" letter-spacing="1" fill="#FFFFFF" transform="skewX(-14) translate(16 0)">PITSTOP</text>
+  <path d="M58 74 L62 69 H350 L362 74 Z" fill="#FFCC1A"/>
+  <path d="M322 80 h70 l-4 7 h-66 z" fill="#141414"/>
+  <rect x="384" y="64" width="7" height="23" rx="1.5" fill="#DC0000"/>
+  <circle cx="88" cy="80" r="21" fill="#141414"/><circle cx="88" cy="80" r="9.5" fill="none" stroke="#FFCC1A" stroke-width="3.4"/>
+  <circle cx="318" cy="82" r="19" fill="#141414"/><circle cx="318" cy="82" r="8.5" fill="none" stroke="#FFCC1A" stroke-width="3.4"/>
+</svg>
+  </h1>
   <div class="road"></div>
   <h2 class="ask">What do you need?</h2>
   <p class="ask-sub">Gas or food, near where you are right now.</p>
