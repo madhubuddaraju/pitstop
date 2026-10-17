@@ -17,7 +17,7 @@
 // slower phones and data-saver get plain dark panels instead of live blur, and skip the 3D intro
 (function () {
   var n = navigator, c = n.connection || {};
-  var slow = c.saveData || /(^|-)(2g|3g)$/.test(c.effectiveType || "") || (n.deviceMemory && n.deviceMemory < 4) || (n.hardwareConcurrency && n.hardwareConcurrency < 4);
+  var slow = c.saveData || /(^|-)(2g|3g)$/.test(c.effectiveType || "") || (n.deviceMemory && n.deviceMemory < 4);
   if (slow) document.documentElement.classList.add("lite");
 })();
 </script>
