@@ -43,8 +43,8 @@ export function formatDistance(m, { miles = true, mode = "walk" } = {}) {
 
 export function overpassQuery(kind, lat, lon, radius) {
   const around = `(around:${Math.round(radius)},${lat.toFixed(5)},${lon.toFixed(5)})`;
-  const body = kind === "gas"
-    ? `nwr["amenity"="fuel"]${around};`
+  const body = kind === "gas" ? `nwr["amenity"="fuel"]${around};`
+    : kind === "ev" ? `nwr["amenity"="charging_station"]${around};`
     : `nwr["amenity"~"^(${FOOD_AMENITIES.join("|")})$"]["name"]${around};`;
   return `[out:json][timeout:25];(${body});out center tags;`;
 }
@@ -56,7 +56,7 @@ export function parsePlaces(json, kind, origin) {
     const lat = el.lat ?? el.center?.lat, lon = el.lon ?? el.center?.lon;
     const t = el.tags || {};
     if (lat == null || lon == null) continue;
-    const name = t.name || t.brand || (kind === "gas" ? "Gas station" : null);
+    const name = t.name || t.brand || (kind === "gas" ? "Gas station" : kind === "ev" ? (t.operator || t.network ? `${t.operator || t.network} charger` : "Charging station") : null);
     if (!name) continue;
     // the same place is sometimes mapped as both a point and a building outline
     const key = `${name.toLowerCase()}|${lat.toFixed(4)}|${lon.toFixed(4)}`;
@@ -570,4 +570,55 @@ export function reviewPicks(reviews, lexicon) {
   }
   return [...picks.values()].map(({ seen, ...p }) => p)
     .sort((a, b) => (b.mustTry - a.mustTry) || (b.count - a.count) || (a.id ? -1 : 1));
+}
+
+// ---------- units and currency (for visitors) ----------
+
+export const LITRES_PER_GALLON = 3.785411784;
+export const CURRENCIES = {
+  USD: "$", INR: "₹", EUR: "€", GBP: "£", CAD: "C$", AUD: "A$", MXN: "MX$", CNY: "CN¥", JPY: "¥", KRW: "₩",
+  AED: "AED ", SAR: "SAR ", SGD: "S$", PHP: "₱", BRL: "R$", ZAR: "R ", NGN: "₦", PKR: "Rs ", BDT: "৳", NPR: "Rs ",
+  LKR: "Rs ", IDR: "Rp ", VND: "₫", THB: "฿", TRY: "₺", CHF: "CHF ", SEK: "kr ", NOK: "kr ", ILS: "₪", NZD: "NZ$", HKD: "HK$",
+};
+const NO_DECIMALS = new Set(["JPY", "KRW", "IDR", "VND", "NGN", "PKR", "BDT", "NPR", "LKR"]);
+
+export function formatMoney(value, currency = "USD") {
+  const d = NO_DECIMALS.has(currency) ? 0 : 2;
+  return (CURRENCIES[currency] ?? currency + " ") + value.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+}
+
+/** A US price per gallon in the visitor's units: {value, unit} or null when there's no exchange rate for the currency. */
+export function convertFuel(usdPerGallon, { volume = "gal", currency = "USD" } = {}, rates = {}) {
+  const rate = currency === "USD" ? 1 : rates[currency];
+  if (!rate) return null;
+  const v = usdPerGallon * rate / (volume === "l" ? LITRES_PER_GALLON : 1);
+  return { value: v, unit: volume === "l" ? "L" : "gal" };
+}
+
+/** "₹96.40/L", or null when the visitor uses US dollars per gallon (nothing to add) or there's no rate. */
+export function fuelInYourUnits(usdPerGallon, prefs = {}, rates = {}) {
+  if ((prefs.currency || "USD") === "USD" && (prefs.volume || "gal") === "gal") return null;
+  const c = convertFuel(usdPerGallon, prefs, rates);
+  return c ? `${formatMoney(c.value, prefs.currency || "USD")}/${c.unit}` : null;
+}
+
+/** Miles or kilometres: the visitor's choice, else miles in the US. */
+export function useMiles(prefs = {}, country = "us") {
+  return prefs.distance ? prefs.distance === "mi" : country === "us";
+}
+
+// ---------- search by dish ----------
+
+/** Dishes in the guide that match the search, and the cuisines that usually serve them. */
+export function dishSearch(query, guide) {
+  const q = (query || "").toLowerCase().trim();
+  if (q.length < 3 || !guide?.dishes) return null;
+  const hits = Object.entries(guide.dishes).filter(([, d]) => {
+    const n = d.name.toLowerCase();
+    return n.includes(q) || (q.length >= 4 && n.split(/[\s-]+/).some(w => w.length >= 4 && q.includes(w)));
+  }).map(([id, d]) => ({ id, name: d.name }));
+  if (!hits.length) return null;
+  const ids = new Set(hits.map(h => h.id));
+  const cuisines = Object.entries(guide.cuisines).filter(([, c]) => (c.dishes || []).some(id => ids.has(id))).map(([k]) => k);
+  return cuisines.length ? { dishes: hits, cuisines } : null;
 }

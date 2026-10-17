@@ -1,4 +1,4 @@
-"""Restaurants, cafés and takeout in chosen metro areas, split into small tiles the page loads directly.
+"""Restaurants, cafés and takeout in the largest US metro areas, split into small tiles the page loads directly.
 
 Asking a public map server live from the phone takes 15-35 seconds when the servers are busy; a tile from GitHub's
 CDN loads in about a second. The data comes from Geofabrik's daily OpenStreetMap extracts (see osm_extract.py).
@@ -28,6 +28,23 @@ BOX = 0.1          # the page checks coverage in boxes of this size
 METROS = {
     # bounds (south, west, north, east) and the Geofabrik regions that cover them
     "nyc": {"bounds": (40.45, -74.30, 41.05, -73.65), "regions": ["us/new-york", "us/new-jersey", "us/connecticut"]},
+    "la": {"bounds": (33.65, -118.70, 34.35, -117.65), "regions": ["us/california"]},
+    "sf": {"bounds": (37.20, -122.55, 38.05, -121.75), "regions": ["us/california"]},
+    "sandiego": {"bounds": (32.55, -117.30, 33.10, -116.90), "regions": ["us/california"]},
+    "chicago": {"bounds": (41.60, -88.00, 42.15, -87.50), "regions": ["us/illinois", "us/indiana"]},
+    "houston": {"bounds": (29.50, -95.75, 30.10, -95.05), "regions": ["us/texas"]},
+    "dallas": {"bounds": (32.55, -97.50, 33.20, -96.55), "regions": ["us/texas"]},
+    "austin": {"bounds": (30.10, -97.95, 30.55, -97.55), "regions": ["us/texas"]},
+    "dc": {"bounds": (38.75, -77.25, 39.10, -76.85), "regions": ["us/district-of-columbia", "us/maryland", "us/virginia"]},
+    "boston": {"bounds": (42.20, -71.25, 42.50, -70.95), "regions": ["us/massachusetts"]},
+    "philadelphia": {"bounds": (39.85, -75.35, 40.15, -74.95), "regions": ["us/pennsylvania", "us/new-jersey"]},
+    "miami": {"bounds": (25.60, -80.45, 26.20, -80.05), "regions": ["us/florida"]},
+    "orlando": {"bounds": (28.30, -81.55, 28.70, -81.20), "regions": ["us/florida"]},
+    "atlanta": {"bounds": (33.55, -84.60, 34.05, -84.20), "regions": ["us/georgia"]},
+    "seattle": {"bounds": (47.45, -122.45, 47.80, -122.10), "regions": ["us/washington"]},
+    "phoenix": {"bounds": (33.25, -112.35, 33.75, -111.75), "regions": ["us/arizona"]},
+    "vegas": {"bounds": (35.95, -115.35, 36.35, -114.95), "regions": ["us/nevada"]},
+    "denver": {"bounds": (39.55, -105.15, 39.90, -104.75), "regions": ["us/colorado"]},
 }
 KEEP = {"amenity", "cuisine", "opening_hours", "takeaway", "delivery", "outdoor_seating", "wheelchair", "phone",
         "contact:phone", "website", "contact:website", "website:menu", "menu:url", "addr:housenumber", "addr:street",
@@ -92,22 +109,44 @@ def write_metro(metro: str, rows: list, bounds) -> dict:
             "boxes": {box_id(b): today for b in boxes(bounds)}}
 
 
+def objects_by_metro(metros, expr):
+    """Download each Geofabrik region once and hand its objects to every metro inside it (California serves three)."""
+    regions = sorted({r for m in metros for r in METROS[m]["regions"]})
+    found = {m: [] for m in metros}
+    for region in regions:
+        users = [m for m in metros if region in METROS[m]["regions"]]
+        for obj in osm_extract.region_objects([region], expr, "amenity"):
+            _, lat, lon, _ = obj
+            for m in users:
+                s, w, n, e = METROS[m]["bounds"]
+                if s <= lat < n and w <= lon < e:
+                    found[m].append(obj)
+        print(f"{region}: done for {', '.join(users)}", file=sys.stderr)
+    return found
+
+
 def main(metros):
     try:
         index = json.loads((OUT / "index.json").read_text())
     except (OSError, ValueError):
         index = {"metros": {}}
     expr = ["nwr/amenity=" + ",".join(AMENITIES)]
+    found = objects_by_metro(metros, expr)
+    failed = []
     for metro in metros:
-        m = METROS[metro]
-        rows = rows_from_objects(osm_extract.region_objects(m["regions"], expr, "amenity"), m["bounds"])
+        rows = rows_from_objects(found[metro], METROS[metro]["bounds"])
         if len(rows) < 1000:
-            sys.exit(f"{metro}: only {len(rows)} places; keeping the previous tiles")
-        index["metros"][metro] = write_metro(metro, rows, m["bounds"])
+            # something went wrong with this region today: keep yesterday's tiles for this metro
+            failed.append(metro)
+            print(f"{metro}: only {len(rows)} places; keeping the previous tiles", file=sys.stderr)
+            continue
+        index["metros"][metro] = write_metro(metro, rows, METROS[metro]["bounds"])
         print(f"{metro}: {len(rows):,} places in {len(index['metros'][metro]['tiles'])} tiles")
     index.update(grid=GRID, box=BOX)
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "index.json").write_text(json.dumps(index, separators=(",", ":")))
+    if failed and len(failed) == len(metros):
+        sys.exit("no metro could be built")
 
 
 if __name__ == "__main__":

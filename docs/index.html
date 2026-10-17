@@ -13,6 +13,14 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=3">
 <link rel="apple-touch-icon" href="icon.png?v=3">
 <link rel="manifest" href="manifest.webmanifest">
+<script>
+// slower phones and data-saver get plain dark panels instead of live blur, and skip the 3D intro
+(function () {
+  var n = navigator, c = n.connection || {};
+  var slow = c.saveData || /(^|-)(2g|3g)$/.test(c.effectiveType || "") || (n.deviceMemory && n.deviceMemory < 4) || (n.hardwareConcurrency && n.hardwareConcurrency < 4);
+  if (slow) document.documentElement.classList.add("lite");
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Michroma&display=swap" rel="stylesheet">
@@ -273,6 +281,13 @@ body:has(#results:not(.hidden)) .home-bg::after { background: rgba(0, 0, 0, .62)
 .cheapest { background: var(--yel); color: #1C1C1E; font-weight: 600; font-size: 12px; border-radius: 5px; padding: 2px 7px; }
 .lead + .wiki { margin-top: 8px; }
 
+/* ---------- lite: no live blur on slower phones ---------- */
+.lite .tile, .lite .list, .lite .panel, .lite .price-card, .lite .note, .lite .chip, .lite .iconbtn, .lite .switch, .lite .search input, .lite .action, .lite .more, .lite .menu-card, .lite .bar, .lite .sheet-top {
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+.lite .tile, .lite .list, .lite .panel, .lite .price-card, .lite .note, .lite .menu-card { background-color: rgba(24, 24, 28, .94) !important; }
+.lite .bar, .lite .sheet-top { background: rgba(0, 0, 0, .9) !important; }
+
 /* ---------- glass ---------- */
 .list, .panel, .price-card, .note, .chip, .iconbtn, .switch, .search input, .action, .more, .menu-card {
   background: var(--glass); -webkit-backdrop-filter: blur(28px) saturate(170%); backdrop-filter: blur(28px) saturate(170%); box-shadow: var(--rim);
@@ -286,6 +301,30 @@ body:has(#results:not(.hidden)) .home-bg::after { background: rgba(0, 0, 0, .62)
 .sheet::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background: linear-gradient(rgba(0, 0, 0, .6), rgba(0, 0, 0, .78)), var(--wall, radial-gradient(120% 60% at 75% -12%, #6a0400 0%, #240100 40%, #000 72%)) center / cover no-repeat; }
 .sheet-top { background: rgba(0, 0, 0, .3); }
+/* units, saved places, tips, offline */
+.yours { display: block; margin-top: 6px; font-size: 14px; color: var(--ink-2); }
+.yours b { color: var(--ink); font-weight: 600; }
+.seen small, .gprice small { display: block; font-size: 12px; font-weight: 500; color: var(--ink-2); margin-top: 1px; }
+.home-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.home-tools .chip { font-size: 13px; padding: 6px 12px; }
+.home-section { margin-top: 26px; }
+.home-section h3 { font-size: 15px; font-weight: 600; color: var(--ink-2); margin: 0 4px 8px; }
+.offline { background: rgba(255, 201, 6, .14); color: var(--ink); border-radius: 12px; padding: 10px 14px; font-size: 14px; margin-top: 12px; box-shadow: inset 0 0 0 1px rgba(255, 201, 6, .3); }
+details.panel > summary { cursor: pointer; font-size: 17px; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+details.panel > summary::-webkit-details-marker { display: none; }
+details.panel > summary::after { content: "+"; color: var(--ink-3); font-size: 22px; font-weight: 400; line-height: 1; }
+details.panel[open] > summary::after { content: "–"; }
+details.panel ul { margin: 10px 0 0; padding-left: 18px; }
+details.panel li { margin: 6px 0; line-height: 1.45; }
+.save { color: var(--ink-2); }
+.save[aria-pressed="true"] { color: var(--yel); }
+.save svg { width: 19px; height: 19px; }
+.seg { display: flex; gap: 8px; margin: 12px 0 0; }
+.units-group { margin-top: 14px; }
+.units-group h4 { font-size: 14px; font-weight: 600; color: var(--ink-2); margin: 0 0 8px; }
+.units-group .row { display: flex; flex-wrap: wrap; gap: 8px; }
+.units-group select { width: 100%; background: var(--field); color: var(--ink); border: 0; border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 16px; }
+
 /* menu */
 .menu-card { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-radius: 14px; text-decoration: none; color: var(--ink); margin-top: 2px; }
 .menu-card > svg:first-child { width: 24px; height: 24px; color: #0A84FF; flex: none; }
@@ -352,11 +391,12 @@ body.intro-playing #home, body.intro-playing #home * { animation-play-state: pau
   const el = document.getElementById("intro");
   if (!el) return;
   let seen = false;
-  try { seen = sessionStorage.getItem("pitstop:intro") === "1"; } catch {}
+  try { seen = sessionStorage.getItem("pitstop:intro") === "1" || localStorage.getItem("pitstop:introSeen") === "1"; } catch {}
+  if (document.documentElement.classList.contains("lite")) seen = true;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (seen || reduce || location.hash.length > 1 || /[?&]at=/.test(location.search)) { el.remove(); return; }
   document.body.classList.add("intro-playing");
-  try { sessionStorage.setItem("pitstop:intro", "1"); } catch {}
+  try { sessionStorage.setItem("pitstop:intro", "1"); localStorage.setItem("pitstop:introSeen", "1"); } catch {}
   let done = false, timer;
   const fly = () => {
     const word = el.querySelector(".i-word span"), tw = document.querySelector("#home .wordmark");
@@ -787,13 +827,15 @@ function drive(THREE) {
     <h1 class="logo intro" aria-label="Pitstop"><span class="wordmark">PITSTOP</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></h1>
   </header>
   <p class="home-loc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="homeLocText">Your location is used only when you open a list</span></p>
+  <div class="home-tools"><button class="chip" id="unitsBtn" type="button">Units and currency</button></div>
   <div class="tiles">
     <a class="tile" href="#gas">
-      <span class="tile-head"><span><h2>Gas</h2><p>Stations around you, sorted by distance or price</p></span>
+      <span class="tile-head"><span><h2>Gas</h2><p>Stations around you by distance or price, and EV charging</p></span>
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></span>
       <span class="tile-foot">
         <span class="sign" id="homeSign"><span class="sign-row"><span>Regular</span><b>$–.––</b></span><span class="sign-row"><span>Diesel</span><b>$–.––</b></span></span>
         <span class="sign-cap" id="homeSignCap" style="display:block">Weekly average prices</span>
+        <span class="yours" id="homeYours" hidden></span>
       </span>
     </a>
     <a class="tile" href="#food">
@@ -804,7 +846,9 @@ function drive(THREE) {
       </span>
     </a>
   </div>
-  <p class="home-foot"><span class="early">This is an early version of Pitstop. Faster lists in more cities, your own units and currency, search by dish, and offline use are coming next. <a href="https://github.com/subbarajubuddaraju/pitstop#whats-next">See what's planned</a></span><br><br><button class="linkbtn" id="googleBtn">Add a Google key for station prices</button><br><br>Places from OpenStreetMap. Gas prices from the U.S. Energy Information Administration. NYC health grades from NYC Open Data.</p>
+  <div class="home-section" id="savedSection" hidden><h3>Saved</h3><div class="list" id="savedList"></div></div>
+  <div class="home-section" id="recentSection" hidden><h3>Recently viewed</h3><div class="list" id="recentList"></div></div>
+  <p class="home-foot"><span class="early">This is an early version of Pitstop, and it keeps improving. <a href="https://github.com/subbarajubuddaraju/pitstop#whats-next">See what's planned</a></span><br><br><button class="linkbtn" id="googleBtn">Add a Google key for station prices</button> · <button class="linkbtn" id="replayIntro">Replay the intro</button><br><br>Places from OpenStreetMap. Gas prices from the U.S. Energy Information Administration. NYC health grades from NYC Open Data.</p>
 </main>
 
 <!-- results -->
@@ -827,7 +871,7 @@ function drive(THREE) {
     <div id="foodControls" class="hidden">
       <label class="search"><span class="sr">Search</span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="q" type="search" placeholder="Search a name or cuisine" autocomplete="off">
+        <input id="q" type="search" placeholder="Search a name, cuisine or dish" autocomplete="off">
       </label>
       <div class="chips" id="chips"></div>
     </div>
@@ -842,6 +886,7 @@ function drive(THREE) {
 import {
   overpassQuery, parsePlaces, cuisineIndex, cuisinesFor, cuisineLabel, dishesFor, dietBadges, serviceBadges,
   hoursStatus, lateNight, weekHours, formatDistance, gasForLocation, inNYC, matchInspection, OVERPASS_URLS, distanceMeters,
+  fuelInYourUnits, useMiles, dishSearch, CURRENCIES, formatMoney,
   fuelTileKeys, placesFromTiles, foodMetro, foodTileKeys, placesFromFoodTiles, foodBoxesFor, dishLexicon, reviewPicks, GOOGLE_NEARBY, GOOGLE_TEXT, googleStatus, fromGoogle, sameGooglePlace, mergeGoogleFood,
 } from "./core.js";
 
@@ -856,6 +901,7 @@ const store = {
 };
 
 const S = {
+  offline: {},
   mode: null, loc: null, places: {}, loading: {}, OH: null, dishes: null, cIndex: null, gas: null,
   reviews: {},
   filters: { open: true, late: false, halal: false, veg: false, cuisine: null, q: "" }, shown: 40,
@@ -869,6 +915,8 @@ const I = {
   menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3h12v18H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>',
   close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
   ext: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>',
+  star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',
+  starOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>',
   back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m15 6-6 6 6 6"/></svg>',
 };
 const DIET = { meat: "Has meat", fish: "Seafood", veg: "Vegetarian", vegan: "Vegan" };
@@ -878,11 +926,13 @@ const spice = n => n === 2 ? "🌶🌶 Spicy" : n === 1 ? "🌶 Mild heat" : "";
 function route() {
   const h = location.hash.slice(1);
   const [view, arg] = h.split("/");
-  if (view === "gas" || view === "food") {
+  if (view === "gas" || view === "food" || view === "ev") {
     closeSheet(true);
     showResults(view);
-  } else if (view === "place" && S.mode) {
-    openPlace(decodeURIComponent(arg));
+  } else if (view === "place" && (S.mode || storedPlace(decodeURIComponent(arg)))) {
+    const id = decodeURIComponent(arg);
+    if (S.mode && findPlace(id)[0]) openPlace(id);
+    else Promise.all([loadOH(), loadDishes()]).then(() => openPlace(id));
   } else if (view === "dish" && S.dishes) {
     const id = decodeURIComponent(arg);
     id.startsWith("w:") ? openUnknownDish(id.slice(2)) : openDish(id);
@@ -895,10 +945,89 @@ function route() {
   }
 }
 window.addEventListener("hashchange", route);
+if ("serviceWorker" in navigator && location.hostname.endsWith("github.io")) navigator.serviceWorker.register("sw.js").catch(() => {});
 document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { location.hash = b.dataset.go; });
 document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { location.hash = b.dataset.mode; });
 $("#backHome").onclick = () => { location.hash = ""; };
+$("#unitsBtn").onclick = () => openUnitsSheet();
+$("#replayIntro").onclick = () => { try { localStorage.removeItem("pitstop:introSeen"); sessionStorage.removeItem("pitstop:intro"); } catch {} location.hash = ""; location.reload(); };
 $("#changeLoc").onclick = () => openLocationSheet();
+
+// ---------- units and currency ----------
+const prefs = () => store.get("prefs", {});
+let RATES = store.get("fx", null);
+async function loadRates() {
+  const c = prefs().currency;
+  if (!c || c === "USD") return;
+  if (RATES?.rates?.[c] && Date.now() - RATES.at < 12 * 3600e3) return;
+  try {
+    const j = await (await fetch("https://open.er-api.com/v6/latest/USD")).json();
+    if (j.result === "success") { RATES = { at: Date.now(), rates: j.rates, updated: j.time_last_update_utc }; store.set("fx", RATES); }
+  } catch { /* no conversion until the rates load */ }
+}
+const yours = usd => fuelInYourUnits(usd, prefs(), RATES?.rates || {});
+const unitsLabel = () => { const u = prefs(); return [u.distance === "km" ? "km" : u.distance === "mi" ? "miles" : null, u.volume === "l" ? "litres" : null, u.currency && u.currency !== "USD" ? u.currency : null].filter(Boolean).join(" · "); };
+function updateUnitsBtn() { const l = unitsLabel(); $("#unitsBtn").textContent = l ? `Units: ${l}` : "Units and currency"; }
+
+function openUnitsSheet() {
+  const u = prefs();
+  const opt = (name, val, label, cur) => `<button class="chip" type="button" data-u="${name}" data-v="${val}" aria-pressed="${cur === val}">${label}</button>`;
+  const sheet = $("#sheet");
+  sheet.innerHTML = `<div class="wrap">
+    <div class="sheet-top"><span></span><button class="iconbtn" data-close aria-label="Close">${I.close}</button></div>
+    <h2 class="dish-title" style="margin-top:4px">Units and currency</h2>
+    <p class="lead">Show distances and gas prices the way you're used to. Prices are still charged in US dollars per gallon.</p>
+    <div class="panel">
+      <div class="units-group"><h4>Distance</h4><div class="row">${opt("distance", "", "Automatic", u.distance || "")}${opt("distance", "mi", "Miles", u.distance)}${opt("distance", "km", "Kilometres", u.distance)}</div></div>
+      <div class="units-group"><h4>Gas price per</h4><div class="row">${opt("volume", "gal", "US gallon", u.volume || "gal")}${opt("volume", "l", "Litre", u.volume)}</div></div>
+      <div class="units-group"><h4>Also show prices in</h4><select id="curSel">${Object.keys(CURRENCIES).map(c => `<option value="${c}" ${c === (u.currency || "USD") ? "selected" : ""}>${c === "USD" ? "US dollars only" : c}</option>`).join("")}</select></div>
+      <p class="credit" id="fxNote" style="margin-top:12px"></p>
+    </div></div>`;
+  sheet.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  const note = () => {
+    const c = prefs().currency;
+    $("#fxNote").innerHTML = c && c !== "USD" ? (RATES?.rates?.[c] ? `1 US dollar = ${formatMoney(RATES.rates[c], c)}. <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Rates by Exchange Rate API</a>, updated daily.` : "Loading today's exchange rate…") : "";
+  };
+  const save = async (k, v) => { const n = { ...prefs(), [k]: v }; if (!v) delete n[k]; store.set("prefs", n); note(); await loadRates(); note(); refreshAll(); };
+  sheet.querySelectorAll("[data-u]").forEach(b => b.onclick = () => {
+    sheet.querySelectorAll(`[data-u="${b.dataset.u}"]`).forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    save(b.dataset.u, b.dataset.v);
+  });
+  $("#curSel").onchange = e => save("currency", e.target.value === "USD" ? "" : e.target.value);
+  sheet.querySelector("[data-close]").onclick = () => closeSheet();
+  note();
+}
+function refreshAll() {
+  updateUnitsBtn(); updateHome();
+  if (S.mode === "food" && S.places.food) renderFood();
+  if (S.mode === "gas" && S.places.gas) renderGas();
+  if (S.mode === "ev" && S.places.ev) renderEV();
+}
+
+// ---------- saved and recently viewed places ----------
+const snapshot = (p, kind) => { const { status, dist, late, ...rest } = p; return { ...rest, kind }; };
+const savedPlaces = () => store.get("saved", {});
+const recentPlaces = () => store.get("recent", []);
+function storedPlace(id) { return savedPlaces()[id] || recentPlaces().find(x => x.id === id) || null; }
+function rememberPlace(p, kind) {
+  const r = recentPlaces().filter(x => x.id !== p.id);
+  r.unshift(snapshot(p, kind));
+  store.set("recent", r.slice(0, 6));
+}
+function toggleSaved(p, kind) {
+  const s = savedPlaces();
+  if (s[p.id]) delete s[p.id]; else s[p.id] = snapshot(p, kind);
+  store.set("saved", s);
+  return !!s[p.id];
+}
+function renderStoredLists() {
+  const row = x => `<button class="item" data-stored="${esc(x.id)}"><h3>${esc(x.name)}</h3><span class="right">${x.kind === "food" ? "Food" : x.kind === "ev" ? "EV" : "Gas"}</span><span class="meta">${esc(x.address || x.cuisineText || "")}</span></button>`;
+  const saved = Object.values(savedPlaces()), recent = recentPlaces().filter(x => !savedPlaces()[x.id]);
+  $("#savedSection").hidden = !saved.length; $("#savedList").innerHTML = saved.map(row).join("");
+  $("#recentSection").hidden = !recent.length; $("#recentList").innerHTML = recent.map(row).join("");
+  document.querySelectorAll("[data-stored]").forEach(b => b.onclick = () => { location.hash = "place/" + encodeURIComponent(b.dataset.stored); });
+}
 
 // ---------- start screen ----------
 window.__setWallpaper = (url, save) => {
@@ -909,7 +1038,8 @@ window.__setWallpaper = (url, save) => {
 const signPrice = v => { const t = v.toFixed(3); return `$${t.slice(0, -1)}<sup>${t.slice(-1)}</sup>`; };
 async function updateHome() {
   if (S.loc) { const el = $("#homeLocText"); el.textContent = S.loc.label; el.classList.add("set"); }
-  await loadGas();
+  renderStoredLists(); updateUnitsBtn();
+  await Promise.all([loadGas(), loadRates()]);
   if (!S.gas?.areas) return;
   const local = S.loc ? gasForLocation(S.gas, S.loc.stateCode, S.loc.lat, S.loc.lon) : null;
   const us = S.gas.areas.NUS;
@@ -922,6 +1052,9 @@ async function updateHome() {
   const sr = reg.series, cents = Math.round((sr[sr.length - 1][1] - (sr[sr.length - 2]?.[1] ?? sr[sr.length - 1][1])) * 100);
   const where = reg.name === "United States" ? "US" : reg.name;
   $("#homeSignCap").innerHTML = `${esc(where)} average this week${cents ? `, <span class="${cents < 0 ? "down" : "up"}">${Math.abs(cents)}¢ ${cents < 0 ? "lower" : "higher"}</span> than last week` : ""}`;
+  const y = yours(last(reg)), yd = dsl?.series?.length ? yours(last(dsl)) : null;
+  $("#homeYours").hidden = !y;
+  if (y) $("#homeYours").innerHTML = `In your units: regular <b>${esc(y)}</b>${yd ? `, diesel <b>${esc(yd)}</b>` : ""}`;
 }
 
 // ---------- location ----------
@@ -1170,15 +1303,15 @@ async function findPlaces(kind) {
     if (c && Date.now() - c.at < 15 * 60000) return c.places;
   } catch {}
   // start close and widen until there's enough to choose from
-  const radii = kind === "gas" ? [3000, 8000, 20000] : [700, 1600, 4000];
-  const enough = kind === "gas" ? 6 : 30;
+  const radii = kind === "food" ? [700, 1600, 4000] : [3000, 8000, 20000];
+  const enough = kind === "food" ? 30 : 6;
   let places = null;
   S.googleError = null;
   if (kind === "gas" && gkey()) {
     try { places = await googleStations(loc); if (places.length) return places; }
     catch (e) { S.googleError = e.message; }
   }
-  places = kind === "gas" ? await stationsFromTiles(loc, radii, enough) : await foodFromTiles(loc, radii, enough);
+  places = kind === "gas" ? await stationsFromTiles(loc, radii, enough) : kind === "food" ? await foodFromTiles(loc, radii, enough) : null;
   if (places) return places;
   places = [];
   for (const r of radii) {
@@ -1246,10 +1379,12 @@ async function showResults(mode) {
   S.mode = mode;
   $("#home").classList.add("hidden");
   $("#results").classList.remove("hidden");
-  $("#resultsTitle").textContent = mode === "gas" ? "Gas" : "Food";
-  document.title = (mode === "gas" ? "Gas" : "Food") + " near you · Pitstop";
-  document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
-  $(".switch").dataset.mode = mode;
+  const title = { gas: "Gas", food: "Food", ev: "EV charging" }[mode];
+  $("#resultsTitle").textContent = title;
+  document.title = title + " near you · Pitstop";
+  const tab = mode === "ev" ? "gas" : mode;
+  document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === tab)));
+  $(".switch").dataset.mode = tab;
   $("#foodControls").classList.toggle("hidden", mode !== "food");
   S.shown = 40;
   window.scrollTo(0, 0);
@@ -1261,7 +1396,7 @@ async function reload() {
   if (!mode) return;
   const content = $("#content");
   if (!S.places[mode]) {
-    content.innerHTML = `<div class="lights-loader"><div class="row"><i></i><i></i><i></i></div><span>${mode === "gas" ? "Finding stations" : "Finding places"}</span></div>
+    content.innerHTML = `<div class="lights-loader"><div class="row"><i></i><i></i><i></i></div><span>${mode === "food" ? "Finding places" : mode === "ev" ? "Finding chargers" : "Finding stations"}</span></div>
       <div class="list">${'<div class="skeleton"></div>'.repeat(4)}</div>`;
     try { await ensureLocation(); }
     catch (e) {
@@ -1277,30 +1412,61 @@ async function reload() {
       const [places] = await Promise.all([pending[mode] ? pending[mode].then(() => S.places[mode] || findPlaces(mode)) : findPlaces(mode),
         loadOH(), loadDishes(), loadGas()]);
       S.places[mode] = places;
+      S.offline[mode] = null;
+      keepLast(mode, places);
       clearTimeout(slow);
       setTimeout(() => prefetch(mode === "food" ? "gas" : "food"), 300);
     } catch (e) {
       clearTimeout(slow);
-      content.innerHTML = `<div class="state"><h3>Couldn't load places</h3><p>The map service is busy or you're offline.</p><button class="btn" id="retry">Try again</button></div>`;
-      $("#retry").onclick = reload;
-      return;
+      const last = lastResults(mode);
+      if (last) {
+        await Promise.all([loadOH(), loadDishes(), loadGas()]).catch(() => {});
+        S.places[mode] = last.places;
+        S.offline[mode] = last;
+      } else {
+        content.innerHTML = `<div class="state"><h3>Couldn't load places</h3><p>${navigator.onLine === false ? "You're offline. Pitstop will show your last results here once it has loaded a list with a connection." : "The map service is busy or you're offline."}</p><button class="btn" id="retry">Try again</button></div>`;
+        $("#retry").onclick = reload;
+        return;
+      }
     }
   }
   if (S.mode !== mode) return;
   enrich(mode);
-  mode === "food" ? renderFood() : renderGas();
-  if (mode === "food") addLiveFood();
+  ({ food: renderFood, gas: renderGas, ev: renderEV })[mode]();
+  if (mode === "food" && !S.offline.food) addLiveFood();
 }
 
-function ohContext() {
-  return { lat: S.loc.lat, lon: S.loc.lon, address: { country_code: S.loc.country || "us", state: S.loc.state || "" } };
+// The last list for each mode is kept on the phone, so it can still be shown without a connection.
+function keepLast(mode, places) {
+  try {
+    const slim = places.slice(0, 120).map(({ status, late, ...p }) => p);
+    localStorage.setItem("pitstop:last:" + mode, JSON.stringify({ at: Date.now(), loc: { lat: S.loc.lat, lon: S.loc.lon, label: S.loc.label }, places: slim }));
+  } catch { /* storage full: skip */ }
+}
+function lastResults(mode) {
+  try {
+    const l = JSON.parse(localStorage.getItem("pitstop:last:" + mode) || "null");
+    if (!l || !S.loc) return l;
+    for (const p of l.places) p.dist = distanceMeters(S.loc.lat, S.loc.lon, p.lat, p.lon);
+    l.places.sort((a, b) => a.dist - b.dist);
+    return l;
+  } catch { return null; }
+}
+const offlineNote = mode => { const o = S.offline[mode]; return o ? `<div class="offline">No connection. Showing the list from ${ago(o.at)} ${esc(o.loc.label.replace(/^Near /, "near "))}. Hours are checked against the time now.</div>` : ""; };
+
+function ohContext(p) {
+  const L = S.loc || { lat: p?.lat ?? 40.75, lon: p?.lon ?? -73.99 };
+  return { lat: L.lat, lon: L.lon, address: { country_code: L.country || "us", state: L.state || "" } };
 }
 
 function enrich(mode) {
   const now = new Date();
-  for (const p of S.places[mode]) {
+  for (const p of S.places[mode]) enrichOne(p, mode, now);
+}
+function enrichOne(p, mode, now = new Date()) {
+  {
     p.status = p.live?.coh ? googleStatus(p.live.coh, now)
-      : p.google ? googleStatus(p.googleStatus, now) : hoursStatus(S.OH, p.tags.opening_hours, now, ohContext());
+      : p.google ? googleStatus(p.googleStatus, now) : hoursStatus(S.OH, p.tags.opening_hours, now, ohContext(p));
     if (mode === "food") {
       p.cuisines = cuisinesFor(p.tags, S.cIndex);
       p.cuisineText = cuisineLabel(p.tags, p.cuisines, S.dishes.cuisines);
@@ -1310,7 +1476,7 @@ function enrich(mode) {
   }
 }
 
-const miles = () => (S.loc?.country || "us") === "us";
+const miles = () => useMiles(prefs(), S.loc?.country || "us");
 const pill = st => `<span class="pill ${st.soon ? "soon" : st.state}">${esc(st.label)}</span>`;
 
 function renderFood() {
@@ -1331,12 +1497,14 @@ function renderFood() {
   });
 
   const q = f.q.toLowerCase();
+  const byDish = dishSearch(q, S.dishes);
   const match = p => {
     if (f.cuisine && !p.cuisines.includes(f.cuisine)) return false;
     if (f.late && !p.late) return false;
     if (f.halal && !p.diet.some(d => d.startsWith("Halal")) && !p.cuisines.includes("halal")) return false;
     if (f.veg && !p.diet.some(d => /Vegan|Vegetarian/.test(d))) return false;
-    if (q && !(p.name.toLowerCase().includes(q) || p.cuisineText.toLowerCase().includes(q) || (p.tags.cuisine || "").includes(q))) return false;
+    if (q && !(p.name.toLowerCase().includes(q) || p.cuisineText.toLowerCase().includes(q) || (p.tags.cuisine || "").includes(q)
+      || (byDish && p.cuisines.some(c => byDish.cuisines.includes(c))))) return false;
     return true;
   };
   const matched = all.filter(match);
@@ -1353,7 +1521,8 @@ function renderFood() {
     : live?.error ? `<p class="summary">Google data didn't load (${esc(live.error)}). Showing hours from OpenStreetMap.</p>`
     : live?.at ? `<p class="summary">Live from Google: hours and ratings for the ${live.n} closest places, checked just now.</p>`
     : `<p class="summary">Checking Google for live hours…</p>`;
-  let html = liveNote + `<p class="summary">${open.length} open now${f.open ? "" : ` · ${closed.length} closed`} · ${unknown.length} without listed hours</p>`;
+  const dishNote = byDish ? `<p class="summary">${esc(byDish.dishes.slice(0, 3).map(d => d.name).join(", "))} ${byDish.dishes.length > 1 ? "are" : "is"} usually on the menu at ${esc(byDish.cuisines.slice(0, 4).map(c => S.dishes.cuisines[c].label).join(", "))} places, so those are included.</p>` : "";
+  let html = offlineNote("food") + liveNote + dishNote + `<p class="summary">${open.length} open now${f.open ? "" : ` · ${closed.length} closed`} · ${unknown.length} without listed hours</p>`;
   const groups = f.open
     ? [["", open], ["Hours not listed · may be open", unknown]]
     : [["", [...open, ...closed, ...unknown].sort((a, b) => a.dist - b.dist)]];
@@ -1417,9 +1586,17 @@ function priceCard() {
   return `<div class="price-card">
     <div class="lbl">Average regular gas · ${esc(g.regular.name)}</div>
     <div class="price-row"><div class="price-big">$${last.toFixed(2)}<small>/gal</small></div>${delta}${spark(s)}</div>
+    ${yours(last) ? `<span class="yours">In your units: <b>${esc(yours(last))}</b></span>` : ""}
     <div class="price-sub"><span>Week of ${week} · 12-week trend</span>${d ? `<span>Diesel $${d[d.length - 1][1].toFixed(2)}${g.diesel.code !== g.regular.code ? ` (${esc(g.diesel.name)})` : ""}</span>` : ""}</div>
   </div>`;
 }
+
+const kindSwitch = on => `<div class="seg"><a class="chip" href="#gas" aria-pressed="${on === "gas"}" style="text-decoration:none">Gas stations</a><a class="chip" href="#ev" aria-pressed="${on === "ev"}" style="text-decoration:none">EV charging</a></div>`;
+const pumpTips = () => `<details class="panel"><summary>Paying at the pump with a card from abroad</summary><ul>
+  <li>Many pumps ask for a US ZIP code, which cards from other countries can't answer. Go inside, tell the cashier your pump number and an amount, and pay first. If the tank fills before that, they refund the rest.</li>
+  <li>Prices are per US gallon (3.785 litres). The small 9 at the end of the price on signs means nine tenths of a cent.</li>
+  <li>Regular (usually 87) is right for most rental cars. Diesel has its own pump or nozzle, often green; check the label before you fill.</li>
+  <li>Some stations show a lower cash price and a higher card price.</li></ul></details>`;
 
 function renderGas() {
   if (S.mode !== "gas" || !S.places.gas) return;
@@ -1433,7 +1610,7 @@ function renderGas() {
   const places = all.slice(0, S.shown);
   const known = places.filter(p => seen[p.id]);
   const cheapestSeen = known.length ? known.reduce((a, b) => seen[a.id].price <= seen[b.id].price ? a : b).id : null;
-  let html = priceCard();
+  let html = offlineNote("gas") + kindSwitch("gas") + priceCard() + pumpTips();
   if (priced.length) {
     html += `<div class="sortrow"><button class="chip" data-sort="cheap" aria-pressed="${sortCheap}">Cheapest first</button><button class="chip" data-sort="near" aria-pressed="${!sortCheap}">Nearest first</button></div>`;
   } else if (S.googleError) {
@@ -1449,7 +1626,7 @@ function renderGas() {
       <h3>${esc(p.name)}</h3><span class="right">${esc(formatDistance(p.dist, { miles: miles(), mode: "drive" }).split(" · ")[1] || "")}</span>
       <span class="meta">${esc([formatDistance(p.dist, { miles: miles(), mode: "drive" }).split(" · ")[0], p.address].filter(Boolean).join(" · "))}</span>
       <span class="row2">${pill(p.status)}${fuels.map(t => `<span class="tag">${t}</span>`).join("")}
-        ${p.fuel?.regular ? `<span class="seen">$${p.fuel.regular.toFixed(2)} regular</span>${p.fuel.regular === cheapestLive ? `<span class="cheapest">Cheapest nearby</span>` : ""}` : ""}
+        ${p.fuel?.regular ? `<span class="seen">$${p.fuel.regular.toFixed(2)} regular${yours(p.fuel.regular) ? `<small>${esc(yours(p.fuel.regular))}</small>` : ""}</span>${p.fuel.regular === cheapestLive ? `<span class="cheapest">Cheapest nearby</span>` : ""}` : ""}
         ${sp && !p.fuel?.regular ? `<span class="seen">$${sp.price.toFixed(2)} you saw ${ago(sp.at)}</span>` : ""}${p.id === cheapestSeen && known.length > 1 ? `<span class="cheapest">Cheapest you've seen</span>` : ""}</span>
     </button>`;
   }).join("");
@@ -1463,9 +1640,44 @@ function renderGas() {
   $("#content").querySelectorAll("[data-gsettings]").forEach(b => b.onclick = openGoogleSheet);
 }
 
+// ---------- EV charging (live from OpenStreetMap) ----------
+const SOCKETS = { type1_combo: "CCS", type2_combo: "CCS2", chademo: "CHAdeMO", nacs: "Tesla (NACS)", tesla_supercharger: "Tesla", type1: "J1772", type2: "Type 2", tesla_destination: "Tesla destination" };
+function evPlugs(t) {
+  const out = [];
+  for (const [k, label] of Object.entries(SOCKETS)) { const v = t["socket:" + k]; if (v && v !== "no") out.push(/^\d+$/.test(v) ? `${label} ×${v}` : label); }
+  return out;
+}
+function renderEV() {
+  if (S.mode !== "ev" || !S.places.ev) return;
+  const places = S.places.ev.slice(0, S.shown);
+  let html = offlineNote("ev") + kindSwitch("ev") + `<p class="summary">${S.places.ev.length} charging stations nearby, from OpenStreetMap</p><div class="list">`;
+  html += places.map(p => {
+    const plugs = evPlugs(p.tags), fast = plugs.some(x => /CCS|CHAdeMO|Tesla/.test(x));
+    const meta = [formatDistance(p.dist, { miles: miles(), mode: "drive" }).split(" · ")[0], p.tags.operator || p.tags.network || p.tags.brand, p.tags.capacity ? `${p.tags.capacity} spaces` : ""].filter(Boolean).join(" · ");
+    return `<button class="item" data-place="${esc(p.id)}">
+      <h3>${esc(p.name)}</h3><span class="right">${esc(formatDistance(p.dist, { miles: miles(), mode: "drive" }).split(" · ")[1] || "")}</span>
+      <span class="meta">${esc(meta)}</span>
+      <span class="row2">${pill(p.status)}${fast ? `<span class="tag">Fast charging</span>` : ""}${plugs.slice(0, 3).map(x => `<span class="tag">${esc(x)}</span>`).join("")}${p.tags.fee === "no" ? `<span class="tag">Free</span>` : ""}</span>
+    </button>`;
+  }).join("") + `</div>`;
+  if (!S.places.ev.length) html = kindSwitch("ev") + `<div class="state"><h3>No chargers found nearby</h3><p>The map may not list them here yet.</p></div>`;
+  if (S.places.ev.length > S.shown) html += `<button class="more" id="more">Show more chargers</button>`;
+  html += `<p class="credit">Chargers © OpenStreetMap contributors. Plug types and hours are as mapped; check the network's app for live availability.</p>`;
+  $("#content").innerHTML = html;
+  bindItems();
+  $("#more")?.addEventListener("click", () => { S.shown += 40; renderEV(); });
+}
+
 // ---------- place sheet ----------
 function findPlace(id) {
-  for (const k of ["food", "gas"]) { const p = S.places[k]?.find(x => x.id === id); if (p) return [p, k]; }
+  for (const k of ["food", "gas", "ev"]) { const p = S.places[k]?.find(x => x.id === id); if (p) return [p, k]; }
+  const st = storedPlace(id);
+  if (st && S.OH && S.dishes) {
+    const p = { ...st };
+    p.dist = S.loc ? distanceMeters(S.loc.lat, S.loc.lon, p.lat, p.lon) : null;
+    enrichOne(p, st.kind === "food" ? "food" : st.kind);
+    return [p, st.kind];
+  }
   return [null, null];
 }
 
@@ -1483,15 +1695,18 @@ function openPlace(id) {
   const phone = t.phone || t["contact:phone"];
   const web = cleanUrl(t.website || t["contact:website"]);
   const menu = cleanUrl(t["website:menu"] || t["menu:url"] || t.menu);
-  const week = t.opening_hours ? weekHours(S.OH, t.opening_hours, new Date(), ohContext()) : [];
+  const week = t.opening_hours ? weekHours(S.OH, t.opening_hours, new Date(), ohContext(p)) : [];
   const badges = kind === "food" ? [...p.diet, ...serviceBadges(t)] : serviceBadges(t);
   const fuels = kind === "gas" ? Object.entries(t).filter(([k, v]) => k.startsWith("fuel:") && v === "yes")
     .map(([k]) => ({ diesel: "Diesel", e85: "E85", octane_91: "Premium 91", octane_93: "Premium 93", lpg: "Propane", adblue: "DEF" }[k.slice(5)])).filter(Boolean) : [];
-  const sub = kind === "food" ? `${esc(p.cuisineText)} · ${esc(formatDistance(p.dist, { miles: miles() }))}`
-    : esc(formatDistance(p.dist, { miles: miles(), mode: "drive" }));
+  const far = p.dist == null ? "" : formatDistance(p.dist, { miles: miles(), mode: kind === "food" ? "walk" : "drive" });
+  const sub = kind === "food" ? esc([p.cuisineText, far].filter(Boolean).join(" · "))
+    : kind === "ev" ? esc([far, p.tags.operator || p.tags.network].filter(Boolean).join(" · ")) : esc(far);
+  rememberPlace(p, kind);
+  const isSaved = !!savedPlaces()[p.id];
 
   let html = `<div class="wrap">
-    <div class="sheet-top"><button class="iconbtn" data-close aria-label="Back">${I.back}</button></div>
+    <div class="sheet-top"><button class="iconbtn" data-close aria-label="Back">${I.back}</button><button class="iconbtn save" id="saveBtn" aria-pressed="${isSaved}" aria-label="${isSaved ? "Saved" : "Save this place"}">${isSaved ? I.star : I.starOff}</button></div>
     <div class="place-head"><h2>${esc(p.name)}</h2><div class="sub">${sub}</div>
       <div style="margin-top:10px">${pill(p.status)}</div>
       ${p.address ? `<div class="sub" style="margin-top:8px">${esc(p.address)}</div>` : ""}</div>
@@ -1500,11 +1715,13 @@ function openPlace(id) {
       ${phone ? `<a class="action" href="tel:${esc(phone.split(";")[0].replace(/[^\d+]/g, ""))}">${I.phone}Call</a>` : ""}
       ${web ? `<a class="action" href="${esc(web)}" target="_blank" rel="noopener">${I.web}Website</a>` : ""}
     </div>`;
-  if (badges.length || fuels.length) html += `<div class="badges">${[...fuels, ...badges].map(b => `<span class="tag">${esc(b)}</span>`).join("")}</div>`;
+  const plugs = kind === "ev" ? evPlugs(t) : [];
+  if (badges.length || fuels.length || plugs.length) html += `<div class="badges">${[...plugs, ...fuels, ...badges].map(b => `<span class="tag">${esc(b)}</span>`).join("")}</div>`;
   if (kind === "food") html += menuPanel(p, menu);
   if (kind === "food" && inNYC(p.lat, p.lon)) html += `<div class="panel" id="grade"><h3>NYC health inspection</h3><p class="summary" style="margin:0">Checking…</p></div>`;
   if (kind === "gas" && p.fuel && Object.keys(p.fuel).some(k => k !== "updated")) html += googleFuelPanel(p);
   else if (kind === "gas") html += gasPricePanel(p);
+  if (kind === "ev") html += `<div class="panel"><h3>Charging here</h3><p style="margin:0;color:var(--ink-2)">${[p.tags.fee === "no" ? "Free to use" : p.tags.fee === "yes" ? "Paid" : "", p.tags.access && p.tags.access !== "yes" ? `Access: ${p.tags.access}` : "", p.tags.capacity ? `${p.tags.capacity} spaces` : ""].filter(Boolean).join(" · ") || "Details aren't mapped for this charger."} Check the network's app for live availability.</p></div>`;
   if (kind === "food" && p.live) html += `<div class="panel" id="gpanel">${googlePanelHtml(p.live)}</div>`;
   else if (kind === "food" && gkey()) html += `<div class="panel" id="gpanel"><h3>On Google</h3><p class="summary" style="margin:0">Loading…</p></div>`;
   if (week.length) {
@@ -1513,6 +1730,10 @@ function openPlace(id) {
     html += `<div class="panel"><h3>Hours</h3><p style="margin:0;color:var(--muted)">This place hasn't listed its hours${phone ? ", so call to check" : ""}.</p></div>`;
   }
   if (kind === "food") html += offersPanel(p);
+  if (kind === "food") html += `<details class="panel"><summary>Good to know: tipping and tax</summary><ul>
+    <li>At a sit-down restaurant, a tip of 18 to 20 percent of the bill before tax is expected. At counters and for takeout it's optional.</li>
+    <li>Menu prices don't include sales tax; it's added when you pay and varies by city.</li>
+    <li>Tap water is free; ask for "the check" when you're ready to pay.</li></ul></details>`;
   html += p.google ? `</div>` : `<p class="credit">Details © OpenStreetMap contributors · <a href="https://www.openstreetmap.org/${esc(p.id)}" target="_blank" rel="noopener">fix something wrong</a></p></div>`;
 
   const sheet = $("#sheet");
@@ -1524,6 +1745,7 @@ function openPlace(id) {
   sheet.querySelector("[data-close]").onclick = () => history.back();
   sheet.querySelectorAll("[data-dish]").forEach(b => b.onclick = () => { location.hash = "dish/" + b.dataset.dish; });
   if (kind === "gas" && $("#priceForm")) bindPriceForm(p);
+  $("#saveBtn").onclick = () => { const on = toggleSaved(p, kind); const b = $("#saveBtn"); b.setAttribute("aria-pressed", String(on)); b.innerHTML = on ? I.star : I.starOff; b.setAttribute("aria-label", on ? "Saved" : "Save this place"); };
   if (kind === "food" && gkey() && !p.live) loadGoogleDetails(p);
   if (kind === "food" && gkey() && p.live?.id) loadReviews(p);
   if (kind === "food" && S.reviews[p.id]) showPicks(p, S.reviews[p.id].reviews);
@@ -1604,7 +1826,7 @@ function closeSheet(silent) {
 function googleFuelPanel(p) {
   const f = p.fuel;
   const when = f.updated ? ago(Date.parse(f.updated)) : "";
-  const cell = (k, label) => f[k] ? `<div>${label}<b>$${f[k].toFixed(2)}</b></div>` : "";
+  const cell = (k, label) => f[k] ? `<div>${label}<b>$${f[k].toFixed(2)}</b>${yours(f[k]) ? `<small>${esc(yours(f[k]))}</small>` : ""}</div>` : "";
   return `<div class="panel"><h3>Prices here</h3><div class="gprice">${cell("regular", "Regular")}${cell("midgrade", "Midgrade")}${cell("premium", "Premium")}${cell("diesel", "Diesel")}</div>
     <p class="credit" style="margin-top:10px">From Google${when ? `, updated ${when}` : ""}. ${p.mapsUri ? `<a href="${esc(p.mapsUri)}" target="_blank" rel="noopener">Open in Google Maps</a>` : ""}</p></div>`;
 }

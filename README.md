@@ -91,8 +91,8 @@ flowchart LR
 - **Gas stations** in the US are rebuilt every week from Geofabrik's daily OpenStreetMap extracts (the six US
   regional files, cut down to fuel stations with osmium) and split into 1-degree tiles, so the page loads the one or
   two tiles around you from GitHub's CDN instead of querying a map server from every phone.
-- **Restaurants** in covered metro areas (New York City and around, for now) are rebuilt nightly the same way into
-  2.5 km tiles, so the food list appears in about a second. Elsewhere the page queries
+- **Restaurants** in 18 large metro areas are rebuilt nightly the same way into 2.5 km tiles (each state file is
+  downloaded once and shared by the metros in it), so the food list appears in about a second. Elsewhere the page queries
   OpenStreetMap live, and the other list (gas or food) is loaded in the background while you look at the first.
 - **Opening hours** are OSM `opening_hours` strings (`Mo-Th 11:00-22:00; Fr-Sa 11:00-02:00; PH off`), evaluated with
   the opening_hours.js library against your local time and public holidays. Places with missing or unparseable hours are
@@ -112,17 +112,22 @@ flowchart LR
 
 ## What's next
 
-Pitstop is an early version. Planned improvements, roughly in order:
+Pitstop is an early version. Recently added:
 
-- **Faster food lists in more cities.** Prebuilt restaurant tiles for the largest US metros, not only New York, so lists
-  load in about a second everywhere.
-- **Your units and currency.** Gas per litre and in your home currency, distances in kilometres.
-- **Search by dish.** Find where you can get a dish that's open right now.
-- **Works offline.** Keep the app and your last results on the phone for places with weak signal.
-- **More opening hours.** Live hours for every place you scroll past when Google data is on.
-- **Dish guide in more languages,** starting with Hindi and Telugu, and short local tips such as tipping.
-- **EV charging stations** alongside gas, and saved places.
-- **A lighter intro** on slower phones and connections.
+- **Faster food lists in 18 metro areas**: New York, Los Angeles, San Francisco, San Diego, Chicago, Houston, Dallas,
+  Austin, Washington, Boston, Philadelphia, Miami, Orlando, Atlanta, Seattle, Phoenix, Las Vegas and Denver.
+- **Your units and currency**: kilometres, price per litre, and gas prices in about 30 currencies (daily rates).
+- **Search by dish**: type "biryani" or "ramen" and the list shows the places that usually serve it.
+- **Works offline**: the app is kept on the phone, and your last list is shown when there's no connection.
+- **EV charging stations** next to gas, **saved and recently viewed places**, and tips for paying at the pump and
+  tipping at restaurants.
+- **A lighter intro**: it plays once, and slower phones or data-saver mode skip it and the live blur.
+
+Still planned:
+
+- Live hours from Google for every place in the list, not only the nearest ones.
+- The dish guide in more languages, starting with Hindi and Telugu, reviewed by native speakers.
+- Restaurant tiles for more cities, and live charger availability.
 
 ## Running it
 

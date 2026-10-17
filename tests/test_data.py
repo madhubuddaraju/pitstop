@@ -129,3 +129,16 @@ def test_food_tiles_from_osm(tmp_path, monkeypatch):
     assert m["tiles"] == ["1630_-2960"] and m["places"] == 2 and len(m["boxes"]) == 42
     assert "40.75,-74,40.85,-73.9" in m["boxes"]
     assert json.loads((tmp_path / "food" / "nyc" / "1630_-2960.json").read_text())[0][2] in ("Sushi Place", "Corner Cafe")
+
+
+def test_regions_are_downloaded_once_and_shared(monkeypatch):
+    calls = []
+    def fake(regions, expr, key):
+        calls.append(regions[0])
+        if regions[0] == "us/california":
+            yield ("node/1", 34.05, -118.25, {"amenity": "restaurant", "name": "LA"})      # Los Angeles
+            yield ("node/2", 37.77, -122.42, {"amenity": "restaurant", "name": "SF"})      # San Francisco
+    monkeypatch.setattr(build_food_tiles.osm_extract, "region_objects", fake)
+    found = build_food_tiles.objects_by_metro(["la", "sf"], ["nwr/amenity=restaurant"])
+    assert calls == ["us/california"]
+    assert [o[3]["name"] for o in found["la"]] == ["LA"] and [o[3]["name"] for o in found["sf"]] == ["SF"]
