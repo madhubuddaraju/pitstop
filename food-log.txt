@@ -1,0 +1,54 @@
+  downloaded us/arizona: 304 MB
+us/arizona: done for phoenix
+  downloaded us/california: 1,333 MB
+us/california: done for la, sf, sandiego
+  downloaded us/colorado: 385 MB
+us/colorado: done for denver
+  downloaded us/connecticut: 217 MB
+us/connecticut: done for nyc
+  downloaded us/district-of-columbia: 21 MB
+us/district-of-columbia: done for dc
+  downloaded us/florida: 659 MB
+us/florida: done for miami, orlando
+  downloaded us/georgia: 357 MB
+us/georgia: done for atlanta
+  downloaded us/illinois: 361 MB
+us/illinois: done for chicago
+  downloaded us/indiana: 201 MB
+us/indiana: done for chicago
+  downloaded us/maryland: 216 MB
+us/maryland: done for dc
+  downloaded us/massachusetts: 311 MB
+us/massachusetts: done for boston
+  downloaded us/nevada: 124 MB
+us/nevada: done for vegas
+  downloaded us/new-jersey: 164 MB
+us/new-jersey: done for nyc, philadelphia
+  downloaded us/new-york: 498 MB
+us/new-york: done for nyc
+  downloaded us/pennsylvania: 349 MB
+us/pennsylvania: done for philadelphia
+  downloaded us/texas: 725 MB
+us/texas: done for houston, dallas, austin
+  downloaded us/virginia: 429 MB
+us/virginia: done for dc
+  downloaded us/washington: 365 MB
+us/washington: done for seattle
+nyc: 22,269 places in 450 tiles
+la: 17,392 places in 616 tiles
+sf: 14,400 places in 429 tiles
+sandiego: 4,676 places in 189 tiles
+chicago: 8,770 places in 320 tiles
+houston: 6,215 places in 445 tiles
+dallas: 8,997 places in 587 tiles
+austin: 3,110 places in 163 tiles
+dc: 6,009 places in 188 tiles
+boston: 3,977 places in 125 tiles
+philadelphia: 3,487 places in 172 tiles
+miami: 3,741 places in 237 tiles
+orlando: 2,630 places in 161 tiles
+atlanta: 4,082 places in 225 tiles
+seattle: 5,187 places in 147 tiles
+phoenix: 5,693 places in 297 tiles
+vegas: 3,166 places in 153 tiles
+denver: 4,684 places in 184 tiles
