@@ -35,3 +35,11 @@ test("search by dish finds the cuisines that serve it", () => {
   assert.equal(dishSearch("zz", guide), null);
   assert.equal(dishSearch("qwertyuiop", guide), null);
 });
+
+import { inUS } from "../docs/core.js";
+test("coverage is the United States", () => {
+  assert.equal(inUS(40.758, -73.9855), true);      // New York
+  assert.equal(inUS(21.3, -157.86), true);          // Honolulu
+  assert.equal(inUS(17.385, 78.4867), false);       // Hyderabad
+  assert.equal(inUS(51.5, -0.12), false);           // London
+});

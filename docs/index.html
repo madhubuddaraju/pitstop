@@ -826,8 +826,7 @@ function drive(THREE) {
   <header class="topbar">
     <h1 class="logo intro" aria-label="Pitstop"><span class="wordmark">PITSTOP</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></h1>
   </header>
-  <p class="home-loc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="homeLocText">Your location is used only when you open a list</span></p>
-  <div class="home-tools"><button class="chip" id="unitsBtn" type="button">Units and currency</button></div>
+  <p class="home-loc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span id="homeLocText">For the United States. Your location is used only when you open a list</span></p>
   <div class="tiles">
     <a class="tile" href="#gas">
       <span class="tile-head"><span><h2>Gas</h2><p>Stations around you by distance or price, and EV charging</p></span>
@@ -835,7 +834,6 @@ function drive(THREE) {
       <span class="tile-foot">
         <span class="sign" id="homeSign"><span class="sign-row"><span>Regular</span><b>$–.––</b></span><span class="sign-row"><span>Diesel</span><b>$–.––</b></span></span>
         <span class="sign-cap" id="homeSignCap" style="display:block">Weekly average prices</span>
-        <span class="yours" id="homeYours" hidden></span>
       </span>
     </a>
     <a class="tile" href="#food">
@@ -886,7 +884,7 @@ function drive(THREE) {
 import {
   overpassQuery, parsePlaces, cuisineIndex, cuisinesFor, cuisineLabel, dishesFor, dietBadges, serviceBadges,
   hoursStatus, lateNight, weekHours, formatDistance, gasForLocation, inNYC, matchInspection, OVERPASS_URLS, distanceMeters,
-  fuelInYourUnits, useMiles, dishSearch, CURRENCIES, formatMoney,
+  dishSearch, inUS,
   fuelTileKeys, placesFromTiles, foodMetro, foodTileKeys, placesFromFoodTiles, foodBoxesFor, dishLexicon, reviewPicks, GOOGLE_NEARBY, GOOGLE_TEXT, googleStatus, fromGoogle, sameGooglePlace, mergeGoogleFood,
 } from "./core.js";
 
@@ -949,61 +947,8 @@ if ("serviceWorker" in navigator && location.hostname.endsWith("github.io")) nav
 document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { location.hash = b.dataset.go; });
 document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { location.hash = b.dataset.mode; });
 $("#backHome").onclick = () => { location.hash = ""; };
-$("#unitsBtn").onclick = () => openUnitsSheet();
 $("#replayIntro").onclick = () => { try { localStorage.removeItem("pitstop:introSeen"); sessionStorage.removeItem("pitstop:intro"); } catch {} location.hash = ""; location.reload(); };
 $("#changeLoc").onclick = () => openLocationSheet();
-
-// ---------- units and currency ----------
-const prefs = () => store.get("prefs", {});
-let RATES = store.get("fx", null);
-async function loadRates() {
-  const c = prefs().currency;
-  if (!c || c === "USD") return;
-  if (RATES?.rates?.[c] && Date.now() - RATES.at < 12 * 3600e3) return;
-  try {
-    const j = await (await fetch("https://open.er-api.com/v6/latest/USD")).json();
-    if (j.result === "success") { RATES = { at: Date.now(), rates: j.rates, updated: j.time_last_update_utc }; store.set("fx", RATES); }
-  } catch { /* no conversion until the rates load */ }
-}
-const yours = usd => fuelInYourUnits(usd, prefs(), RATES?.rates || {});
-const unitsLabel = () => { const u = prefs(); return [u.distance === "km" ? "km" : u.distance === "mi" ? "miles" : null, u.volume === "l" ? "litres" : null, u.currency && u.currency !== "USD" ? u.currency : null].filter(Boolean).join(" · "); };
-function updateUnitsBtn() { const l = unitsLabel(); $("#unitsBtn").textContent = l ? `Units: ${l}` : "Units and currency"; }
-
-function openUnitsSheet() {
-  const u = prefs();
-  const opt = (name, val, label, cur) => `<button class="chip" type="button" data-u="${name}" data-v="${val}" aria-pressed="${cur === val}">${label}</button>`;
-  const sheet = $("#sheet");
-  sheet.innerHTML = `<div class="wrap">
-    <div class="sheet-top"><span></span><button class="iconbtn" data-close aria-label="Close">${I.close}</button></div>
-    <h2 class="dish-title" style="margin-top:4px">Units and currency</h2>
-    <p class="lead">Show distances and gas prices the way you're used to. Prices are still charged in US dollars per gallon.</p>
-    <div class="panel">
-      <div class="units-group"><h4>Distance</h4><div class="row">${opt("distance", "", "Automatic", u.distance || "")}${opt("distance", "mi", "Miles", u.distance)}${opt("distance", "km", "Kilometres", u.distance)}</div></div>
-      <div class="units-group"><h4>Gas price per</h4><div class="row">${opt("volume", "gal", "US gallon", u.volume || "gal")}${opt("volume", "l", "Litre", u.volume)}</div></div>
-      <div class="units-group"><h4>Also show prices in</h4><select id="curSel">${Object.keys(CURRENCIES).map(c => `<option value="${c}" ${c === (u.currency || "USD") ? "selected" : ""}>${c === "USD" ? "US dollars only" : c}</option>`).join("")}</select></div>
-      <p class="credit" id="fxNote" style="margin-top:12px"></p>
-    </div></div>`;
-  sheet.classList.remove("hidden");
-  document.body.style.overflow = "hidden";
-  const note = () => {
-    const c = prefs().currency;
-    $("#fxNote").innerHTML = c && c !== "USD" ? (RATES?.rates?.[c] ? `1 US dollar = ${formatMoney(RATES.rates[c], c)}. <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Rates by Exchange Rate API</a>, updated daily.` : "Loading today's exchange rate…") : "";
-  };
-  const save = async (k, v) => { const n = { ...prefs(), [k]: v }; if (!v) delete n[k]; store.set("prefs", n); note(); await loadRates(); note(); refreshAll(); };
-  sheet.querySelectorAll("[data-u]").forEach(b => b.onclick = () => {
-    sheet.querySelectorAll(`[data-u="${b.dataset.u}"]`).forEach(x => x.setAttribute("aria-pressed", String(x === b)));
-    save(b.dataset.u, b.dataset.v);
-  });
-  $("#curSel").onchange = e => save("currency", e.target.value === "USD" ? "" : e.target.value);
-  sheet.querySelector("[data-close]").onclick = () => closeSheet();
-  note();
-}
-function refreshAll() {
-  updateUnitsBtn(); updateHome();
-  if (S.mode === "food" && S.places.food) renderFood();
-  if (S.mode === "gas" && S.places.gas) renderGas();
-  if (S.mode === "ev" && S.places.ev) renderEV();
-}
 
 // ---------- saved and recently viewed places ----------
 const snapshot = (p, kind) => { const { status, dist, late, ...rest } = p; return { ...rest, kind }; };
@@ -1038,8 +983,8 @@ window.__setWallpaper = (url, save) => {
 const signPrice = v => { const t = v.toFixed(3); return `$${t.slice(0, -1)}<sup>${t.slice(-1)}</sup>`; };
 async function updateHome() {
   if (S.loc) { const el = $("#homeLocText"); el.textContent = S.loc.label; el.classList.add("set"); }
-  renderStoredLists(); updateUnitsBtn();
-  await Promise.all([loadGas(), loadRates()]);
+  renderStoredLists();
+  await loadGas();
   if (!S.gas?.areas) return;
   const local = S.loc ? gasForLocation(S.gas, S.loc.stateCode, S.loc.lat, S.loc.lon) : null;
   const us = S.gas.areas.NUS;
@@ -1052,9 +997,6 @@ async function updateHome() {
   const sr = reg.series, cents = Math.round((sr[sr.length - 1][1] - (sr[sr.length - 2]?.[1] ?? sr[sr.length - 1][1])) * 100);
   const where = reg.name === "United States" ? "US" : reg.name;
   $("#homeSignCap").innerHTML = `${esc(where)} average this week${cents ? `, <span class="${cents < 0 ? "down" : "up"}">${Math.abs(cents)}¢ ${cents < 0 ? "lower" : "higher"}</span> than last week` : ""}`;
-  const y = yours(last(reg)), yd = dsl?.series?.length ? yours(last(dsl)) : null;
-  $("#homeYours").hidden = !y;
-  if (y) $("#homeYours").innerHTML = `In your units: regular <b>${esc(y)}</b>${yd ? `, diesel <b>${esc(yd)}</b>` : ""}`;
 }
 
 // ---------- location ----------
@@ -1088,7 +1030,8 @@ function setLocation(pos, label) {
   S.places = {};
   S.liveFood = null;
   $("#locText").textContent = S.loc.label;
-  reverseGeocode(S.loc).then(() => { if (S.mode === "gas") renderGas(); updateHome(); });
+  // the boxes are rough near the borders, so the address decides: outside the US, say so
+  reverseGeocode(S.loc).then(() => { if (S.loc.country !== "us" && S.mode) { S.places = {}; reload(); return; } if (S.mode === "gas") renderGas(); updateHome(); });
 }
 
 async function reverseGeocode(loc) {
@@ -1119,7 +1062,7 @@ function openLocationSheet() {
     <h2 class="dish-title" style="margin-top:4px">Where are you?</h2>
     <div class="panel">
       <button class="btn" id="useGps" style="width:100%;padding:13px">Use my current location</button>
-      <div class="field"><input id="placeQ" type="search" placeholder="Or type an address, place or ZIP" autocomplete="off"><button class="btn" id="placeGo">Search</button></div>
+      <div class="field"><input id="placeQ" type="search" placeholder="Or type a US address, place or ZIP" autocomplete="off"><button class="btn" id="placeGo">Search</button></div>
       <div class="results-list" id="placeResults"></div>
     </div></div>`;
   sheet.classList.remove("hidden");
@@ -1398,10 +1341,13 @@ async function reload() {
   if (!S.places[mode]) {
     content.innerHTML = `<div class="lights-loader"><div class="row"><i></i><i></i><i></i></div><span>${mode === "food" ? "Finding places" : mode === "ev" ? "Finding chargers" : "Finding stations"}</span></div>
       <div class="list">${'<div class="skeleton"></div>'.repeat(4)}</div>`;
-    try { await ensureLocation(); }
+    try { await ensureLocation(); if (!inUS(S.loc.lat, S.loc.lon) || S.loc.country !== "us") throw new Error("outside"); }
     catch (e) {
-      $("#locText").textContent = "Location not set";
-      content.innerHTML = `<div class="state"><h3>Where are you?</h3><p>${esc(e.message)}</p><button class="btn" id="setLoc">Set location</button></div>`;
+      const outside = e.message === "outside";
+      if (!outside) $("#locText").textContent = "Location not set";
+      content.innerHTML = outside
+        ? `<div class="state"><h3>Pitstop is for the United States</h3><p>Gas prices, restaurant hours and the maps it uses cover the US only. Pick a US address to look around.</p><button class="btn" id="setLoc">Choose a US location</button></div>`
+        : `<div class="state"><h3>Where are you?</h3><p>${esc(e.message)}</p><button class="btn" id="setLoc">Set location</button></div>`;
       $("#setLoc").onclick = openLocationSheet;
       return;
     }
@@ -1476,7 +1422,7 @@ function enrichOne(p, mode, now = new Date()) {
   }
 }
 
-const miles = () => useMiles(prefs(), S.loc?.country || "us");
+const miles = () => true;   // Pitstop is for the United States: miles, gallons, dollars
 const pill = st => `<span class="pill ${st.soon ? "soon" : st.state}">${esc(st.label)}</span>`;
 
 function renderFood() {
@@ -1586,7 +1532,6 @@ function priceCard() {
   return `<div class="price-card">
     <div class="lbl">Average regular gas · ${esc(g.regular.name)}</div>
     <div class="price-row"><div class="price-big">$${last.toFixed(2)}<small>/gal</small></div>${delta}${spark(s)}</div>
-    ${yours(last) ? `<span class="yours">In your units: <b>${esc(yours(last))}</b></span>` : ""}
     <div class="price-sub"><span>Week of ${week} · 12-week trend</span>${d ? `<span>Diesel $${d[d.length - 1][1].toFixed(2)}${g.diesel.code !== g.regular.code ? ` (${esc(g.diesel.name)})` : ""}</span>` : ""}</div>
   </div>`;
 }
@@ -1626,7 +1571,7 @@ function renderGas() {
       <h3>${esc(p.name)}</h3><span class="right">${esc(formatDistance(p.dist, { miles: miles(), mode: "drive" }).split(" · ")[1] || "")}</span>
       <span class="meta">${esc([formatDistance(p.dist, { miles: miles(), mode: "drive" }).split(" · ")[0], p.address].filter(Boolean).join(" · "))}</span>
       <span class="row2">${pill(p.status)}${fuels.map(t => `<span class="tag">${t}</span>`).join("")}
-        ${p.fuel?.regular ? `<span class="seen">$${p.fuel.regular.toFixed(2)} regular${yours(p.fuel.regular) ? `<small>${esc(yours(p.fuel.regular))}</small>` : ""}</span>${p.fuel.regular === cheapestLive ? `<span class="cheapest">Cheapest nearby</span>` : ""}` : ""}
+        ${p.fuel?.regular ? `<span class="seen">$${p.fuel.regular.toFixed(2)} regular</span>${p.fuel.regular === cheapestLive ? `<span class="cheapest">Cheapest nearby</span>` : ""}` : ""}
         ${sp && !p.fuel?.regular ? `<span class="seen">$${sp.price.toFixed(2)} you saw ${ago(sp.at)}</span>` : ""}${p.id === cheapestSeen && known.length > 1 ? `<span class="cheapest">Cheapest you've seen</span>` : ""}</span>
     </button>`;
   }).join("");
@@ -1826,7 +1771,7 @@ function closeSheet(silent) {
 function googleFuelPanel(p) {
   const f = p.fuel;
   const when = f.updated ? ago(Date.parse(f.updated)) : "";
-  const cell = (k, label) => f[k] ? `<div>${label}<b>$${f[k].toFixed(2)}</b>${yours(f[k]) ? `<small>${esc(yours(f[k]))}</small>` : ""}</div>` : "";
+  const cell = (k, label) => f[k] ? `<div>${label}<b>$${f[k].toFixed(2)}</b></div>` : "";
   return `<div class="panel"><h3>Prices here</h3><div class="gprice">${cell("regular", "Regular")}${cell("midgrade", "Midgrade")}${cell("premium", "Premium")}${cell("diesel", "Diesel")}</div>
     <p class="credit" style="margin-top:10px">From Google${when ? `, updated ${when}` : ""}. ${p.mapsUri ? `<a href="${esc(p.mapsUri)}" target="_blank" rel="noopener">Open in Google Maps</a>` : ""}</p></div>`;
 }

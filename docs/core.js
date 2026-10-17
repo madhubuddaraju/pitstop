@@ -622,3 +622,11 @@ export function dishSearch(query, guide) {
   const cuisines = Object.entries(guide.cuisines).filter(([, c]) => (c.dishes || []).some(id => ids.has(id))).map(([k]) => k);
   return cuisines.length ? { dishes: hits, cuisines } : null;
 }
+
+// ---------- coverage ----------
+
+/** Pitstop covers the United States: the lower 48, Alaska, Hawaii and Puerto Rico (rough boxes are enough here). */
+export function inUS(lat, lon) {
+  const boxes = [[24.3, -125.0, 49.5, -66.8], [51.0, -180, 71.6, -129.9], [18.8, -160.5, 22.4, -154.6], [17.8, -67.4, 18.6, -65.2]];
+  return boxes.some(([s, w, n, e]) => lat >= s && lat <= n && lon >= w && lon <= e);
+}

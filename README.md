@@ -5,7 +5,7 @@
 
 **Open it on your phone: [subbarajubuddaraju.github.io/pitstop](https://subbarajubuddaraju.github.io/pitstop/)**
 
-> **Early version.** Pitstop works today for gas and food anywhere in the US, and it will keep improving. The list
+> **Early version, for the United States.** Pitstop works today for gas and food anywhere in the US, and it will keep improving. The list
 > below is what's planned next.
 
 ## The problem
@@ -116,7 +116,6 @@ Pitstop is an early version. Recently added:
 
 - **Faster food lists in 18 metro areas**: New York, Los Angeles, San Francisco, San Diego, Chicago, Houston, Dallas,
   Austin, Washington, Boston, Philadelphia, Miami, Orlando, Atlanta, Seattle, Phoenix, Las Vegas and Denver.
-- **Your units and currency**: kilometres, price per litre, and gas prices in about 30 currencies (daily rates).
 - **Search by dish**: type "biryani" or "ramen" and the list shows the places that usually serve it.
 - **Works offline**: the app is kept on the phone, and your last list is shown when there's no connection.
 - **EV charging stations** next to gas, **saved and recently viewed places**, and tips for paying at the pump and
