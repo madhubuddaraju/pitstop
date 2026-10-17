@@ -646,3 +646,119 @@ export function targetedFoodQuery({ name, cuisines = [], halal = false, veg = fa
   if (!parts.length && diet) parts.push(`${base}${diet}${around};`);
   return parts.length ? `[out:json][timeout:25];(${parts.join("")});out center tags;` : null;
 }
+
+// ---------- gas on the way ----------
+
+/** Which state a point is in, from simplified outlines {CODE: [polygon [ring [[lon, lat], ...]]]}. */
+export function stateAt(states, lat, lon) {
+  const inRing = ring => {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i], [xj, yj] = ring[j];
+      if ((yi > lat) !== (yj > lat) && lon < (xj - xi) * (lat - yi) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  };
+  for (const [code, polys] of Object.entries(states || {}))
+    for (const poly of polys) if (poly.length && inRing(poly[0]) && !poly.slice(1).some(inRing)) return code;
+  return null;
+}
+
+/** Points every `step` metres along a route of [lon, lat] coordinates, each with its distance from the start. */
+export function sampleRoute(coords, step = 400) {
+  if (!coords.length) return [];
+  const out = [{ lat: coords[0][1], lon: coords[0][0], along: 0 }];
+  let along = 0, sinceLast = 0;
+  for (let i = 1; i < coords.length; i++) {
+    const [lon0, lat0] = coords[i - 1], [lon1, lat1] = coords[i];
+    const seg = distanceMeters(lat0, lon0, lat1, lon1);
+    // long straight stretches (highways) get points in between, so nothing beside them is missed
+    let t = step - sinceLast;
+    while (t <= seg) {
+      const f = t / seg;
+      out.push({ lat: lat0 + (lat1 - lat0) * f, lon: lon0 + (lon1 - lon0) * f, along: along + t });
+      t += step;
+    }
+    sinceLast = seg - (t - step);
+    along += seg;
+  }
+  const [lonE, latE] = coords[coords.length - 1];
+  out.push({ lat: latE, lon: lonE, along });
+  return out;
+}
+
+/** Places within `maxOff` metres of the route, with how far along it they are and how far off it. */
+export function alongRoute(places, samples, maxOff = 1600) {
+  const cell = 0.05, grid = new Map(), key = (a, o) => `${Math.floor(a / cell)}_${Math.floor(o / cell)}`;
+  for (const s of samples) { const k = key(s.lat, s.lon); if (!grid.has(k)) grid.set(k, []); grid.get(k).push(s); }
+  const out = [];
+  for (const p of places) {
+    const a = Math.floor(p.lat / cell), o = Math.floor(p.lon / cell);
+    let best = null;
+    for (let da = -1; da <= 1; da++) for (let dob = -1; dob <= 1; dob++)
+      for (const s of grid.get(`${a + da}_${o + dob}`) || []) {
+        const d = distanceMeters(p.lat, p.lon, s.lat, s.lon);
+        if (!best || d < best.off) best = { off: d, along: s.along };
+      }
+    if (best && best.off <= maxOff) out.push({ ...p, off: best.off, along: best.along });
+  }
+  return out.sort((x, y) => x.along - y.along);
+}
+
+/** Encode [[lat, lon], ...] as a Google encoded polyline (precision 5). */
+export function encodePolyline(points) {
+  let out = "", pLat = 0, pLon = 0;
+  const enc = v => { v = v < 0 ? ~(v << 1) : v << 1; let s = ""; while (v >= 0x20) { s += String.fromCharCode((0x20 | (v & 0x1f)) + 63); v >>= 5; } return s + String.fromCharCode(v + 63); };
+  for (const [lat, lon] of points) {
+    const a = Math.round(lat * 1e5), o = Math.round(lon * 1e5);
+    out += enc(a - pLat) + enc(o - pLon); pLat = a; pLon = o;
+  }
+  return out;
+}
+
+/** Stretches of the route that share one area price (in route order), so the cheapest stretch can be named. */
+export function priceStretches(stations) {
+  const out = [];
+  for (const s of stations) {
+    if (!s.area) continue;
+    const last = out[out.length - 1];
+    if (last && last.code === s.area.code) { last.to = s.along; last.n++; }
+    else out.push({ code: s.area.code, name: s.area.name, price: s.area.price, from: s.along, to: s.along, n: 1 });
+  }
+  return out;
+}
+
+/** Money saved by driving to a cheaper station, after the fuel used getting there and back. */
+export function worthTheDrive({ price, comparePrice, extraMeters, tankGallons = 12, mpg = 25 }) {
+  const extraGallons = (2 * extraMeters / 1609.344) / mpg;
+  return Math.round(((comparePrice - price) * tankGallons - extraGallons * price) * 100) / 100;
+}
+
+// ---------- what's usually in a dish ----------
+
+const FLAG_WORDS = {
+  pork: /\b(pork|bacon|ham|lard|chorizo|prosciutto|pancetta|pepperoni|char siu|carnitas|guanciale|salami)\b/,
+  beef: /\b(beef|steak|brisket|veal|oxtail|pastrami|bulgogi|ground beef)\b/,
+  alcohol: /\b(wine|beer|sake|mirin|rum|vodka|brandy|bourbon|whisk(e)?y|sherry|marsala|liqueur|cognac|tequila|shaoxing|kahlua)\b/,
+  nuts: /\b(peanuts?|cashews?|almonds?|walnuts?|pistachios?|pecans?|hazelnuts?|pine nuts?)\b/,
+  shellfish: /\b(shrimp|prawns?|crab|lobster|clams?|mussels?|oysters?|scallops?|crawfish)\b/,
+};
+/** Things a dish usually contains that many people avoid, from its usual ingredients. */
+export function dishFlags(dish) {
+  const text = [dish.name, ...(dish.ingredients || [])].join(" ").toLowerCase();
+  return Object.entries(FLAG_WORDS).filter(([, re]) => re.test(text)).map(([k]) => k);
+}
+
+// ---------- tip and tax ----------
+
+export const STATE_SALES_TAX = { AL: 4, AK: 0, AZ: 5.6, AR: 6.5, CA: 7.25, CO: 2.9, CT: 6.35, DE: 0, DC: 6, FL: 6, GA: 4, HI: 4, ID: 6, IL: 6.25,
+  IN: 7, IA: 6, KS: 6.5, KY: 6, LA: 5, ME: 5.5, MD: 6, MA: 6.25, MI: 6, MN: 6.875, MS: 7, MO: 4.225, MT: 0, NE: 5.5, NV: 6.85, NH: 0, NJ: 6.625,
+  NM: 4.875, NY: 4, NC: 4.75, ND: 5, OH: 5.75, OK: 4.5, OR: 0, PA: 6, RI: 7, SC: 6, SD: 4.2, TN: 7, TX: 6.25, UT: 6.1, VT: 6, VA: 5.3, WA: 6.5,
+  WV: 6, WI: 5, WY: 4, PR: 10.5 };
+
+/** Tax on the bill, tip on the amount before tax, and each person's share. */
+export function tipAndTax(bill, taxPct, tipPct, people = 1) {
+  const tax = bill * taxPct / 100, tip = bill * tipPct / 100, total = bill + tax + tip;
+  const r = v => Math.round(v * 100) / 100;
+  return { tax: r(tax), tip: r(tip), total: r(total), each: r(total / Math.max(1, people)) };
+}

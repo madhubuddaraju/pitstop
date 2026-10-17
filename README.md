@@ -122,7 +122,19 @@ Pitstop is an early version. Recently added:
   tipping at restaurants.
 - **A lighter intro**: it plays once, and slower phones or data-saver mode skip it and the live blur.
 
+- **Gas on my way**: enter where you're heading and Pitstop finds the stations within a mile of the route (OSRM routing),
+  in the order you'll reach them, and names the stretch where the area average is lowest. With a Google key it adds
+  each station's price along the route.
+- **Explain any dish**: type a dish on the start screen or a restaurant page; dishes in the guide open their page,
+  anything else is looked up on Wikipedia.
+- **What a dish usually contains**: pork, beef, alcohol, nuts and shellfish are marked from each dish's usual recipe,
+  and "I don't eat" settings turn the ones you avoid red.
+- **Tip and tax calculator** on restaurant pages, **"worth the drive?"** savings on cheaper stations, a pickup-direct
+  note, and a link to add missing hours on OpenStreetMap.
+
 Still planned:
+
+- Health inspection grades beyond New York City (Chicago, San Francisco, Los Angeles County and others publish them).
 
 - Live hours from Google for every place in the list, not only the nearest ones.
 - The dish guide in more languages, starting with Hindi and Telugu, reviewed by native speakers.
