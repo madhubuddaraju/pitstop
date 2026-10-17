@@ -630,3 +630,19 @@ export function inUS(lat, lon) {
   const boxes = [[24.3, -125.0, 49.5, -66.8], [51.0, -180, 71.6, -129.9], [18.8, -160.5, 22.4, -154.6], [17.8, -67.4, 18.6, -65.2]];
   return boxes.some(([s, w, n, e]) => lat >= s && lat <= n && lon >= w && lon <= e);
 }
+
+// ---------- looking further away for a search or filter ----------
+
+const reEscape = s => s.replace(/[.*+?^${}()|[\]\\"]/g, "\\$&");
+
+/** An Overpass query for food places that match a search or filter, out to a wider radius. Null when there's nothing to target. */
+export function targetedFoodQuery({ name, cuisines = [], halal = false, veg = false }, lat, lon, radius) {
+  const around = `(around:${Math.round(radius)},${lat.toFixed(5)},${lon.toFixed(5)})`;
+  const base = `nwr["amenity"~"^(${FOOD_AMENITIES.join("|")})$"]["name"]`;
+  const diet = (halal ? `["diet:halal"~"^(yes|only)$"]` : "") + (veg ? `["diet:vegetarian"~"^(yes|only)$"]` : "");
+  const parts = [];
+  if (name) parts.push(`${base}["name"~"${reEscape(name)}",i]${diet}${around};`);
+  if (cuisines.length) parts.push(`${base}["cuisine"~"(^|;)(${cuisines.map(reEscape).join("|")})($|;)",i]${diet}${around};`);
+  if (!parts.length && diet) parts.push(`${base}${diet}${around};`);
+  return parts.length ? `[out:json][timeout:25];(${parts.join("")});out center tags;` : null;
+}

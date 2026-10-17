@@ -43,3 +43,13 @@ test("coverage is the United States", () => {
   assert.equal(inUS(17.385, 78.4867), false);       // Hyderabad
   assert.equal(inUS(51.5, -0.12), false);           // London
 });
+
+import { targetedFoodQuery } from "../docs/core.js";
+test("a wider search targets the name, cuisine or diet asked for", () => {
+  const q = targetedFoodQuery({ name: "ramen", cuisines: ["japanese", "ramen"] }, 40.758, -73.9855, 15000);
+  assert.match(q, /\["name"~"ramen",i\]/);
+  assert.match(q, /cuisine"~"\(\^\|;\)\(japanese\|ramen\)/);
+  assert.match(q, /around:15000,40\.75800,-73\.98550/);
+  assert.match(targetedFoodQuery({ halal: true }, 40, -74, 9000), /diet:halal/);
+  assert.equal(targetedFoodQuery({}, 40, -74, 9000), null);
+});

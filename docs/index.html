@@ -884,7 +884,7 @@ function drive(THREE) {
 import {
   overpassQuery, parsePlaces, cuisineIndex, cuisinesFor, cuisineLabel, dishesFor, dietBadges, serviceBadges,
   hoursStatus, lateNight, weekHours, formatDistance, gasForLocation, inNYC, matchInspection, OVERPASS_URLS, distanceMeters,
-  dishSearch, inUS,
+  dishSearch, inUS, targetedFoodQuery,
   fuelTileKeys, placesFromTiles, foodMetro, foodTileKeys, placesFromFoodTiles, foodBoxesFor, dishLexicon, reviewPicks, GOOGLE_NEARBY, GOOGLE_TEXT, googleStatus, fromGoogle, sameGooglePlace, mergeGoogleFood,
 } from "./core.js";
 
@@ -1454,12 +1454,19 @@ function renderFood() {
     return true;
   };
   const matched = all.filter(match);
+  // a search or filter with few matches nearby: look further away, and show the nearest ones even if they aren't close
+  const filtering = !!((q && q.length >= 2) || f.cuisine || f.halal || f.veg || f.late);
+  const usable = f.open ? matched.filter(p => p.status.state !== "closed") : matched;
+  if (filtering && usable.length < 5) widenFood(byDish);
+  const wide = filtering && S.widened?.key === wideKey() ? S.widened : null;
   const open = matched.filter(p => p.status.state === "open");
   const unknown = matched.filter(p => p.status.state === "unknown");
   const closed = matched.filter(p => p.status.state === "closed");
   const content = $("#content");
   if (!matched.length) {
-    content.innerHTML = `<div class="state"><h3>Nothing matches</h3><p>Try removing a filter.</p></div>`;
+    content.innerHTML = wide?.busy
+      ? `<div class="lights-loader"><div class="row"><i></i><i></i><i></i></div><span>Nothing close by. Looking further away…</span></div>`
+      : `<div class="state"><h3>Nothing matches</h3><p>${wide ? "Nothing like this within about 9 miles. " : ""}Try another word or remove a filter.</p></div>`;
     return;
   }
   const live = S.liveFood;
@@ -1470,8 +1477,13 @@ function renderFood() {
   const dishNote = byDish ? `<p class="summary">${esc(byDish.dishes.slice(0, 3).map(d => d.name).join(", "))} ${byDish.dishes.length > 1 ? "are" : "is"} usually on the menu at ${esc(byDish.cuisines.slice(0, 4).map(c => S.dishes.cuisines[c].label).join(", "))} places, so those are included.</p>` : "";
   let html = offlineNote("food") + liveNote + dishNote + `<p class="summary">${open.length} open now${f.open ? "" : ` · ${closed.length} closed`} · ${unknown.length} without listed hours</p>`;
   const groups = f.open
-    ? [["", open], ["Hours not listed · may be open", unknown]]
+    ? [["", open], ["Hours not listed · may be open", unknown], ...(filtering && open.length + unknown.length < 5 ? [["Closed now · nearest first", closed]] : [])]
     : [["", [...open, ...closed, ...unknown].sort((a, b) => a.dist - b.dist)]];
+  if (wide?.busy) html += `<p class="summary">Only a few matches close by. Looking further away…</p>`;
+  else if (wide && usable.length) {
+    const far = Math.max(...usable.slice(0, S.shown).map(p => p.dist));
+    if (far > 1600) html += `<p class="summary">Showing the nearest matches, up to ${esc(formatDistance(far, { miles: miles() }).split(" · ")[0])} away.</p>`;
+  }
   let budget = S.shown, remaining = 0;
   for (const [label, items] of groups) {
     if (!items.length) continue;
@@ -1488,6 +1500,33 @@ function renderFood() {
   bindItems();
   $("#more")?.addEventListener("click", () => { S.shown += 40; renderFood(); });
   content.querySelectorAll("[data-gsettings]").forEach(b => b.onclick = openGoogleSheet);
+}
+
+const wideKey = () => { const f = S.filters; return [f.q, f.cuisine, f.halal, f.veg, f.late, S.loc?.lat.toFixed(3), S.loc?.lon.toFixed(3)].join("|"); };
+async function widenFood(byDish) {
+  const key = wideKey(), loc = S.loc, f = S.filters;
+  if (!loc || S.widened?.key === key) return;
+  S.widened = { key, busy: true };
+  const add = [];
+  try {
+    const tiles = await foodFromTiles(loc, [4000, 8000], Infinity);
+    if (tiles) add.push(...tiles);
+    const osm = k => S.dishes.cuisines[k]?.osm || [k];
+    const q = (f.q || "").toLowerCase();
+    const cuisines = [...new Set([
+      ...(f.cuisine ? osm(f.cuisine) : []),
+      ...(byDish ? byDish.cuisines.flatMap(osm) : []),
+      ...(q.length >= 3 ? Object.entries(S.dishes.cuisines).filter(([, c]) => c.label.toLowerCase().includes(q)).flatMap(([k]) => osm(k)) : []),
+    ])];
+    const query = targetedFoodQuery({ name: q.length >= 2 ? f.q : null, cuisines: f.cuisine && !q ? osm(f.cuisine) : cuisines, halal: f.halal, veg: f.veg }, loc.lat, loc.lon, 15000);
+    if (query) add.push(...parsePlaces(await overpass(query), "food", loc));
+  } catch { /* the map servers are busy: keep what we have */ }
+  if (loc !== S.loc || !S.places.food) return;
+  const have = new Set(S.places.food.map(p => p.id));
+  for (const p of add) if (!have.has(p.id)) { have.add(p.id); enrichOne(p, "food"); S.places.food.push(p); }
+  S.places.food.sort((a, b) => a.dist - b.dist);
+  if (S.widened?.key === key) S.widened = { key, busy: false };
+  if (S.mode === "food") renderFood();
 }
 
 function foodItem(p) {
